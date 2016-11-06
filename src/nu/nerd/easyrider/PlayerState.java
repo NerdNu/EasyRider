@@ -41,6 +41,16 @@ public class PlayerState {
 
     // ------------------------------------------------------------------------
     /**
+     * Return true if there is a pending interaction.
+     * 
+     * @return true if there is a pending interaction.
+     */
+    public boolean hasPendingInteraction() {
+        return _pendingInteraction != null;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Handle a pending interaction (if there is one) by passing it a
      * PlayerInteractEntityEvent, and then clear the pending interaction.
      * 
@@ -48,7 +58,7 @@ public class PlayerState {
      * @param savedHorse the database state of the horse.
      */
     public void handlePendingInteraction(PlayerInteractEntityEvent event, SavedHorse savedHorse) {
-        if (_pendingInteraction != null && event.getPlayer() == _player) {
+        if (hasPendingInteraction() && event.getPlayer() == _player) {
             _pendingInteraction.onPlayerInteractEntity(event, savedHorse);
             _pendingInteraction = null;
         }

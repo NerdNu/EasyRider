@@ -3,7 +3,9 @@ package nu.nerd.easyrider;
 import java.util.logging.Logger;
 
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Horse;
 
 import nu.nerd.easyrider.db.SavedHorse;
 
@@ -36,13 +38,15 @@ public class Configuration {
 
         @Override
         public String getFormattedValue(SavedHorse savedHorse) {
-            return String.format("%.3g m/s", getDisplayValue(getLevel(savedHorse)));
+            return String.format("%.2f m/s", getDisplayValue(getLevel(savedHorse)));
         }
 
         @Override
-        public void setLevel(SavedHorse savedHorse, int level) {
+        public void setLevel(SavedHorse savedHorse, Horse horse, int level) {
             savedHorse.setSpeedLevel(level);
             savedHorse.setDistanceTravelled(getEffortForLevel(level));
+            AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
+            horseAttribute.setBaseValue(getValue(level));
         }
 
         @Override
@@ -52,7 +56,7 @@ public class Configuration {
 
         @Override
         public String getFormattedEffort(SavedHorse savedHorse) {
-            return String.format("%.3g m travelled", savedHorse.getDistanceTravelled());
+            return String.format("%.2fm travelled", savedHorse.getDistanceTravelled());
         }
     };
 
@@ -75,13 +79,15 @@ public class Configuration {
 
         @Override
         public String getFormattedValue(SavedHorse savedHorse) {
-            return String.format("%.3g m", getDisplayValue(getLevel(savedHorse)));
+            return String.format("%.2fm", getDisplayValue(getLevel(savedHorse)));
         }
 
         @Override
-        public void setLevel(SavedHorse savedHorse, int level) {
+        public void setLevel(SavedHorse savedHorse, Horse horse, int level) {
             savedHorse.setJumpLevel(level);
             savedHorse.setDistanceJumped(getEffortForLevel(level));
+            AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
+            horseAttribute.setBaseValue(getValue(level));
         }
 
         @Override
@@ -91,7 +97,7 @@ public class Configuration {
 
         @Override
         public String getFormattedEffort(SavedHorse savedHorse) {
-            return String.format("%.3g m jumped", savedHorse.getDistanceJumped());
+            return String.format("%.2fm jumped", savedHorse.getDistanceJumped());
         }
     };
 
@@ -103,13 +109,15 @@ public class Configuration {
 
         @Override
         public String getFormattedValue(SavedHorse savedHorse) {
-            return String.format("%.2g ♥", getDisplayValue(getLevel(savedHorse)));
+            return String.format("%.2g♥", getDisplayValue(getLevel(savedHorse)));
         }
 
         @Override
-        public void setLevel(SavedHorse savedHorse, int level) {
+        public void setLevel(SavedHorse savedHorse, Horse horse, int level) {
             savedHorse.setHealthLevel(level);
             savedHorse.setNuggetsEaten((int) getEffortForLevel(level));
+            AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
+            horseAttribute.setBaseValue(getValue(level));
         }
 
         @Override
@@ -147,4 +155,22 @@ public class Configuration {
     } // reload
 
     // ------------------------------------------------------------------------
+    /**
+     * Return ability with the specified name.
+     * 
+     * @param name the programmatic name of the ability.
+     * @return the corresponding ability.
+     */
+    public Ability getAbility(String name) {
+        switch (name) {
+        case "health":
+            return HEALTH;
+        case "jump":
+            return JUMP;
+        case "speed":
+            return SPEED;
+        default:
+            return null;
+        }
+    }
 } // class Configuration

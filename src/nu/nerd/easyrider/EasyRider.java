@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.Location;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
@@ -146,10 +146,9 @@ public class EasyRider extends JavaPlugin implements Listener {
             if (savedHorse == null) {
                 savedHorse = DB.addHorse(horse);
 
-                setAbilityLevel(CONFIG.SPEED, 1, savedHorse, horse);
-                setAbilityLevel(CONFIG.JUMP, 1, savedHorse, horse);
-                setAbilityLevel(CONFIG.HEALTH, 1, savedHorse, horse);
-
+                CONFIG.SPEED.setLevel(savedHorse, horse, 1);
+                CONFIG.JUMP.setLevel(savedHorse, horse, 1);
+                CONFIG.HEALTH.setLevel(savedHorse, horse, 1);
                 if (CONFIG.DEBUG_EVENTS) {
                     debug(horse, horse.getVariant() + " initialised to level 1 by " + player.getName());
                 }
@@ -164,26 +163,19 @@ public class EasyRider extends JavaPlugin implements Listener {
             }
 
             PlayerState playerState = getState(player);
-            playerState.handlePendingInteraction(event, savedHorse);
+            if (playerState.hasPendingInteraction()) {
+                playerState.handlePendingInteraction(event, savedHorse);
+
+                // Even though the event is cancelled, the player will end up
+                // facing the same direction as the horse, so make the horse
+                // face where the player should face.
+                Location horseLoc = horse.getLocation();
+                horseLoc.setYaw(player.getLocation().getYaw());
+                horse.teleport(horseLoc);
+                event.setCancelled(true);
+            }
         }
     } // onPlayerInteractEntity
-
-    // ------------------------------------------------------------------------
-    /**
-     * Set the level of a specified Ability in the stored database state of a
-     * horse, and set the corresponding attribute value on the Horse entity.
-     * 
-     * @param ability the affected ability.
-     * @param level the new level of that ability.
-     * @param savedHorse the horse's database state.
-     * @param horse the Horse entity.
-     */
-    public void setAbilityLevel(Ability ability, int level, SavedHorse savedHorse, Horse horse) {
-        ability.setLevel(savedHorse, level);
-
-        AttributeInstance horseAttribute = horse.getAttribute(ability.getAttribute());
-        horseAttribute.setBaseValue(ability.getValue(level));
-    }
 
     // ------------------------------------------------------------------------
     /**

@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Horse;
 
 import nu.nerd.easyrider.db.SavedHorse;
 
@@ -106,7 +107,7 @@ public abstract class Ability {
         if (_minValue < 0.0) {
             logger.severe("Loaded " + getDisplayName() + " minimum value: " + getMinValue());
         }
-        _maxValue = section.getDouble("min-value");
+        _maxValue = section.getDouble("max-value");
         if (_maxValue < 0.0) {
             logger.severe("Loaded " + getDisplayName() + " maximum value: " + getMinValue());
         }
@@ -260,7 +261,7 @@ public abstract class Ability {
      * @return the attribute value.
      */
     public double getValue(int level) {
-        double frac = (level - 1) / (_maxLevel - 1);
+        double frac = (level - 1) / (double) (_maxLevel - 1);
         return linterp(_minValue, _maxValue, frac);
     }
 
@@ -298,12 +299,13 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
-     * Set the level corresponding to this Ability on a SavedHorse.
+     * Set the level corresponding to this Ability on a horse.
      * 
      * @param savedHorse the database state of the horse.
+     * @param horse the Horse entity whose attribute will be set.
      * @param level the new level.
      */
-    public abstract void setLevel(SavedHorse savedHorse, int level);
+    public abstract void setLevel(SavedHorse savedHorse, Horse horse, int level);
 
     // ------------------------------------------------------------------------
     /**
@@ -321,11 +323,12 @@ public abstract class Ability {
      * @param min the value to return for the minimum value of frac (0.0).
      * @param max the value to return for the maximum value of frac (1.0).
      * @param frac the fraction, in the range [0,1] of the max argument, with
-     *        the remainder coming from the min argument.
+     *        the remainder coming from the min argument. NOTE: if frac exceeds
+     *        1.0, extrapolate linearly.
      * @return the interpolation between min and max.
      */
     protected static double linterp(double min, double max, double frac) {
-        return (1.0 - frac) * min + frac * max;
+        return min + frac * (max - min);
     }
 
     // ------------------------------------------------------------------------
