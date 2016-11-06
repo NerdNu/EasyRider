@@ -1,0 +1,70 @@
+name: ${project.name}
+version: ${project.version}
+author: totemo
+authors: [totemo]
+description: ${project.description}
+website: ${project.url}
+database: true
+main: nu.nerd.easyrider.EasyRider
+
+permissions:
+  easyrider.admin:
+    description: Permission to administer the plugin.
+    default: op
+
+  easyrider.debug:
+    description: Players with this permission receive debug messages.
+    default: op
+
+  easyrider.setlevel:
+    description: Permission to use /horse-set-level.
+    default: op
+    
+  easyrider.level:
+    description: Permission to use /horse-level.
+    default: true
+
+  easyrider.upgrades:
+    description: Permission to use /horse-upgrades.
+    default: true
+  
+commands:
+  easyrider:
+    description: ${project.name} administrative command.
+    permission: easyrider.admin
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> reload§f - Reload the configuration.
+      §e/<command> chunk§f - Check horse information in the current chunk.
+
+  horse-debug:
+    description: Specify whether a horse will be subject to debug logging.
+    permission: easyrider.debug
+    usage: |
+    
+      §e/<command> on|off§f - Turn debug logging on or off for the horse that was right-clicked.
+
+  horse-set-level:
+    description: Show ability level information for a horse.
+    permission: easyrider.setlevel
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> health|jump|speed <number>§f - Set the level of the specified ability on the right-clicked horse.
+
+  horse-level:
+    description: Show ability level information for a horse.
+    permission: easyrider.level
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command>§f - Show level information about the horse that was right-clicked.
+
+  horse-upgrades:
+    description: Show ability level information for a horse.
+    permission: easyrider.upgrades
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> health|jump|speed§f - Show level information about the horse that was right-clicked, for the specified ability.
