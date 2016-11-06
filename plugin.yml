@@ -28,6 +28,10 @@ permissions:
     description: Permission to use /horse-upgrades.
     default: true
   
+  easyrider.top:
+    description: Permission to use /horse-top.
+    default: true
+
 commands:
   easyrider:
     description: ${project.name} administrative command.
@@ -43,7 +47,7 @@ commands:
     permission: easyrider.debug
     usage: |
     
-      §e/<command> on|off§f - Turn debug logging on or off for the horse that was right-clicked.
+      §e/<command> §eon§f|§eoff§f - Turn debug logging on or off for the horse that was right-clicked.
 
   horse-set-level:
     description: Show ability level information for a horse.
@@ -51,7 +55,7 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command> health|jump|speed <number>§f - Set the level of the specified ability on the right-clicked horse.
+      §e/<command> §ehealth§f|§ejump§f|§espeed <number>§f - Set the level of the specified ability on the right-clicked horse.
 
   horse-level:
     description: Show ability level information for a horse.
@@ -67,4 +71,12 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command> health|jump|speed§f - Show level information about the horse that was right-clicked, for the specified ability.
+      §e/<command> §ehealth§f|§ejump§f|§espeed§f - Show level information about the horse that was right-clicked, for the specified ability.
+      
+  horse-top:
+    description: Show the top 10 horses for a specified ability.
+    permission: easyrider.top
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> §ehealth§f|§ejump§f|§espeed§f - Show the top 10 horses with the specified ability.
