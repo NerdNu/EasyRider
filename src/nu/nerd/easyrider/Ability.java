@@ -289,6 +289,15 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
+     * Return the formatted effort expended on this ability.
+     *
+     * @param savedHorse the database state of the horse.
+     * @return effort for this ability expended on the specified horse.
+     */
+    public abstract String getFormattedEffort(SavedHorse savedHorse);
+
+    // ------------------------------------------------------------------------
+    /**
      * Set the level corresponding to this Ability on a SavedHorse.
      * 
      * @param savedHorse the database state of the horse.

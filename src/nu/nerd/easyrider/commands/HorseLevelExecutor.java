@@ -44,24 +44,34 @@ public class HorseLevelExecutor extends ExecutorBase {
                 @Override
                 public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse savedHorse) {
                     Horse horse = (Horse) event.getRightClicked();
-                    Player p = event.getPlayer();
-                    p.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + horse.getUniqueId());
-
+                    Player player = event.getPlayer();
+                    player.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + horse.getUniqueId());
+                    showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
+                    showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);
+                    showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
                 }
             });
-
             return true;
         } else {
             return false;
         }
     }
 
+    // ------------------------------------------------------------------------
+    /**
+     * Show information about the current level of an ability, the corresponding
+     * attribute value, and the total effort expended for that ability on a
+     * specific horse.
+     *
+     * @param player the player to be send messages.
+     * @param abililty the {@link Ability}.
+     * @param savedHorse the database state of the horse.
+     */
     protected void showLevel(Player player, Ability ability, SavedHorse savedHorse) {
-
-        player.sendMessage(ChatColor.GOLD + "Speed: " +
-                           ChatColor.GRAY + "Level " + savedHorse.getSpeedLevel() +
-                           ChatColor.GOLD + " - " + ChatColor.YELLOW + horse.getUniqueId());
-
+        player.sendMessage(ChatColor.GOLD + ability.getDisplayName() + ": " +
+                           ChatColor.WHITE + "Level " + ability.getLevel(savedHorse) +
+                           ChatColor.GOLD + " - " +
+                           ChatColor.YELLOW + ability.getFormattedValue(savedHorse) +
+                           ChatColor.GRAY + " (" + ability.getFormattedEffort(savedHorse) + ")");
     }
-
 } // class HorseLevelExecutor

@@ -27,7 +27,7 @@ public class Configuration {
      */
     public boolean DEBUG_SAVES;
 
-    public Ability SPEED = new Ability("speed", "speed", Attribute.GENERIC_MOVEMENT_SPEED) {
+    public Ability SPEED = new Ability("speed", "Speed", Attribute.GENERIC_MOVEMENT_SPEED) {
 
         @Override
         public double getDisplayValue(int level) {
@@ -35,12 +35,28 @@ public class Configuration {
         }
 
         @Override
+        public String getFormattedValue(SavedHorse savedHorse) {
+            return String.format("%.3g m/s", getDisplayValue(getLevel(savedHorse)));
+        }
+
+        @Override
         public void setLevel(SavedHorse savedHorse, int level) {
             savedHorse.setSpeedLevel(level);
+            savedHorse.setDistanceTravelled(getEffortForLevel(level));
+        }
+
+        @Override
+        public int getLevel(SavedHorse savedHorse) {
+            return savedHorse.getSpeedLevel();
+        }
+
+        @Override
+        public String getFormattedEffort(SavedHorse savedHorse) {
+            return String.format("%.3g m travelled", savedHorse.getDistanceTravelled());
         }
     };
 
-    public Ability JUMP = new Ability("jump", "jump stength", Attribute.HORSE_JUMP_STRENGTH) {
+    public Ability JUMP = new Ability("jump", "Jump Height", Attribute.HORSE_JUMP_STRENGTH) {
         /**
          * Display the jump height using the same algorithm as Zyin's HUD and
          * CobraCorral.
@@ -58,20 +74,52 @@ public class Configuration {
         }
 
         @Override
+        public String getFormattedValue(SavedHorse savedHorse) {
+            return String.format("%.3g m", getDisplayValue(getLevel(savedHorse)));
+        }
+
+        @Override
         public void setLevel(SavedHorse savedHorse, int level) {
             savedHorse.setJumpLevel(level);
+            savedHorse.setDistanceJumped(getEffortForLevel(level));
+        }
+
+        @Override
+        public int getLevel(SavedHorse savedHorse) {
+            return savedHorse.getJumpLevel();
+        }
+
+        @Override
+        public String getFormattedEffort(SavedHorse savedHorse) {
+            return String.format("%.3g m jumped", savedHorse.getDistanceJumped());
         }
     };
 
-    public Ability HEALTH = new Ability("health", "health", Attribute.GENERIC_MAX_HEALTH) {
+    public Ability HEALTH = new Ability("health", "Max Health", Attribute.GENERIC_MAX_HEALTH) {
         @Override
         public double getDisplayValue(int level) {
             return getValue(level) * 0.5;
         }
 
         @Override
+        public String getFormattedValue(SavedHorse savedHorse) {
+            return String.format("%.2g ♥", getDisplayValue(getLevel(savedHorse)));
+        }
+
+        @Override
         public void setLevel(SavedHorse savedHorse, int level) {
             savedHorse.setHealthLevel(level);
+            savedHorse.setNuggetsEaten((int) getEffortForLevel(level));
+        }
+
+        @Override
+        public int getLevel(SavedHorse savedHorse) {
+            return savedHorse.getHealthLevel();
+        }
+
+        @Override
+        public String getFormattedEffort(SavedHorse savedHorse) {
+            return String.format("%d gold nuggets eaten", savedHorse.getNuggetsEaten());
         }
     };
 
