@@ -7,6 +7,11 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.AnimalTamer;
+import org.bukkit.entity.Horse;
+
 import com.avaje.ebean.validation.NotNull;
 
 // ----------------------------------------------------------------------------
@@ -27,10 +32,12 @@ public class SavedHorse {
     /**
      * Constructor.
      * 
-     * @param uuid the UUID of the horse.
+     * @param horse the Horse entity.
      */
-    public SavedHorse(UUID uuid) {
-        setUuid(uuid);
+    public SavedHorse(Horse horse) {
+        setUuid(horse.getUniqueId());
+        AnimalTamer owner = horse.getOwner();
+        setOwnerUuid((owner != null) ? owner.getUniqueId() : null);
         speedLevel = jumpLevel = healthLevel = 1;
     }
 
@@ -85,7 +92,7 @@ public class SavedHorse {
     // ------------------------------------------------------------------------
     /**
      * Set the stored UUID of the horse.
-     * 
+     *
      * @param uuid the UUID.
      */
     public void setUuid(UUID uuid) {
@@ -96,11 +103,61 @@ public class SavedHorse {
     // ------------------------------------------------------------------------
     /**
      * Return the stored UUID of the horse.
-     * 
+     *
      * @return the stored UUID of the horse.
      */
     public UUID getUuid() {
         return uuid;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Set the UUID of the owner of this horse.
+     *
+     * @param ownerUuid the owning player's UUID, or null if not owned.
+     */
+    public void setOwnerUuid(UUID ownerUuid) {
+        // Minimise setDirty() calls.
+        if (this.ownerUuid == null) {
+            if (ownerUuid == null) {
+                return;
+            }
+        } else if (this.ownerUuid.equals(ownerUuid)) {
+            return;
+        }
+
+        this.ownerUuid = ownerUuid;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the UUID of the owner of this horse, or null if not owned.
+     *
+     * @return the UUID of the owner of this horse, or null if not owned.
+     */
+    public UUID getOwnerUuid() {
+        return ownerUuid;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Set the owner of this horse, or null if not owned.
+     *
+     * @param owner the owner or null.
+     */
+    public void setOwner(AnimalTamer owner) {
+        setOwnerUuid((owner == null) ? null : owner.getUniqueId());
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the owner of this horse, or null if not owned.
+     *
+     * @return the owner of this horse, or null if not owned.
+     */
+    public OfflinePlayer getOwner() {
+        return (ownerUuid != null) ? Bukkit.getOfflinePlayer(ownerUuid) : null;
     }
 
     // ------------------------------------------------------------------------
@@ -235,6 +292,11 @@ public class SavedHorse {
      */
     @Id
     private UUID uuid;
+
+    /**
+     * The owning player's UUID, or null if not owned.
+     */
+    private UUID ownerUuid;
 
     /**
      * The total distance travelled in metres.

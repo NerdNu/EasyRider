@@ -28,6 +28,7 @@ import nu.nerd.easyrider.commands.ExecutorBase;
 import nu.nerd.easyrider.commands.HorseDebugExecutor;
 import nu.nerd.easyrider.commands.HorseLevelExecutor;
 import nu.nerd.easyrider.commands.HorseSetLevelExecutor;
+import nu.nerd.easyrider.commands.HorseTopExecutor;
 import nu.nerd.easyrider.commands.HorseUpgradesExecutor;
 import nu.nerd.easyrider.db.HorseDB;
 import nu.nerd.easyrider.db.SavedHorse;
@@ -51,7 +52,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     /**
      * Horse database and cache.
      */
-    protected HorseDB DB = new HorseDB();
+    public static HorseDB DB = new HorseDB();
 
     // ------------------------------------------------------------------------
     /**
@@ -74,6 +75,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseSetLevelExecutor());
         addCommandExecutor(new HorseLevelExecutor());
         addCommandExecutor(new HorseUpgradesExecutor());
+        addCommandExecutor(new HorseTopExecutor());
 
         DB.load();
     }
@@ -174,6 +176,9 @@ public class EasyRider extends JavaPlugin implements Listener {
                 horse.teleport(horseLoc);
                 event.setCancelled(true);
             }
+
+            // Update stored owner, which may have changed.
+            savedHorse.setOwner(horse.getOwner());
         }
     } // onPlayerInteractEntity
 

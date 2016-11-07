@@ -318,6 +318,16 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
+     * Get the non-quantised level corresponding to this Ability for the
+     * training effort applied to the specified horse.
+     *
+     * @param savedHorse the database state of the horse.
+     * @return the level.
+     */
+    public abstract double getLevelForEffort(SavedHorse savedHorse);
+
+    // ------------------------------------------------------------------------
+    /**
      * Return the linear interpolation between min and max.
      * 
      * @param min the value to return for the minimum value of frac (0.0).

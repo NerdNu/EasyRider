@@ -1,6 +1,9 @@
 package nu.nerd.easyrider.db;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.persistence.PersistenceException;
@@ -9,6 +12,7 @@ import org.bukkit.entity.Horse;
 
 import com.avaje.ebean.EbeanServer;
 
+import nu.nerd.easyrider.Ability;
 import nu.nerd.easyrider.EasyRider;
 
 // ----------------------------------------------------------------------------
@@ -28,7 +32,7 @@ public class HorseDB {
     public SavedHorse addHorse(Horse horse) {
         SavedHorse savedHorse = findHorse(horse);
         if (savedHorse == null) {
-            savedHorse = new SavedHorse(horse.getUniqueId());
+            savedHorse = new SavedHorse(horse);
             _cache.put(savedHorse.getUuid(), savedHorse);
         }
         return savedHorse;
@@ -44,6 +48,47 @@ public class HorseDB {
      */
     public SavedHorse findHorse(Horse horse) {
         return _cache.get(horse.getUniqueId());
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return a specified number of the top horses ranked in descending order of
+     * the specified Ability.
+     *
+     * @param ability the Ability.
+     * @param count the maximum number of ranked horses to return.
+     * @return the top count horses in descending order of that ability.
+     */
+    public SavedHorse[] rank(Ability ability, int count) {
+        // Comparator ensures best horse is first, worst is last.
+        TreeSet<SavedHorse> rankings = new TreeSet<SavedHorse>(new Comparator<SavedHorse>() {
+            @Override
+            public int compare(SavedHorse h1, SavedHorse h2) {
+                double h1Level = ability.getLevelForEffort(h1);
+                double h2Level = ability.getLevelForEffort(h2);
+                if (h1Level < h2Level) {
+                    return 1;
+                } else if (h2Level < h1Level) {
+                    return -1;
+                } else {
+                    return h1.getUuid().compareTo(h2.getUuid());
+                }
+            }
+        });
+
+        for (SavedHorse horse : _cache.values()) {
+            rankings.add(horse);
+            if (rankings.size() > count) {
+                Iterator<SavedHorse> it = rankings.descendingIterator();
+                if (it.hasNext()) {
+                    it.next();
+                    it.remove();
+                }
+            }
+        }
+
+        SavedHorse[] result = new SavedHorse[Math.min(count, rankings.size())];
+        return rankings.toArray(result);
     }
 
     // ------------------------------------------------------------------------

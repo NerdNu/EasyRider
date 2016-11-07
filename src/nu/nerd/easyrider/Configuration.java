@@ -55,6 +55,11 @@ public class Configuration {
         }
 
         @Override
+        public double getLevelForEffort(SavedHorse savedHorse) {
+            return getLevelForEffort(savedHorse.getDistanceTravelled());
+        }
+
+        @Override
         public String getFormattedEffort(SavedHorse savedHorse) {
             return String.format("%.2fm travelled", savedHorse.getDistanceTravelled());
         }
@@ -96,6 +101,11 @@ public class Configuration {
         }
 
         @Override
+        public double getLevelForEffort(SavedHorse savedHorse) {
+            return getLevelForEffort(savedHorse.getDistanceJumped());
+        }
+
+        @Override
         public String getFormattedEffort(SavedHorse savedHorse) {
             return String.format("%.2fm jumped", savedHorse.getDistanceJumped());
         }
@@ -123,6 +133,11 @@ public class Configuration {
         @Override
         public int getLevel(SavedHorse savedHorse) {
             return savedHorse.getHealthLevel();
+        }
+
+        @Override
+        public double getLevelForEffort(SavedHorse savedHorse) {
+            return getLevelForEffort(savedHorse.getNuggetsEaten());
         }
 
         @Override
