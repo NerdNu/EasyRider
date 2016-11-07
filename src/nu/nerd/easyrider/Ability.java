@@ -267,6 +267,22 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
+     * Return the units of attribute values as a displayable String.
+     *
+     * @return the units of attribute values as a displayable String.
+     */
+    public abstract String getValueUnits();
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the units of effort as a displayable String.
+     *
+     * @return the units of effort as a displayable String.
+     */
+    public abstract String getEffortUnits();
+
+    // ------------------------------------------------------------------------
+    /**
      * Return the displayable numeric value of the ability.
      * 
      * This is distinct from {@link #getValue(int)} which returns the value that

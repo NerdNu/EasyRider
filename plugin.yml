@@ -66,12 +66,12 @@ commands:
       §e/<command>§f - Show level information about the horse that was right-clicked.
 
   horse-upgrades:
-    description: Show ability level information for a horse.
+    description: List all levels, corresponding attribute values and training effort for a specified ability.
     permission: easyrider.upgrades
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command> §ehealth§f|§ejump§f|§espeed§f - Show level information about the horse that was right-clicked, for the specified ability.
+      §e/<command> §ehealth§f|§ejump§f|§espeed§f - List all levels, corresponding attribute values and training effort for a specified ability.
       
   horse-top:
     description: Show the top 10 horses for a specified ability.

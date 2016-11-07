@@ -38,7 +38,7 @@ public class Configuration {
 
         @Override
         public String getFormattedValue(SavedHorse savedHorse) {
-            return String.format("%.2f m/s", getDisplayValue(getLevel(savedHorse)));
+            return String.format("%.2f %s", getDisplayValue(getLevel(savedHorse)), getValueUnits());
         }
 
         @Override
@@ -61,7 +61,17 @@ public class Configuration {
 
         @Override
         public String getFormattedEffort(SavedHorse savedHorse) {
-            return String.format("%.2fm travelled", savedHorse.getDistanceTravelled());
+            return String.format("%.2f%s", savedHorse.getDistanceTravelled(), getValueUnits());
+        }
+
+        @Override
+        public String getValueUnits() {
+            return "m/s";
+        }
+
+        @Override
+        public String getEffortUnits() {
+            return "m travelled";
         }
     };
 
@@ -84,7 +94,7 @@ public class Configuration {
 
         @Override
         public String getFormattedValue(SavedHorse savedHorse) {
-            return String.format("%.2fm", getDisplayValue(getLevel(savedHorse)));
+            return String.format("%.2f%s", getDisplayValue(getLevel(savedHorse)), getValueUnits());
         }
 
         @Override
@@ -107,7 +117,17 @@ public class Configuration {
 
         @Override
         public String getFormattedEffort(SavedHorse savedHorse) {
-            return String.format("%.2fm jumped", savedHorse.getDistanceJumped());
+            return String.format("%.2f%s", savedHorse.getDistanceJumped(), getEffortUnits());
+        }
+
+        @Override
+        public String getValueUnits() {
+            return "m";
+        }
+
+        @Override
+        public String getEffortUnits() {
+            return "m jumped";
         }
     };
 
@@ -119,7 +139,7 @@ public class Configuration {
 
         @Override
         public String getFormattedValue(SavedHorse savedHorse) {
-            return String.format("%.2g♥", getDisplayValue(getLevel(savedHorse)));
+            return String.format("%.2g%s", getDisplayValue(getLevel(savedHorse)), getValueUnits());
         }
 
         @Override
@@ -142,7 +162,17 @@ public class Configuration {
 
         @Override
         public String getFormattedEffort(SavedHorse savedHorse) {
-            return String.format("%d gold nuggets eaten", savedHorse.getNuggetsEaten());
+            return String.format("%d %s", savedHorse.getNuggetsEaten(), getEffortUnits());
+        }
+
+        @Override
+        public String getValueUnits() {
+            return "♥";
+        }
+
+        @Override
+        public String getEffortUnits() {
+            return "gold nuggets eaten";
         }
     };
 

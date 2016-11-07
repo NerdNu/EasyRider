@@ -11,21 +11,21 @@ level-up:
 abilities:
   speed:
     max-level: 30
-    max-effort: 500000.0
+    max-effort: 1000000.0
     effort-scale: 2000.0
     min-value: 0.174418605
     max-value: 0.3488372093
     
   jump:
     max-level: 20
-    max-effort: 10000.0
-    effort-scale: 200.0
+    max-effort: 100000.0
+    effort-scale: 2000.0
     min-value: 0.4
     max-value: 1.0
 
-  health: #♥
+  health:
     max-level: 16
-    max-effort: 5184.0
+    max-effort: 10368.0
     effort-scale: 100.0
     min-value: 15.0
     max-value: 30.0
