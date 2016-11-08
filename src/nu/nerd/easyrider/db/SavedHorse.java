@@ -2,6 +2,7 @@ package nu.nerd.easyrider.db;
 
 import java.util.UUID;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -13,6 +14,8 @@ import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Horse;
 
 import com.avaje.ebean.validation.NotNull;
+
+import nu.nerd.easyrider.Util;
 
 // ----------------------------------------------------------------------------
 /**
@@ -38,6 +41,7 @@ public class SavedHorse {
         setUuid(horse.getUniqueId());
         AnimalTamer owner = horse.getOwner();
         setOwnerUuid((owner != null) ? owner.getUniqueId() : null);
+        setAppearance(Util.getAppearance(horse));
         speedLevel = jumpLevel = healthLevel = 1;
     }
 
@@ -158,6 +162,96 @@ public class SavedHorse {
      */
     public OfflinePlayer getOwner() {
         return (ownerUuid != null) ? Bukkit.getOfflinePlayer(ownerUuid) : null;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Reserved for future use.
+     */
+    public void setName(String name) {
+        this.name = name;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Reserved for future use.
+     */
+    public String getName() {
+        return name;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Reserved for future use.
+     */
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Reserved for future use.
+     */
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Set the appearance of this horse.
+     * 
+     * @param appearance the appearance of the horse, including colour, style
+     *        and variant.
+     */
+    public void setAppearance(String appearance) {
+        this.appearance = appearance;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the appearance of the horse, including colour, style and variant.
+     * 
+     * @return the appearance of the horse, including colour, style and variant.
+     */
+    public String getAppearance() {
+        return appearance;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Reserved for future use.
+     */
+    public void setEquipment(int equipment) {
+        this.equipment = equipment;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Reserved for future use.
+     */
+    public int getEquipment() {
+        return equipment;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Reserved for future use.
+     */
+    public void setLocation(String location) {
+        this.location = location;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Reserved for future use.
+     */
+    public String getLocation() {
+        return location;
     }
 
     // ------------------------------------------------------------------------
@@ -297,6 +391,44 @@ public class SavedHorse {
      * The owning player's UUID, or null if not owned.
      */
     private UUID ownerUuid;
+
+    /**
+     * The name of the horse.
+     *
+     * Not currently used; reserved for futures use.
+     */
+    @Column(length = 32)
+    private String name;
+
+    /**
+     * The display name (custom name) of the horse.
+     *
+     * Not currently used; reserved for futures use.
+     */
+    @Column(length = 32)
+    private String displayName;
+
+    /**
+     * The horse's appearance: colour, markings and variant.
+     */
+    @Column(length = 32)
+    private String appearance;
+
+    /**
+     * The last known location of the horse: world,x,y,z as a string.
+     *
+     * Not currently used; reserved for futures use.
+     */
+    @Column(length = 40)
+    private String location;
+
+    /**
+     * The equipment of the horse (saddle, armour) expressed as bit flags.
+     *
+     * Not currently used; reserved for futures use.
+     */
+    @NotNull
+    private int equipment;
 
     /**
      * The total distance travelled in metres.

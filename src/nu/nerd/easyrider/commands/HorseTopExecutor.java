@@ -48,16 +48,24 @@ public class HorseTopExecutor extends ExecutorBase {
             } else {
                 for (int i = 0; i < top.length; ++i) {
                     SavedHorse horse = top[i];
+
                     OfflinePlayer owner = horse.getOwner();
                     String ownerName = (owner != null) ? owner.getName() : "<no owner>";
                     sender.sendMessage(ChatColor.GOLD + "#" + (i + 1) + " " +
                                        ChatColor.YELLOW + "Level " + String.format("%5.2f ", ability.getLevelForEffort(horse)) +
                                        ChatColor.WHITE + ownerName + " " +
-                                       ChatColor.GRAY + horse.getUuid().toString().substring(0, 18) + "... ");
+                                       ChatColor.GRAY + horse.getAppearance() + " " +
+                                       ChatColor.WHITE + horse.getUuid().toString().substring(0, 6) + "... ");
                 }
             }
             return true;
         }
         return false;
     }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Horse variant names.
+     */
+    private static final String[] VARIANT_NAMES = {};
 } // class HorseTopExecutor

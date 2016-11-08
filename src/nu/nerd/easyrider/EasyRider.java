@@ -20,7 +20,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import nu.nerd.easyrider.commands.EasyRiderExecutor;
@@ -156,10 +159,9 @@ public class EasyRider extends JavaPlugin implements Listener {
                 }
             } else {
                 if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
-                    debug(horse, " Level " +
-                                 savedHorse.getSpeedLevel() + "/" +
-                                 savedHorse.getJumpLevel() + "/" +
-                                 savedHorse.getHealthLevel() +
+                    debug(horse, " Level S" + savedHorse.getSpeedLevel() +
+                                 "/J" + savedHorse.getJumpLevel() +
+                                 "/H" + savedHorse.getHealthLevel() +
                                  " clicked by " + player.getName());
                 }
             }
@@ -184,6 +186,92 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
+     * When a horse moves, train up speed if it is on the ground, and jump if it
+     * is moving horizontally through the air.
+     *
+     * Horses *are* Vehicles, but they don't fire a VehicleMoveEvent. Detect
+     * player movement when riding a horse using PlayerMoveEvent.
+     *
+     * Horses swimming in liquid are not counted as "on the ground", but it is
+     * not an exploitable way of levelling up jump because the player is ejected
+     * as soon as the horse sinks.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        Entity vehicle = player.getVehicle();
+        if (!(vehicle instanceof Horse)) {
+            return;
+        }
+
+        Horse horse = (Horse) vehicle;
+        if (horse.isInsideVehicle()) {
+            // The horse cannot be trained by moving it around in a vehicle.
+            return;
+
+        }
+        SavedHorse savedHorse = DB.findHorse(horse);
+        if (savedHorse == null) {
+            getLogger().warning("onVehicleMove(): Missing database entry for horse " + horse.getUniqueId());
+            savedHorse = DB.addHorse(horse);
+        }
+
+        // Update stored owner, which may have changed.
+        savedHorse.setOwner(horse.getOwner());
+
+        // Compute horizontal distance moved.
+
+        if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
+            debug(horse, "supported: " + horse.isOnGround());
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    @EventHandler(ignoreCancelled = true)
+    public void onVehicleEnter(VehicleEnterEvent event) {
+        if (!(event.getVehicle() instanceof Horse)) {
+            return;
+        }
+        Horse horse = (Horse) event.getVehicle();
+        Entity passenger = event.getEntered();
+        if (passenger instanceof Player) {
+            Player player = (Player) passenger;
+            SavedHorse savedHorse = DB.findHorse(horse);
+            if (savedHorse == null) {
+                getLogger().warning("onVehicleMove(): Missing database entry for horse " + horse.getUniqueId());
+                savedHorse = DB.addHorse(horse);
+            }
+            if (CONFIG.DEBUG_EVENTS) { // && savedHorse.isDebug()) {
+                debug(horse, "passenger: " + player.getName());
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+
+    @EventHandler(ignoreCancelled = true)
+    public void onVehicleExit(VehicleExitEvent event) {
+        if (!(event.getVehicle() instanceof Horse)) {
+            return;
+        }
+        Horse horse = (Horse) event.getVehicle();
+        Entity passenger = event.getExited();
+        if (passenger instanceof Player) {
+            Player player = (Player) passenger;
+            SavedHorse savedHorse = DB.findHorse(horse);
+            if (savedHorse == null) {
+                getLogger().warning("onVehicleMove(): Missing database entry for horse " + horse.getUniqueId());
+                savedHorse = DB.addHorse(horse);
+            }
+            if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
+                debug(horse, "passenger alighted: " + player.getName());
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Send a debug message to all players with the debug permissions.
      * 
      * @param message the message.
@@ -199,7 +287,7 @@ public class EasyRider extends JavaPlugin implements Listener {
      * @param message the message.
      */
     public void debug(String message) {
-        Bukkit.broadcast(ChatColor.YELLOW + message, "easyrider.debug");
+        Bukkit.broadcast(ChatColor.YELLOW + "[EasyRider] " + message, "easyrider.debug");
     }
 
     // ------------------------------------------------------------------------
