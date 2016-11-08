@@ -201,7 +201,7 @@ public class SavedHorse {
     // ------------------------------------------------------------------------
     /**
      * Set the appearance of this horse.
-     * 
+     *
      * @param appearance the appearance of the horse, including colour, style
      *        and variant.
      */
@@ -213,7 +213,7 @@ public class SavedHorse {
     // ------------------------------------------------------------------------
     /**
      * Return the appearance of the horse, including colour, style and variant.
-     * 
+     *
      * @return the appearance of the horse, including colour, style and variant.
      */
     public String getAppearance() {
