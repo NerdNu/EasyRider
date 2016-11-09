@@ -21,12 +21,12 @@ abilities:
     max-effort: 100000.0
     effort-scale: 2000.0
     min-value: 0.4
-    max-value: 1.0
+    max-value: 1.1
 
   health:
-    max-level: 16
+    max-level: 26
     max-effort: 10368.0
-    effort-scale: 100.0
+    effort-scale: 2700.0
     min-value: 15.0
-    max-value: 30.0
+    max-value: 40.0
   
