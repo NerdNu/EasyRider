@@ -7,7 +7,9 @@ import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Effect;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
@@ -18,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -29,7 +32,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import nu.nerd.easyrider.commands.EasyRiderExecutor;
 import nu.nerd.easyrider.commands.ExecutorBase;
 import nu.nerd.easyrider.commands.HorseDebugExecutor;
-import nu.nerd.easyrider.commands.HorseLevelExecutor;
+import nu.nerd.easyrider.commands.HorseLevelsExecutor;
 import nu.nerd.easyrider.commands.HorseSetLevelExecutor;
 import nu.nerd.easyrider.commands.HorseTopExecutor;
 import nu.nerd.easyrider.commands.HorseUpgradesExecutor;
@@ -76,7 +79,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new EasyRiderExecutor());
         addCommandExecutor(new HorseDebugExecutor());
         addCommandExecutor(new HorseSetLevelExecutor());
-        addCommandExecutor(new HorseLevelExecutor());
+        addCommandExecutor(new HorseLevelsExecutor());
         addCommandExecutor(new HorseUpgradesExecutor());
         addCommandExecutor(new HorseTopExecutor());
 
@@ -208,8 +211,8 @@ public class EasyRider extends JavaPlugin implements Listener {
         if (horse.isInsideVehicle()) {
             // The horse cannot be trained by moving it around in a vehicle.
             return;
-
         }
+
         SavedHorse savedHorse = DB.findHorse(horse);
         if (savedHorse == null) {
             getLogger().warning("onVehicleMove(): Missing database entry for horse " + horse.getUniqueId());
@@ -219,15 +222,45 @@ public class EasyRider extends JavaPlugin implements Listener {
         // Update stored owner, which may have changed.
         savedHorse.setOwner(horse.getOwner());
 
-        // Compute horizontal distance moved.
+        // Compute distance moved and update speed or jump depending on whether
+        // the horse was on the ground.
+        PlayerState playerState = getState(player);
+        double tickDistance = playerState.getTickHorizontalDistance();
+        if (tickDistance > 0) {
+            if (horse.isOnGround()) {
+                savedHorse.setDistanceTravelled(savedHorse.getDistanceTravelled() + tickDistance);
+                int newLevel = CONFIG.SPEED.getQuantisedLevelForEffort(savedHorse.getDistanceTravelled());
+                if (newLevel > savedHorse.getSpeedLevel()) {
+                    CONFIG.SPEED.setLevel(savedHorse, horse, newLevel);
+                    notifyLevelUp(player, savedHorse, horse, CONFIG.SPEED);
+                }
+            } else {
+                savedHorse.setDistanceJumped(savedHorse.getDistanceJumped() + tickDistance);
+                int newLevel = CONFIG.JUMP.getQuantisedLevelForEffort(savedHorse.getDistanceJumped());
+                if (newLevel > savedHorse.getJumpLevel()) {
+                    CONFIG.JUMP.setLevel(savedHorse, horse, newLevel);
+                    notifyLevelUp(player, savedHorse, horse, CONFIG.JUMP);
+                }
+            }
+        }
+
+        // Update stored location to compute distance in the next tick.
+        playerState.updateRiddenHorse();
 
         if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
             debug(horse, "supported: " + horse.isOnGround());
         }
-    }
+    } // onPlayerMove
 
     // ------------------------------------------------------------------------
-
+    /**
+     * When a player mounts a horse, clear the recorded location of the horse in
+     * the previous tick.
+     *
+     * Note that players can switch from horse to horse without dismounting,
+     * which would mess up distance ridden calculations if we simply stored the
+     * destination horse's location.
+     */
     @EventHandler(ignoreCancelled = true)
     public void onVehicleEnter(VehicleEnterEvent event) {
         if (!(event.getVehicle() instanceof Horse)) {
@@ -242,14 +275,18 @@ public class EasyRider extends JavaPlugin implements Listener {
                 getLogger().warning("onVehicleMove(): Missing database entry for horse " + horse.getUniqueId());
                 savedHorse = DB.addHorse(horse);
             }
-            if (CONFIG.DEBUG_EVENTS) { // && savedHorse.isDebug()) {
+
+            getState(player).clearHorseDistance();
+            if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
                 debug(horse, "passenger: " + player.getName());
             }
         }
     }
 
     // ------------------------------------------------------------------------
-
+    /**
+     * Clear distance travelled when dismounting from a horse.
+     */
     @EventHandler(ignoreCancelled = true)
     public void onVehicleExit(VehicleExitEvent event) {
         if (!(event.getVehicle() instanceof Horse)) {
@@ -264,8 +301,26 @@ public class EasyRider extends JavaPlugin implements Listener {
                 getLogger().warning("onVehicleMove(): Missing database entry for horse " + horse.getUniqueId());
                 savedHorse = DB.addHorse(horse);
             }
+
+            getState(player).clearHorseDistance();
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
                 debug(horse, "passenger alighted: " + player.getName());
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * If a horse teleports and takes a rider with it (is that possible?) clear
+     * any distance travelled.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityTeleport(EntityTeleportEvent event) {
+        if (event.getEntity() instanceof Horse) {
+            Horse horse = (Horse) event.getEntity();
+            if (horse.getPassenger() instanceof Player) {
+                Player player = (Player) horse.getPassenger();
+                getState(player).clearHorseDistance();
             }
         }
     }
@@ -321,6 +376,24 @@ public class EasyRider extends JavaPlugin implements Listener {
     @Override
     public void installDDL() {
         super.installDDL();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Notify the player that the specified horse has changed its level, and
+     * play the corresponding sound and particle effects.
+     *
+     * @param player the player.
+     * @param savedHorse the database state of the horse.
+     * @param horse the Horse entity.
+     * @param ability the affected ability.
+     */
+    protected void notifyLevelUp(Player player, SavedHorse savedHorse, Horse horse, Ability ability) {
+        player.sendMessage(ChatColor.GOLD + "This horse is now Level " + ability.getLevel(savedHorse) +
+                           " in " + ability.getDisplayName() + ".");
+        Location loc = horse.getLocation().add(0, 1, 0);
+        loc.getWorld().spigot().playEffect(loc, Effect.HAPPY_VILLAGER, 0, 0, 2.0f, 1.0f, 2.0f, 0.0f, 100, 32);
+        loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 3.0f, 1.0f);
     }
 
     // ------------------------------------------------------------------------

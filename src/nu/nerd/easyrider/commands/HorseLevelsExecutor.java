@@ -16,13 +16,13 @@ import nu.nerd.easyrider.db.SavedHorse;
 /**
  * CommandExecutor implementation for the /horse-level command.
  */
-public class HorseLevelExecutor extends ExecutorBase {
+public class HorseLevelsExecutor extends ExecutorBase {
     // ------------------------------------------------------------------------
     /**
      * Default constructor.
      */
-    public HorseLevelExecutor() {
-        super("horse-level", "help");
+    public HorseLevelsExecutor() {
+        super("horse-levels", "help");
     }
 
     // ------------------------------------------------------------------------
@@ -39,22 +39,38 @@ public class HorseLevelExecutor extends ExecutorBase {
 
         if (args.length == 0) {
             Player player = (Player) sender;
-            sender.sendMessage(ChatColor.GOLD + "Right click on a horse to show level information.");
-            EasyRider.PLUGIN.getState(player).setPendingInteraction(new IPendingInteraction() {
-                @Override
-                public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse savedHorse) {
-                    Horse horse = (Horse) event.getRightClicked();
-                    Player player = event.getPlayer();
-                    player.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + horse.getUniqueId());
-                    showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
-                    showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);
-                    showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
-                }
-            });
+            if (player.getVehicle() instanceof Horse) {
+                showLevels(player, (Horse) player.getVehicle());
+            } else {
+                sender.sendMessage(ChatColor.GOLD + "Right click on a horse to show level information.");
+                EasyRider.PLUGIN.getState(player).setPendingInteraction(new IPendingInteraction() {
+                    @Override
+                    public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse savedHorse) {
+                        showLevels(event.getPlayer(), (Horse) event.getRightClicked());
+                    }
+                });
+            }
             return true;
         } else {
             return false;
         }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Send the specified player information about the current levels of the
+     * specified horse.
+     */
+    protected void showLevels(Player player, Horse horse) {
+        SavedHorse savedHorse = EasyRider.DB.findHorse(horse);
+        if (savedHorse == null) {
+            savedHorse = EasyRider.DB.addHorse(horse);
+        }
+
+        player.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + horse.getUniqueId());
+        showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
+        showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);
+        showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
     }
 
     // ------------------------------------------------------------------------
@@ -69,9 +85,9 @@ public class HorseLevelExecutor extends ExecutorBase {
      */
     protected void showLevel(Player player, Ability ability, SavedHorse savedHorse) {
         player.sendMessage(ChatColor.GOLD + ability.getDisplayName() + ": " +
-                           ChatColor.WHITE + "Level " + ability.getLevel(savedHorse) +
+                           ChatColor.WHITE + "Level " + String.format("%5.3f", ability.getLevelForEffort(savedHorse)) +
                            ChatColor.GOLD + " - " +
                            ChatColor.YELLOW + ability.getFormattedValue(savedHorse) +
                            ChatColor.GRAY + " (" + ability.getFormattedEffort(savedHorse) + ")");
     }
-} // class HorseLevelExecutor
+} // class HorseLevelsExecutor

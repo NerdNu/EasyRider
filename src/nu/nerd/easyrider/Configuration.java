@@ -61,7 +61,7 @@ public class Configuration {
 
         @Override
         public String getFormattedEffort(SavedHorse savedHorse) {
-            return String.format("%.2f%s", savedHorse.getDistanceTravelled(), getValueUnits());
+            return String.format("%.2f%s", savedHorse.getDistanceTravelled(), getEffortUnits());
         }
 
         @Override

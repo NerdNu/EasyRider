@@ -20,8 +20,8 @@ permissions:
     description: Permission to use /horse-set-level.
     default: op
     
-  easyrider.level:
-    description: Permission to use /horse-level.
+  easyrider.levels:
+    description: Permission to use /horse-levels.
     default: true
 
   easyrider.upgrades:
@@ -57,13 +57,13 @@ commands:
       §e/<command> help§f - Show usage help.
       §e/<command> §ehealth§f|§ejump§f|§espeed <number>§f - Set the level of the specified ability on the right-clicked horse.
 
-  horse-level:
+  horse-levels:
     description: Show ability level information for a horse.
-    permission: easyrider.level
+    permission: easyrider.levels
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command>§f - Show level information about the horse that was right-clicked.
+      §e/<command>§f - Show level information about the horse currently ridden or right-clicked.
 
   horse-upgrades:
     description: List all levels, corresponding attribute values and training effort for a specified ability.

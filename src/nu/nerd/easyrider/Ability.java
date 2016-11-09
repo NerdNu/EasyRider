@@ -99,7 +99,7 @@ public abstract class Ability {
         if (_maxEffort < 1.0) {
             logger.severe("Loaded max " + getDisplayName() + " effort: " + getMaxEffort());
         }
-        _effortScale = section.getDouble("max-effort");
+        _effortScale = section.getDouble("effort-scale");
         if (_effortScale < 0.0) {
             logger.severe("Loaded " + getDisplayName() + " effort scale: " + getEffortScale());
         }
@@ -114,6 +114,9 @@ public abstract class Ability {
 
         _effortBase = Math.pow(1 + getMaxEffort() / getEffortScale(),
                                1.0 / (getMaxLevel() - 1));
+        if (EasyRider.CONFIG.DEBUG_CONFIG) {
+            EasyRider.PLUGIN.getLogger().info(getDisplayName() + " effort base: " + getEffortBase());
+        }
     }
 
     // ------------------------------------------------------------------------

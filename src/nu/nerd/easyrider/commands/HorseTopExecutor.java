@@ -52,7 +52,7 @@ public class HorseTopExecutor extends ExecutorBase {
                     OfflinePlayer owner = horse.getOwner();
                     String ownerName = (owner != null) ? owner.getName() : "<no owner>";
                     sender.sendMessage(ChatColor.GOLD + "#" + (i + 1) + " " +
-                                       ChatColor.YELLOW + "Level " + String.format("%5.2f ", ability.getLevelForEffort(horse)) +
+                                       ChatColor.YELLOW + "Level " + String.format("%5.3f ", ability.getLevelForEffort(horse)) +
                                        ChatColor.WHITE + ownerName + " " +
                                        ChatColor.GRAY + horse.getAppearance() + " " +
                                        ChatColor.WHITE + horse.getUuid().toString().substring(0, 6) + "... ");
