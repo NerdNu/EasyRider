@@ -3,10 +3,7 @@ debug:
   events: true
   saves: true
 
-level-up:
-  sound: ENTITY_PLAYER_LEVELUP
-  particles: VILLAGER_HAPPY
-
+speed-limit: 4.5
 
 abilities:
   speed:

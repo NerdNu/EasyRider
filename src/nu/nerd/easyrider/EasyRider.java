@@ -270,7 +270,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             // in one tick, then don't apply the distance to the horse and log
             // in console. Ratio to max speed determined empirically.
             double maxSpeed = CONFIG.SPEED.getValue(savedHorse.getSpeedLevel() + 1);
-            if (tickDistance > 4.5 * maxSpeed) {
+            if (tickDistance > CONFIG.SPEED_LIMIT * maxSpeed) {
                 getLogger().warning(horse.getOwner().getName() + "'s horse " + horse.getUniqueId() +
                                     " moved impossibly fast for its level; ratio: " + (tickDistance / maxSpeed));
                 player.sendMessage(ChatColor.RED + "It might move faster with a jetpack, but that doesn't mean the horse is getting stronger!");

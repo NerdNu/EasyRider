@@ -27,6 +27,18 @@ public class Configuration {
      */
     public boolean DEBUG_SAVES;
 
+    /**
+     * Ratio of distance travelled in one tick to the current speed of a horse
+     * for its level.
+     *
+     * This should be no less than 4.5 (determined empirically). If the server
+     * is sufficiently laggy, it may need to increase.
+     */
+    public double SPEED_LIMIT;
+
+    /**
+     * Speed ability.
+     */
     public Ability SPEED = new Ability("speed", "Speed", Attribute.GENERIC_MOVEMENT_SPEED) {
 
         @Override
@@ -75,6 +87,9 @@ public class Configuration {
         }
     };
 
+    /**
+     * Jump Height ability.
+     */
     public Ability JUMP = new Ability("jump", "Jump Height", Attribute.HORSE_JUMP_STRENGTH) {
         /**
          * Display the jump height using the same algorithm as Zyin's HUD and
@@ -133,6 +148,9 @@ public class Configuration {
         }
     };
 
+    /**
+     * Health ability.
+     */
     public Ability HEALTH = new Ability("health", "Max Health", Attribute.GENERIC_MAX_HEALTH) {
         @Override
         public double getDisplayValue(int level) {
@@ -192,13 +210,21 @@ public class Configuration {
         DEBUG_CONFIG = config.getBoolean("debug.config");
         DEBUG_EVENTS = config.getBoolean("debug.events");
         DEBUG_SAVES = config.getBoolean("debug.saves");
+        SPEED_LIMIT = config.getDouble("speed-limit");
 
         SPEED.load(config.getConfigurationSection("abilities.speed"), logger);
         JUMP.load(config.getConfigurationSection("abilities.jump"), logger);
         HEALTH.load(config.getConfigurationSection("abilities.health"), logger);
 
         if (DEBUG_CONFIG) {
-            // TODO: log config.
+            logger.info("Configuration:");
+            logger.info("DEBUG_EVENTS: " + DEBUG_EVENTS);
+            logger.info("DEBUG_SAVES: " + DEBUG_SAVES);
+            logger.info("SPEED_LIMIT: " + SPEED_LIMIT);
+
+            logAbility(logger, SPEED);
+            logAbility(logger, JUMP);
+            logAbility(logger, HEALTH);
 
         }
     } // reload
@@ -221,5 +247,20 @@ public class Configuration {
         default:
             return null;
         }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Describe the configuration of an Ability in the server logs, to aid
+     * debugging.
+     */
+    protected void logAbility(Logger logger, Ability ability) {
+        logger.info("----- " + ability.getName() + " (" + ability.getDisplayName() + ") -----");
+        logger.info("Max Level: " + ability.getMaxLevel() +
+                    " Max Effort: " + ability.getMaxEffort());
+        logger.info("Effort Scale: " + ability.getEffortScale() +
+                    " Effort Base: " + ability.getEffortBase());
+        logger.info("Min Value: " + ability.getMinValue() +
+                    " Max Value: " + ability.getMaxValue());
     }
 } // class Configuration

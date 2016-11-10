@@ -115,9 +115,6 @@ public abstract class Ability {
 
         _effortBase = Math.pow(1 + getMaxEffort() / getEffortScale(),
                                1.0 / (getMaxLevel() - 1));
-        if (EasyRider.CONFIG.DEBUG_CONFIG) {
-            EasyRider.PLUGIN.getLogger().info(getDisplayName() + " effort base: " + getEffortBase());
-        }
     }
 
     // ------------------------------------------------------------------------
