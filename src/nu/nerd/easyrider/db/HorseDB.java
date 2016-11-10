@@ -1,8 +1,16 @@
 package nu.nerd.easyrider.db;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
@@ -93,6 +101,58 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
+     * Make a daily backup of the SqLite database.
+     *
+     * There will be one file called "backups/EasyRider.db.yyyy-MM-dd" for each
+     * day the plugin runs.
+     */
+    public void backup() {
+        Path dataDir = null;
+        try {
+            dataDir = EasyRider.PLUGIN.getDataFolder().toPath();
+        } catch (Exception ex) {
+            EasyRider.PLUGIN.getLogger().severe("Could not get data folder: " +
+                                                ex.getMessage());
+            return;
+        }
+
+        Path backupsDir = null;
+        try {
+            backupsDir = dataDir.resolve("backups");
+            Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rwxrwxr-x");
+            Files.createDirectories(backupsDir, PosixFilePermissions.asFileAttribute(perms));
+        } catch (Exception ex) {
+            EasyRider.PLUGIN.getLogger().severe("Could not create database backups directory: " +
+                                                ex.getMessage());
+            return;
+        }
+
+        Path databaseFile = null;
+        try {
+            databaseFile = dataDir.resolve("EasyRider.db");
+            if (!Files.isReadable(databaseFile)) {
+                EasyRider.PLUGIN.getLogger().severe("Database does not yet exist or cannot be read.");
+                return;
+            }
+        } catch (Exception ex) {
+            EasyRider.PLUGIN.getLogger().severe("Error in database path: " + ex.getMessage());
+            return;
+        }
+
+        try {
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            Path backupFile = backupsDir.resolve("EasyRider.db." + date);
+            if (!Files.exists(backupFile)) {
+                Files.copy(databaseFile, backupFile, StandardCopyOption.COPY_ATTRIBUTES);
+            }
+        } catch (Exception ex) {
+            EasyRider.PLUGIN.getLogger().severe("Error backing up database: " + ex.getMessage());
+            return;
+        }
+    } // backup
+
+    // ------------------------------------------------------------------------
+    /**
      * Load all horses into the in-memory cache.
      * 
      * On the first run, initialise the schema.
@@ -109,7 +169,7 @@ public class HorseDB {
             EasyRider.PLUGIN.installDDL();
         }
         double millis = 1e-6 * (System.nanoTime() - start);
-        EasyRider.PLUGIN.getLogger().info("Load time: " + millis + " ms");
+        EasyRider.PLUGIN.getLogger().info("Database load time: " + millis + " ms");
     }
 
     // --------------------------------------------------------------------------
@@ -134,7 +194,7 @@ public class HorseDB {
             getDatabase().endTransaction();
         }
         double millis = 1e-6 * (System.nanoTime() - start);
-        EasyRider.PLUGIN.getLogger().info("Save time: " + millis + " ms");
+        EasyRider.PLUGIN.getLogger().info("Database save time: " + millis + " ms");
     }
 
     // ------------------------------------------------------------------------

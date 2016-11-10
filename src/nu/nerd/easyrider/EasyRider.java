@@ -84,6 +84,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseUpgradesExecutor());
         addCommandExecutor(new HorseTopExecutor());
 
+        DB.backup();
         DB.load();
     }
 
