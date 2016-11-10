@@ -74,7 +74,9 @@ public class HorseSetLevelExecutor extends ExecutorBase {
                         Player player = event.getPlayer();
                         player.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + horse.getUniqueId());
                         showLevel(player, "Old ", ability, savedHorse);
-                        ability.setLevel(savedHorse, horse, newLevel);
+                        ability.setLevel(savedHorse, newLevel);
+                        ability.setEffort(savedHorse, ability.getEffortForLevel(newLevel));
+                        ability.updateAttributes(savedHorse, horse);
                         showLevel(player, "New ", ability, savedHorse);
                     }
                 });

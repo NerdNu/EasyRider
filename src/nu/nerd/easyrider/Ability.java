@@ -3,6 +3,7 @@ package nu.nerd.easyrider;
 import java.util.logging.Logger;
 
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Horse;
 
@@ -270,6 +271,42 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
+     * Checks whether the current effort of the horse should increase its level
+     * in this ability.
+     *
+     * If so, the level is increased to match the training, and the horse
+     * entity's attributes are updated.
+     *
+     * @param savedHorse the database state of the horse.
+     * @param horse the Horse entity whose attribute will be set.
+     * @return true if the training effort resulted in a change in level (and
+     *         attributes) of the horse.
+     */
+    public boolean hasLevelIncreased(SavedHorse savedHorse, Horse horse) {
+        int trainedLevel = getQuantisedLevelForEffort(getEffort(savedHorse));
+        if (trainedLevel > getLevel(savedHorse)) {
+            setLevel(savedHorse, trainedLevel);
+            updateAttributes(savedHorse, horse);
+            return true;
+        }
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Set the attribute of the specified Horse entity to match the current
+     * level of this horse in this Ability.
+     *
+     * @param savedHorse the database state of the horse.
+     * @param horse the Horse entity whose attribute will be set.
+     */
+    public void updateAttributes(SavedHorse savedHorse, Horse horse) {
+        AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
+        horseAttribute.setBaseValue(getValue(getLevel(savedHorse)));
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Return the units of attribute values as a displayable String.
      *
      * @return the units of attribute values as a displayable String.
@@ -318,18 +355,19 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
-     * Set the level corresponding to this Ability on a horse.
+     * Set the stored level of the SavedHorse in this Ability.
      * 
+     * Horse attributes are not affected.
+     *
      * @param savedHorse the database state of the horse.
-     * @param horse the Horse entity whose attribute will be set.
-     * @param level the new level.
+     * @param level the level.
      */
-    public abstract void setLevel(SavedHorse savedHorse, Horse horse, int level);
+    public abstract void setLevel(SavedHorse savedHorse, int level);
 
     // ------------------------------------------------------------------------
     /**
      * Return the level corresponding to this Ability on a SavedHorse.
-     * 
+     *
      * @param savedHorse the database state of the horse.
      * @return the level.
      */
@@ -337,13 +375,23 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
-     * Get the non-quantised level corresponding to this Ability for the
-     * training effort applied to the specified horse.
+     * Set the stored training effort in this ability.
+     *
+     * The level and corresponding horse attribute are not affected.
      *
      * @param savedHorse the database state of the horse.
-     * @return the level.
+     * @param level the level.
      */
-    public abstract double getLevelForEffort(SavedHorse savedHorse);
+    public abstract void setEffort(SavedHorse savedHorse, double effort);
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the stored training effort in this ability.
+     *
+     * @param savedHorse the database state of the horse.
+     * @return the stored training effort in this ability.
+     */
+    public abstract double getEffort(SavedHorse savedHorse);
 
     // ------------------------------------------------------------------------
     /**

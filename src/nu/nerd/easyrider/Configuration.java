@@ -3,9 +3,7 @@ package nu.nerd.easyrider;
 import java.util.logging.Logger;
 
 import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Horse;
 
 import nu.nerd.easyrider.db.SavedHorse;
 
@@ -42,11 +40,8 @@ public class Configuration {
         }
 
         @Override
-        public void setLevel(SavedHorse savedHorse, Horse horse, int level) {
+        public void setLevel(SavedHorse savedHorse, int level) {
             savedHorse.setSpeedLevel(level);
-            savedHorse.setDistanceTravelled(getEffortForLevel(level));
-            AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
-            horseAttribute.setBaseValue(getValue(level));
         }
 
         @Override
@@ -55,8 +50,13 @@ public class Configuration {
         }
 
         @Override
-        public double getLevelForEffort(SavedHorse savedHorse) {
-            return getLevelForEffort(savedHorse.getDistanceTravelled());
+        public void setEffort(SavedHorse savedHorse, double effort) {
+            savedHorse.setDistanceTravelled(effort);
+        }
+
+        @Override
+        public double getEffort(SavedHorse savedHorse) {
+            return savedHorse.getDistanceTravelled();
         }
 
         @Override
@@ -98,11 +98,8 @@ public class Configuration {
         }
 
         @Override
-        public void setLevel(SavedHorse savedHorse, Horse horse, int level) {
+        public void setLevel(SavedHorse savedHorse, int level) {
             savedHorse.setJumpLevel(level);
-            savedHorse.setDistanceJumped(getEffortForLevel(level));
-            AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
-            horseAttribute.setBaseValue(getValue(level));
         }
 
         @Override
@@ -111,8 +108,13 @@ public class Configuration {
         }
 
         @Override
-        public double getLevelForEffort(SavedHorse savedHorse) {
-            return getLevelForEffort(savedHorse.getDistanceJumped());
+        public void setEffort(SavedHorse savedHorse, double effort) {
+            savedHorse.setDistanceJumped(effort);
+        }
+
+        @Override
+        public double getEffort(SavedHorse savedHorse) {
+            return savedHorse.getDistanceJumped();
         }
 
         @Override
@@ -143,11 +145,8 @@ public class Configuration {
         }
 
         @Override
-        public void setLevel(SavedHorse savedHorse, Horse horse, int level) {
+        public void setLevel(SavedHorse savedHorse, int level) {
             savedHorse.setHealthLevel(level);
-            savedHorse.setNuggetsEaten((int) getEffortForLevel(level));
-            AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
-            horseAttribute.setBaseValue(getValue(level));
         }
 
         @Override
@@ -156,8 +155,13 @@ public class Configuration {
         }
 
         @Override
-        public double getLevelForEffort(SavedHorse savedHorse) {
-            return getLevelForEffort(savedHorse.getNuggetsEaten());
+        public void setEffort(SavedHorse savedHorse, double effort) {
+            savedHorse.setNuggetsEaten((int) effort);
+        }
+
+        @Override
+        public double getEffort(SavedHorse savedHorse) {
+            return savedHorse.getNuggetsEaten();
         }
 
         @Override

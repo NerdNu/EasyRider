@@ -64,8 +64,8 @@ public class HorseDB {
         TreeSet<SavedHorse> rankings = new TreeSet<SavedHorse>(new Comparator<SavedHorse>() {
             @Override
             public int compare(SavedHorse h1, SavedHorse h2) {
-                double h1Level = ability.getLevelForEffort(h1);
-                double h2Level = ability.getLevelForEffort(h2);
+                double h1Level = ability.getLevelForEffort(ability.getEffort(h1));
+                double h2Level = ability.getLevelForEffort(ability.getEffort(h2));
                 if (h1Level < h2Level) {
                     return 1;
                 } else if (h2Level < h1Level) {

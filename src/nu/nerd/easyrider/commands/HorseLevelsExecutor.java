@@ -79,13 +79,18 @@ public class HorseLevelsExecutor extends ExecutorBase {
      * attribute value, and the total effort expended for that ability on a
      * specific horse.
      *
+     * When the maximum possible level is exceeded by training, colour the level
+     * text red.
+     *
      * @param player the player to be send messages.
      * @param abililty the {@link Ability}.
      * @param savedHorse the database state of the horse.
      */
     protected void showLevel(Player player, Ability ability, SavedHorse savedHorse) {
+        double fractionalLevel = ability.getLevelForEffort(ability.getEffort(savedHorse));
+        ChatColor levelColour = (fractionalLevel >= ability.getMaxLevel()) ? ChatColor.RED : ChatColor.WHITE;
         player.sendMessage(ChatColor.GOLD + ability.getDisplayName() + ": " +
-                           ChatColor.WHITE + "Level " + String.format("%5.3f", ability.getLevelForEffort(savedHorse)) +
+                           levelColour + "Level " + String.format("%5.3f", fractionalLevel) +
                            ChatColor.GOLD + " - " +
                            ChatColor.YELLOW + ability.getFormattedValue(savedHorse) +
                            ChatColor.GRAY + " (" + ability.getFormattedEffort(savedHorse) + ")");

@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -26,7 +27,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
-import org.bukkit.event.vehicle.VehicleExitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import nu.nerd.easyrider.commands.EasyRiderExecutor;
@@ -146,17 +147,22 @@ public class EasyRider extends JavaPlugin implements Listener {
                         debug(horse, horse.getVariant() + " owner set to " + player.getName());
                     }
                 }
-
-                // TODO: Vanilla undead horses don't eat gold. Simulate that.
             }
 
             SavedHorse savedHorse = DB.findHorse(horse);
             if (savedHorse == null) {
                 savedHorse = DB.addHorse(horse);
 
-                CONFIG.SPEED.setLevel(savedHorse, horse, 1);
-                CONFIG.JUMP.setLevel(savedHorse, horse, 1);
-                CONFIG.HEALTH.setLevel(savedHorse, horse, 1);
+                CONFIG.SPEED.setLevel(savedHorse, 1);
+                CONFIG.SPEED.setEffort(savedHorse, 0);
+                CONFIG.SPEED.updateAttributes(savedHorse, horse);
+                CONFIG.JUMP.setLevel(savedHorse, 1);
+                CONFIG.JUMP.setEffort(savedHorse, 0);
+                CONFIG.JUMP.updateAttributes(savedHorse, horse);
+                CONFIG.HEALTH.setLevel(savedHorse, 1);
+                CONFIG.HEALTH.setEffort(savedHorse, 0);
+                CONFIG.HEALTH.updateAttributes(savedHorse, horse);
+
                 if (CONFIG.DEBUG_EVENTS) {
                     debug(horse, horse.getVariant() + " initialised to level 1 by " + player.getName());
                 }
@@ -170,16 +176,49 @@ public class EasyRider extends JavaPlugin implements Listener {
             }
 
             PlayerState playerState = getState(player);
+            Location horseLoc = horse.getLocation();
             if (playerState.hasPendingInteraction()) {
                 playerState.handlePendingInteraction(event, savedHorse);
 
                 // Even though the event is cancelled, the player will end up
                 // facing the same direction as the horse, so make the horse
                 // face where the player should face.
-                Location horseLoc = horse.getLocation();
                 horseLoc.setYaw(player.getLocation().getYaw());
                 horse.teleport(horseLoc);
                 event.setCancelled(true);
+            } else {
+                // Handle health training. only if the event was not cancelled.
+                ItemStack foodItem = player.getEquipment().getItemInMainHand();
+                int nuggets = getNuggetValue(foodItem);
+                if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
+                    getLogger().info("Nugget value: " + nuggets);
+                }
+                if (nuggets > 0) {
+                    CONFIG.HEALTH.setEffort(savedHorse, CONFIG.HEALTH.getEffort(savedHorse) + nuggets);
+                    if (CONFIG.HEALTH.hasLevelIncreased(savedHorse, horse)) {
+                        notifyLevelUp(player, savedHorse, horse, CONFIG.HEALTH);
+                    }
+
+                    // Undead and skeletal horse types don't normally eat.
+                    // Simulate eating.
+                    // Golden carrots are apparently always edible. Apples are
+                    // usually not. Force apples to be taken. Untamed horses
+                    // also seem to eat golden apples without limit.
+                    // Location horseLoc = horse.getLocation();
+                    // boolean takeItem = horse.getVariant() ==
+                    // Variant.SKELETON_HORSE ||
+                    // horse.getVariant() == Variant.UNDEAD_HORSE ||
+                    // !horse.isTamed() ||
+                    // nuggets > 8;
+                    // if (takeItem) {
+
+                    horseLoc.getWorld().playSound(horseLoc, Sound.ENTITY_HORSE_EAT, 3.0f, 1.0f);
+                    // Eat the whole stack, since we don't get the event
+                    // to see whether the horse eats an item or not.
+                    foodItem.setAmount(0);
+                    player.getEquipment().setItemInMainHand(foodItem);
+                    // }
+                }
             }
 
             // Update stored owner, which may have changed.
@@ -227,19 +266,19 @@ public class EasyRider extends JavaPlugin implements Listener {
         PlayerState playerState = getState(player);
         double tickDistance = playerState.getTickHorizontalDistance();
         if (tickDistance > 0) {
-            if (horse.isOnGround()) {
-                savedHorse.setDistanceTravelled(savedHorse.getDistanceTravelled() + tickDistance);
-                int newLevel = CONFIG.SPEED.getQuantisedLevelForEffort(savedHorse.getDistanceTravelled());
-                if (newLevel > savedHorse.getSpeedLevel()) {
-                    CONFIG.SPEED.setLevel(savedHorse, horse, newLevel);
-                    notifyLevelUp(player, savedHorse, horse, CONFIG.SPEED);
-                }
+            // Sanity check: if the distance is so large as to be unattainable
+            // in one tick, then don't apply the distance to the horse and log
+            // in console. Ratio to max speed determined empirically.
+            double maxSpeed = CONFIG.SPEED.getValue(savedHorse.getSpeedLevel() + 1);
+            if (tickDistance > 4.5 * maxSpeed) {
+                getLogger().warning(horse.getOwner().getName() + "'s horse " + horse.getUniqueId() +
+                                    " moved impossibly fast for its level; ratio: " + (tickDistance / maxSpeed));
+                player.sendMessage(ChatColor.RED + "It might move faster with a jetpack, but that doesn't mean the horse is getting stronger!");
             } else {
-                savedHorse.setDistanceJumped(savedHorse.getDistanceJumped() + tickDistance);
-                int newLevel = CONFIG.JUMP.getQuantisedLevelForEffort(savedHorse.getDistanceJumped());
-                if (newLevel > savedHorse.getJumpLevel()) {
-                    CONFIG.JUMP.setLevel(savedHorse, horse, newLevel);
-                    notifyLevelUp(player, savedHorse, horse, CONFIG.JUMP);
+                Ability ability = (horse.isOnGround()) ? CONFIG.SPEED : CONFIG.JUMP;
+                ability.setEffort(savedHorse, ability.getEffort(savedHorse) + tickDistance);
+                if (ability.hasLevelIncreased(savedHorse, horse)) {
+                    notifyLevelUp(player, savedHorse, horse, ability);
                 }
             }
         }
@@ -276,35 +315,12 @@ public class EasyRider extends JavaPlugin implements Listener {
                 savedHorse = DB.addHorse(horse);
             }
 
+            // Update stored owner, which may have changed.
+            savedHorse.setOwner(horse.getOwner());
+
             getState(player).clearHorseDistance();
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
                 debug(horse, "passenger: " + player.getName());
-            }
-        }
-    }
-
-    // ------------------------------------------------------------------------
-    /**
-     * Clear distance travelled when dismounting from a horse.
-     */
-    @EventHandler(ignoreCancelled = true)
-    public void onVehicleExit(VehicleExitEvent event) {
-        if (!(event.getVehicle() instanceof Horse)) {
-            return;
-        }
-        Horse horse = (Horse) event.getVehicle();
-        Entity passenger = event.getExited();
-        if (passenger instanceof Player) {
-            Player player = (Player) passenger;
-            SavedHorse savedHorse = DB.findHorse(horse);
-            if (savedHorse == null) {
-                getLogger().warning("onVehicleMove(): Missing database entry for horse " + horse.getUniqueId());
-                savedHorse = DB.addHorse(horse);
-            }
-
-            getState(player).clearHorseDistance();
-            if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
-                debug(horse, "passenger alighted: " + player.getName());
             }
         }
     }
@@ -394,6 +410,26 @@ public class EasyRider extends JavaPlugin implements Listener {
         Location loc = horse.getLocation().add(0, 1, 0);
         loc.getWorld().spigot().playEffect(loc, Effect.HAPPY_VILLAGER, 0, 0, 2.0f, 1.0f, 2.0f, 0.0f, 100, 32);
         loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 3.0f, 1.0f);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the gold mass of a stack of food items in gold nuggets.
+     *
+     * @param food an ItemStack containing the food; only one item is counted,
+     *        if there are multiple items in the stack.
+     * @return the gold mass of a food item in gold nuggets.
+     */
+    protected int getNuggetValue(ItemStack food) {
+        if (food == null) {
+            return 0;
+        } else if (food.getType() == Material.GOLDEN_CARROT) {
+            return food.getAmount() * 8;
+        } else if (food.getType() == Material.GOLDEN_APPLE) {
+            return food.getAmount() * ((food.getDurability() == 0) ? 8 * 9 : 8 * 9 * 9);
+        } else {
+            return 0;
+        }
     }
 
     // ------------------------------------------------------------------------

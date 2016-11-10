@@ -12,6 +12,9 @@ import nu.nerd.easyrider.db.SavedHorse;
 // ----------------------------------------------------------------------------
 /**
  * CommandExecutor implementation for the /horse-top command.
+ *
+ * When the maximum possible level is exceeded by training, colour the level
+ * text red.
  */
 public class HorseTopExecutor extends ExecutorBase {
     // ------------------------------------------------------------------------
@@ -47,15 +50,16 @@ public class HorseTopExecutor extends ExecutorBase {
                 sender.sendMessage(ChatColor.GOLD + "Nobody has trained any horses.");
             } else {
                 for (int i = 0; i < top.length; ++i) {
-                    SavedHorse horse = top[i];
-
-                    OfflinePlayer owner = horse.getOwner();
+                    SavedHorse savedHorse = top[i];
+                    OfflinePlayer owner = savedHorse.getOwner();
                     String ownerName = (owner != null) ? owner.getName() : "<no owner>";
+                    double fractionalLevel = ability.getLevelForEffort(ability.getEffort(savedHorse));
+                    ChatColor levelColour = (fractionalLevel >= ability.getMaxLevel()) ? ChatColor.RED : ChatColor.YELLOW;
                     sender.sendMessage(ChatColor.GOLD + "#" + (i + 1) + " " +
-                                       ChatColor.YELLOW + "Level " + String.format("%5.3f ", ability.getLevelForEffort(horse)) +
+                                       levelColour + "Level " + String.format("%5.3f ", fractionalLevel) +
                                        ChatColor.WHITE + ownerName + " " +
-                                       ChatColor.GRAY + horse.getAppearance() + " " +
-                                       ChatColor.WHITE + horse.getUuid().toString().substring(0, 6) + "... ");
+                                       ChatColor.GRAY + savedHorse.getAppearance() + " " +
+                                       ChatColor.WHITE + savedHorse.getUuid().toString().substring(0, 6) + "... ");
                 }
             }
             return true;
