@@ -21,6 +21,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -130,6 +131,23 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
+     * When a horse spawns, set its stats to defaults.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof Horse) {
+            Horse horse = (Horse) entity;
+
+            DB.findOrAddHorse(horse);
+            if (CONFIG.DEBUG_EVENTS) {
+                debug(horse, " spawned, reason: " + event.getSpawnReason());
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Handle players right clicking on horses.
      */
     @EventHandler(priority = EventPriority.LOWEST)
@@ -138,6 +156,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         if (entity.getType() == EntityType.HORSE) {
             Horse horse = (Horse) entity;
             Player player = event.getPlayer();
+            PlayerState playerState = getState(player);
 
             if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
                 // If not owned, undead horses belong to whoever clicks first.
@@ -147,36 +166,25 @@ public class EasyRider extends JavaPlugin implements Listener {
                     if (CONFIG.DEBUG_EVENTS) {
                         debug(horse, horse.getVariant() + " owner set to " + player.getName());
                     }
+                } else {
+                    // CobraCorral locks horses in the EntityTameEvent handler.
+                    // For un-tameable horses, do our own basic locking.
+                    if (!player.equals(horse.getOwner())) {
+                        event.setCancelled(true);
+
+                        // If they are clicking on the horse because of a
+                        // command, don't message about locking.
+                        if (!playerState.hasPendingInteraction()) {
+                            player.sendMessage(ChatColor.RED + "Undead and skeletal horses can only be accessed by their owner.");
+                        }
+                    }
                 }
             }
 
-            SavedHorse savedHorse = DB.findHorse(horse);
-            if (savedHorse == null) {
-                savedHorse = DB.addHorse(horse);
+            // Update stored owner, which may have changed.
+            SavedHorse savedHorse = DB.findOrAddHorse(horse);
+            savedHorse.setOwner(horse.getOwner());
 
-                CONFIG.SPEED.setLevel(savedHorse, 1);
-                CONFIG.SPEED.setEffort(savedHorse, 0);
-                CONFIG.SPEED.updateAttributes(savedHorse, horse);
-                CONFIG.JUMP.setLevel(savedHorse, 1);
-                CONFIG.JUMP.setEffort(savedHorse, 0);
-                CONFIG.JUMP.updateAttributes(savedHorse, horse);
-                CONFIG.HEALTH.setLevel(savedHorse, 1);
-                CONFIG.HEALTH.setEffort(savedHorse, 0);
-                CONFIG.HEALTH.updateAttributes(savedHorse, horse);
-
-                if (CONFIG.DEBUG_EVENTS) {
-                    debug(horse, horse.getVariant() + " initialised to level 1 by " + player.getName());
-                }
-            } else {
-                if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
-                    debug(horse, " Level S" + savedHorse.getSpeedLevel() +
-                                 "/J" + savedHorse.getJumpLevel() +
-                                 "/H" + savedHorse.getHealthLevel() +
-                                 " clicked by " + player.getName());
-                }
-            }
-
-            PlayerState playerState = getState(player);
             Location horseLoc = horse.getLocation();
             if (playerState.hasPendingInteraction()) {
                 playerState.handlePendingInteraction(event, savedHorse);
@@ -200,30 +208,13 @@ public class EasyRider extends JavaPlugin implements Listener {
                         notifyLevelUp(player, savedHorse, horse, CONFIG.HEALTH);
                     }
 
-                    // Undead and skeletal horse types don't normally eat.
-                    // Simulate eating.
-                    // Golden carrots are apparently always edible. Apples are
-                    // usually not. Force apples to be taken. Untamed horses
-                    // also seem to eat golden apples without limit.
-                    // Location horseLoc = horse.getLocation();
-                    // boolean takeItem = horse.getVariant() ==
-                    // Variant.SKELETON_HORSE ||
-                    // horse.getVariant() == Variant.UNDEAD_HORSE ||
-                    // !horse.isTamed() ||
-                    // nuggets > 8;
-                    // if (takeItem) {
-
-                    horseLoc.getWorld().playSound(horseLoc, Sound.ENTITY_HORSE_EAT, 3.0f, 1.0f);
                     // Eat the whole stack, since we don't get the event
                     // to see whether the horse eats an item or not.
                     foodItem.setAmount(0);
                     player.getEquipment().setItemInMainHand(foodItem);
-                    // }
+                    horseLoc.getWorld().playSound(horseLoc, Sound.ENTITY_HORSE_EAT, 3.0f, 1.0f);
                 }
             }
-
-            // Update stored owner, which may have changed.
-            savedHorse.setOwner(horse.getOwner());
         }
     } // onPlayerInteractEntity
 
@@ -253,13 +244,8 @@ public class EasyRider extends JavaPlugin implements Listener {
             return;
         }
 
-        SavedHorse savedHorse = DB.findHorse(horse);
-        if (savedHorse == null) {
-            getLogger().warning("onVehicleMove(): Missing database entry for horse " + horse.getUniqueId());
-            savedHorse = DB.addHorse(horse);
-        }
-
         // Update stored owner, which may have changed.
+        SavedHorse savedHorse = DB.findOrAddHorse(horse);
         savedHorse.setOwner(horse.getOwner());
 
         // Compute distance moved and update speed or jump depending on whether
@@ -310,13 +296,9 @@ public class EasyRider extends JavaPlugin implements Listener {
         Entity passenger = event.getEntered();
         if (passenger instanceof Player) {
             Player player = (Player) passenger;
-            SavedHorse savedHorse = DB.findHorse(horse);
-            if (savedHorse == null) {
-                getLogger().warning("onVehicleMove(): Missing database entry for horse " + horse.getUniqueId());
-                savedHorse = DB.addHorse(horse);
-            }
 
             // Update stored owner, which may have changed.
+            SavedHorse savedHorse = DB.findOrAddHorse(horse);
             savedHorse.setOwner(horse.getOwner());
 
             getState(player).clearHorseDistance();
@@ -393,6 +375,18 @@ public class EasyRider extends JavaPlugin implements Listener {
     @Override
     public void installDDL() {
         super.installDDL();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Set the specified Horse to Level 1 in all abilities and set attributes to
+     * match.
+     *
+     * @param savedHorse the database state of the horse.
+     * @param horse the Horse entity.
+     */
+    protected void initialiseHorse(SavedHorse savedHorse, Horse horse) {
+
     }
 
     // ------------------------------------------------------------------------

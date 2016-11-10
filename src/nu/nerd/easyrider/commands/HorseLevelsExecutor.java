@@ -62,11 +62,7 @@ public class HorseLevelsExecutor extends ExecutorBase {
      * specified horse.
      */
     protected void showLevels(Player player, Horse horse) {
-        SavedHorse savedHorse = EasyRider.DB.findHorse(horse);
-        if (savedHorse == null) {
-            savedHorse = EasyRider.DB.addHorse(horse);
-        }
-
+        SavedHorse savedHorse = EasyRider.DB.findOrAddHorse(horse);
         player.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + horse.getUniqueId());
         showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
         showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);

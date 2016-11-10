@@ -33,15 +33,25 @@ import nu.nerd.easyrider.EasyRider;
 public class HorseDB {
     // ------------------------------------------------------------------------
     /**
-     * Add the specified Horse to the database cache.
+     * Find the specified Horse in the database cache, adding it as necessary.
      * 
-     * @param horse
+     * @param horse the Horse entity.
      */
-    public SavedHorse addHorse(Horse horse) {
+    public SavedHorse findOrAddHorse(Horse horse) {
         SavedHorse savedHorse = findHorse(horse);
         if (savedHorse == null) {
             savedHorse = new SavedHorse(horse);
             _cache.put(savedHorse.getUuid(), savedHorse);
+
+            EasyRider.CONFIG.SPEED.setLevel(savedHorse, 1);
+            EasyRider.CONFIG.SPEED.setEffort(savedHorse, 0);
+            EasyRider.CONFIG.SPEED.updateAttributes(savedHorse, horse);
+            EasyRider.CONFIG.JUMP.setLevel(savedHorse, 1);
+            EasyRider.CONFIG.JUMP.setEffort(savedHorse, 0);
+            EasyRider.CONFIG.JUMP.updateAttributes(savedHorse, horse);
+            EasyRider.CONFIG.HEALTH.setLevel(savedHorse, 1);
+            EasyRider.CONFIG.HEALTH.setEffort(savedHorse, 0);
+            EasyRider.CONFIG.HEALTH.updateAttributes(savedHorse, horse);
         }
         return savedHorse;
     }
