@@ -22,6 +22,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -142,6 +143,26 @@ public class EasyRider extends JavaPlugin implements Listener {
             DB.findOrAddHorse(horse);
             if (CONFIG.DEBUG_EVENTS) {
                 debug(horse, " spawned, reason: " + event.getSpawnReason());
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Protect owned undead or skeletal horses from damage when they don't have
+     * a player riding them.
+     *
+     * This is covering a gap in the horse locking protections of CobraCorral.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onEntityDamage(EntityDamageEvent event) {
+        Entity entity = event.getEntity();
+        if (entity.getType() == EntityType.HORSE) {
+            Horse horse = (Horse) entity;
+            if (!(horse.getPassenger() instanceof Player) &&
+                (horse.getVariant() == Variant.SKELETON_HORSE ||
+                 horse.getVariant() == Variant.UNDEAD_HORSE)) {
+                event.setCancelled(true);
             }
         }
     }
