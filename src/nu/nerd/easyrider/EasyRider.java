@@ -13,8 +13,8 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Horse.Variant;
 import org.bukkit.entity.Player;
@@ -23,6 +23,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -74,10 +75,11 @@ public class EasyRider extends JavaPlugin implements Listener {
         saveDefaultConfig();
         CONFIG.reload();
 
+        DB.backup();
+        DB.load();
+
         File playersFile = new File(getDataFolder(), PLAYERS_FILE);
         _playerConfig = YamlConfiguration.loadConfiguration(playersFile);
-
-        getServer().getPluginManager().registerEvents(this, this);
 
         addCommandExecutor(new EasyRiderExecutor());
         addCommandExecutor(new HorseDebugExecutor());
@@ -86,8 +88,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseUpgradesExecutor());
         addCommandExecutor(new HorseTopExecutor());
 
-        DB.backup();
-        DB.load();
+        getServer().getPluginManager().registerEvents(this, this);
     }
 
     // ------------------------------------------------------------------------
@@ -108,6 +109,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         }
 
         DB.save();
+        DB.purgeAllRemovedHorses();
     }
 
     // ------------------------------------------------------------------------
@@ -154,10 +156,10 @@ public class EasyRider extends JavaPlugin implements Listener {
      *
      * This is covering a gap in the horse locking protections of CobraCorral.
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
         Entity entity = event.getEntity();
-        if (entity.getType() == EntityType.HORSE) {
+        if (entity instanceof Horse) {
             Horse horse = (Horse) entity;
             if (!(horse.getPassenger() instanceof Player) &&
                 (horse.getVariant() == Variant.SKELETON_HORSE ||
@@ -169,12 +171,52 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
+     * When a trained horse dies, remove it from the database and log in the
+     * console.
+     */
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onEntityDeath(EntityDeathEvent event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof Horse) {
+            Horse horse = (Horse) entity;
+            SavedHorse savedHorse = DB.findHorse(horse);
+            if (savedHorse != null) {
+                DB.removeDeadHorse(savedHorse);
+
+                StringBuilder message = new StringBuilder();
+                message.append("Horse died ");
+                message.append(horse.getUniqueId().toString());
+                message.append(": ");
+
+                AnimalTamer owner = horse.getOwner();
+                if (owner == null) {
+                    message.append("No owner");
+                } else {
+                    message.append("Owner: ").append(owner.getName());
+                }
+
+                message.append(". Appearance: ").append(savedHorse.getAppearance());
+                message.append(". Speed: ").append(savedHorse.getSpeedLevel());
+                message.append(" (").append(savedHorse.getDistanceTravelled()).append(")");
+                message.append(". Health: ").append(savedHorse.getHealthLevel());
+                message.append(" (").append(savedHorse.getNuggetsEaten()).append(")");
+                message.append(". Jump: ").append(savedHorse.getJumpLevel());
+                message.append(" (").append(savedHorse.getDistanceJumped()).append(")");
+                message.append(".");
+
+                getLogger().info(message.toString());
+            }
+        }
+    } // onEntityDeath
+
+    // ------------------------------------------------------------------------
+    /**
      * Handle players right clicking on horses.
      */
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
         Entity entity = event.getRightClicked();
-        if (entity.getType() == EntityType.HORSE) {
+        if (entity instanceof Horse) {
             Horse horse = (Horse) entity;
             Player player = event.getPlayer();
             PlayerState playerState = getState(player);

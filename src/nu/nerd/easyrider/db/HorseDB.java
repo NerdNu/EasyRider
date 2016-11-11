@@ -68,6 +68,18 @@ public class HorseDB {
         return _cache.get(horse.getUniqueId());
     }
 
+    // --------------------------------------------------------------------------
+    /**
+     * Remove the specified horse from the cache when it dies, and queue up
+     * deletion from the database.
+     *
+     * @param savedHorse the database state of the horse.
+     */
+    public void removeDeadHorse(SavedHorse savedHorse) {
+        _cache.remove(savedHorse.getUuid());
+        _removedHorses.put(savedHorse.getUuid(), savedHorse);
+    }
+
     // ------------------------------------------------------------------------
     /**
      * Return a specified number of the top horses ranked in descending order of
@@ -169,6 +181,7 @@ public class HorseDB {
      */
     public void load() {
         long start = System.nanoTime();
+
         try {
             getDatabase().find(SavedHorse.class).findRowCount();
             for (SavedHorse h : getDatabase().find(SavedHorse.class).findList()) {
@@ -178,6 +191,7 @@ public class HorseDB {
             EasyRider.PLUGIN.getLogger().info("First run, initialising database.");
             EasyRider.PLUGIN.installDDL();
         }
+
         double millis = 1e-6 * (System.nanoTime() - start);
         EasyRider.PLUGIN.getLogger().info("Database load time: " + millis + " ms");
     }
@@ -188,6 +202,7 @@ public class HorseDB {
      */
     public void save() {
         long start = System.nanoTime();
+
         getDatabase().beginTransaction();
         try {
             for (SavedHorse horse : _cache.values()) {
@@ -203,8 +218,33 @@ public class HorseDB {
         } finally {
             getDatabase().endTransaction();
         }
+
         double millis = 1e-6 * (System.nanoTime() - start);
         EasyRider.PLUGIN.getLogger().info("Database save time: " + millis + " ms");
+    }
+
+    // --------------------------------------------------------------------------
+    /**
+     * Delete all removed horses from the database.
+     */
+    public void purgeAllRemovedHorses() {
+        long start = System.nanoTime();
+
+        getDatabase().beginTransaction();
+        try {
+            for (SavedHorse savedHorse : _removedHorses.values()) {
+                getDatabase().delete(savedHorse);
+            }
+            getDatabase().commitTransaction();
+        } catch (Exception ex) {
+            EasyRider.PLUGIN.getLogger().severe("Error removing horses: " + ex.getMessage());
+        } finally {
+            getDatabase().endTransaction();
+        }
+        _removedHorses.clear();
+
+        double millis = 1e-6 * (System.nanoTime() - start);
+        EasyRider.PLUGIN.getLogger().info("Database purge time: " + millis + " ms");
     }
 
     // ------------------------------------------------------------------------
@@ -222,5 +262,10 @@ public class HorseDB {
      * Known horses.
      */
     protected HashMap<UUID, SavedHorse> _cache = new HashMap<UUID, SavedHorse>();
+
+    /**
+     * Horses that must be removed from the database.
+     */
+    protected HashMap<UUID, SavedHorse> _removedHorses = new HashMap<UUID, SavedHorse>();
 
 } // class HorseDB
