@@ -3,6 +3,7 @@ package nu.nerd.easyrider.commands;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -64,6 +65,9 @@ public class HorseLevelsExecutor extends ExecutorBase {
     protected void showLevels(Player player, Horse horse) {
         SavedHorse savedHorse = EasyRider.DB.findOrAddHorse(horse);
         player.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + horse.getUniqueId());
+        AnimalTamer owner = horse.getOwner();
+        String ownerName = (owner != null) ? owner.getName() : "<no owner>";
+        player.sendMessage(ChatColor.GOLD + "Owner: " + ChatColor.YELLOW + ownerName);
         showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
         showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);
         showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
