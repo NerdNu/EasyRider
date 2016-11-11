@@ -3,7 +3,7 @@ debug:
   events: true
   saves: true
 
-speed-limit: 4.5
+speed-limit: 5.0
 
 abilities:
   speed:
