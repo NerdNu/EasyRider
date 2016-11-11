@@ -136,7 +136,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     /**
      * When a horse spawns, set its stats to defaults.
      */
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
         Entity entity = event.getEntity();
         if (entity instanceof Horse) {
