@@ -90,7 +90,7 @@ public class Configuration {
     /**
      * Jump Height ability.
      */
-    public Ability JUMP = new Ability("jump", "Jump Height", Attribute.HORSE_JUMP_STRENGTH) {
+    public Ability JUMP = new Ability("jump", "Jump Strength", Attribute.HORSE_JUMP_STRENGTH) {
         /**
          * Display the jump height using the same algorithm as Zyin's HUD and
          * CobraCorral.
