@@ -40,7 +40,6 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command> reload§f - Reload the configuration.
-      §e/<command> chunk§f - Check horse information in the current chunk.
 
   horse-debug:
     description: Specify whether a horse will be subject to debug logging.
