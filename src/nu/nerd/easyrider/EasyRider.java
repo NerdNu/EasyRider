@@ -170,6 +170,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                     // CobraCorral locks horses in the EntityTameEvent handler.
                     // For un-tameable horses, do our own basic locking.
                     if (!player.equals(horse.getOwner())) {
+                        // Prevent riding, leashing etc.
                         event.setCancelled(true);
 
                         // If they are clicking on the horse because of a
@@ -198,21 +199,29 @@ public class EasyRider extends JavaPlugin implements Listener {
             } else {
                 // Handle health training. only if the event was not cancelled.
                 ItemStack foodItem = player.getEquipment().getItemInMainHand();
-                int nuggets = getNuggetValue(foodItem);
+                int nuggetValue = getNuggetValue(foodItem);
                 if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
-                    getLogger().info("Nugget value: " + nuggets);
+                    getLogger().info("Nugget value: " + nuggetValue);
                 }
-                if (nuggets > 0) {
-                    CONFIG.HEALTH.setEffort(savedHorse, CONFIG.HEALTH.getEffort(savedHorse) + nuggets);
-                    if (CONFIG.HEALTH.hasLevelIncreased(savedHorse, horse)) {
-                        notifyLevelUp(player, savedHorse, horse, CONFIG.HEALTH);
-                    }
 
-                    // Eat the whole stack, since we don't get the event
-                    // to see whether the horse eats an item or not.
-                    foodItem.setAmount(0);
-                    player.getEquipment().setItemInMainHand(foodItem);
-                    horseLoc.getWorld().playSound(horseLoc, Sound.ENTITY_HORSE_EAT, 3.0f, 1.0f);
+                if (nuggetValue > 0) {
+                    // For undead horses, they take the food right away.
+                    if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
+                        foodItem.setAmount(foodItem.getAmount() - 1);
+                        player.getEquipment().setItemInMainHand(foodItem);
+                        consumeGoldenFood(savedHorse, horse, nuggetValue, player);
+
+                        // And let's simulate healing with golden food too.
+                        // Golden apples (both types) heal (10); carrots heal 4.
+                        int foodValue = (foodItem.getType() == Material.GOLDEN_APPLE) ? 10 : 4;
+                        horse.setHealth(Math.min(horse.getMaxHealth(), horse.getHealth() + foodValue));
+
+                    } else {
+                        // For other types of horses, detect whether the food
+                        // was consumed by running a task in the next tick.
+                        Bukkit.getScheduler().runTaskLater(this, new GoldConsumerTask(
+                            player, horse, foodItem, nuggetValue, player.getInventory().getHeldItemSlot()), 0);
+                    }
                 }
             }
         }
@@ -379,18 +388,6 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
-     * Set the specified Horse to Level 1 in all abilities and set attributes to
-     * match.
-     *
-     * @param savedHorse the database state of the horse.
-     * @param horse the Horse entity.
-     */
-    protected void initialiseHorse(SavedHorse savedHorse, Horse horse) {
-
-    }
-
-    // ------------------------------------------------------------------------
-    /**
      * Notify the player that the specified horse has changed its level, and
      * play the corresponding sound and particle effects.
      *
@@ -409,22 +406,43 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
-     * Return the gold mass of a stack of food items in gold nuggets.
+     * Return the gold mass of one item only in a stack of food items, in units
+     * of gold nuggets.
      *
      * @param food an ItemStack containing the food; only one item is counted,
      *        if there are multiple items in the stack.
-     * @return the gold mass of a food item in gold nuggets.
+     * @return the gold mass of a single food item in gold nuggets.
      */
     protected int getNuggetValue(ItemStack food) {
         if (food == null) {
             return 0;
         } else if (food.getType() == Material.GOLDEN_CARROT) {
-            return food.getAmount() * 8;
+            return 8;
         } else if (food.getType() == Material.GOLDEN_APPLE) {
-            return food.getAmount() * ((food.getDurability() == 0) ? 8 * 9 : 8 * 9 * 9);
+            return (food.getDurability() == 0) ? 8 * 9 : 8 * 9 * 9;
         } else {
             return 0;
         }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Increase a saved horse's health training effort according to the mass of
+     * gold consumed, in gold nuggets.
+     *
+     * Play the eat sound effect and level the horse up if appropriate.
+     *
+     * @param savedHorse the database state of the horse.
+     * @param horse the Horse entity.
+     */
+    protected void consumeGoldenFood(SavedHorse savedHorse, Horse horse, int nuggetValue, Player player) {
+        CONFIG.HEALTH.setEffort(savedHorse, CONFIG.HEALTH.getEffort(savedHorse) + nuggetValue);
+        if (CONFIG.HEALTH.hasLevelIncreased(savedHorse, horse)) {
+            notifyLevelUp(player, savedHorse, horse, CONFIG.HEALTH);
+        }
+
+        Location loc = horse.getLocation();
+        loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_EAT, 3.0f, 1.0f);
     }
 
     // ------------------------------------------------------------------------
