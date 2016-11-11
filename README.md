@@ -60,7 +60,7 @@ and the corresponding maximum level, `L_max`:
 
     B = (1 + E_max / K) ^ (1 / (L_max - 1))
 
-Where the maximum level and corresponding maximum effort are carefully
+where the maximum level and corresponding maximum effort are carefully
 selected.
 
 The current level can be expressed as a function `L(E)` of the effort expended
@@ -77,7 +77,7 @@ where `log_B` signifies "logarithm to the base `B`". The logarithm of 1 is 0, so
 proportion to effort scaled by `K`. The lowest level is 1, hence the leading
 "1 +" term.
 
-Note that the current level is presented to the user as an integer, though
+Note that the current level may be presented to the user as an integer, though
 the training effort leads to a notional real number for the level. Also the
 level cannot be trained past the maximum, though admins can create horses
 with ability levels above the maximum.
@@ -133,7 +133,7 @@ Permissions
 
  * `easyrider.admin` - Permission to administer the plugin (run `/easyrider reload`).
  * `easyrider.debug` - Players with this permission receive debug messages.
- * `easyrider.setlevel` - Permission to use /horse-set-level.
- * `easyrider.levels` - Permission to use /horse-levels.
- * `easyrider.upgrades` - Permission to use /horse-upgrades.
- * `easyrider.top` - Permission to use /horse-top.
+ * `easyrider.setlevel` - Permission to use `/horse-set-level`.
+ * `easyrider.levels` - Permission to use `/horse-levels`.
+ * `easyrider.upgrades` - Permission to use `/horse-upgrades`.
+ * `easyrider.top` - Permission to use `/horse-top`.
