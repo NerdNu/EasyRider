@@ -136,7 +136,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     /**
      * When a horse spawns, set its stats to defaults.
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(ignoreCancelled = true)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
         Entity entity = event.getEntity();
         if (entity instanceof Horse) {
@@ -213,7 +213,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     /**
      * Handle players right clicking on horses.
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
         Entity entity = event.getRightClicked();
         if (entity instanceof Horse) {
