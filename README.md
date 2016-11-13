@@ -36,7 +36,10 @@ Features
    with the level.
  * The maximum level, maximum significant training effort, exponential scaling,
    and the resulting range of horse attribute values are all configurable.
-
+ * Choice of horse database implementation.
+ * Databases are backed up on restart in the `backups/` subdirectory of the 
+   plugin folder, with a date/time stamp in the filename that has a granularity
+   of 1 hour. If a matching backup already exists, it is not overwritten.
 
 Training Algorithm
 ------------------
@@ -101,7 +104,10 @@ Player Facing Commands
 
 Admin Commands
 --------------
- * `/easyrider help|reload` - Reload the plugin configuration.
+ * `/easyrider help|reload` - Show help or reload the plugin configuration.
+ * `/easyrider migrate sqlite|yaml|sqlite+yaml` - Change that database type. If
+   a database of the new type exists, it will be rewritten to contain only the
+   currently loaded horses.
  
  * `/horse-debug on|off` - Turn debug logging on or off for the horse that was
    right-clicked.
@@ -118,6 +124,7 @@ Configuration
 | `debug.config` | Log configuration settings on start up. |
 | `debug.events` | Show extra debug messages in event handlers. |
 | `debug.saves` | Enable debug logging in database saves. |
+| `database.implementation` | The database implementation type to choose. One of: "sqlite", "yaml" or "sqlite+yaml". In the last case, horses are written to both databases, and in the event of a discrepancy, the YAML file wins.
 | `speed-limit` | The ratio of distance travelled in one tick to the current speed of a horse for its level. Used mainly as a sanity check on computed distance in movement events. But it also controls a message to players if they attempt to piston a horse way above maximum speed. |
 | `abilities.<ability>.max-level` | The integer maximum level attainable by training. |
 | `abilities.<ability>.max-effort` | The maximum amount of training effort that will be counted towards levelling up. The units of effort depend on the ability. For speed and jump, they are metres travelled horizontally on the ground or in the air, respectively. For health, the units are equivalent mass of gold nuggets consumed. |

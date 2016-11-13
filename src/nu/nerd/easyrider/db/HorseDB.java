@@ -1,24 +1,14 @@
 package nu.nerd.easyrider.db;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
-import java.text.SimpleDateFormat;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import javax.persistence.PersistenceException;
-
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Horse;
-
-import com.avaje.ebean.EbeanServer;
 
 import nu.nerd.easyrider.Ability;
 import nu.nerd.easyrider.EasyRider;
@@ -31,6 +21,23 @@ import nu.nerd.easyrider.EasyRider;
  * save() method is called when the plugin is disabled.
  */
 public class HorseDB {
+    // ------------------------------------------------------------------------
+    /**
+     * Constructor.
+     *
+     * @param implType identifies the database implementation; one of "sqlite",
+     *        "yaml" or "sqlite+yaml". If an invalid identifier is specified,
+     *        the implementation defaults to "yaml".
+     */
+    public HorseDB(String implType) {
+        _impl = makeHorseDBImpl(implType);
+        if (_impl == null) {
+            _impl = new HorseDBImplWithYAML();
+            EasyRider.PLUGIN.getLogger().severe("Invalid database implementation: \"" +
+                                                implType + "\" defaulting to \"yaml\".");
+        }
+    }
+
     // ------------------------------------------------------------------------
     /**
      * Find the specified Horse in the database cache, adding it as necessary.
@@ -58,7 +65,7 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
-     * Return the SavedHorse coresponding to the in-game Horse entity, or null
+     * Return the SavedHorse corresponding to the in-game Horse entity, or null
      * if not stored in the database.
      * 
      * @param horse the Horse to find.
@@ -123,55 +130,12 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
-     * Make a daily backup of the SqLite database.
-     *
-     * There will be one file called "backups/EasyRider.db.yyyy-MM-dd" for each
-     * day the plugin runs.
+     * Make a backup of the database, if that is possible (e.g. backed by a
+     * file).
      */
     public void backup() {
-        Path dataDir = null;
-        try {
-            dataDir = EasyRider.PLUGIN.getDataFolder().toPath();
-        } catch (Exception ex) {
-            EasyRider.PLUGIN.getLogger().severe("Could not get data folder: " +
-                                                ex.getMessage());
-            return;
-        }
-
-        Path backupsDir = null;
-        try {
-            backupsDir = dataDir.resolve("backups");
-            Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rwxrwxr-x");
-            Files.createDirectories(backupsDir, PosixFilePermissions.asFileAttribute(perms));
-        } catch (Exception ex) {
-            EasyRider.PLUGIN.getLogger().severe("Could not create database backups directory: " +
-                                                ex.getMessage());
-            return;
-        }
-
-        Path databaseFile = null;
-        try {
-            databaseFile = dataDir.resolve("EasyRider.db");
-            if (!Files.isReadable(databaseFile)) {
-                EasyRider.PLUGIN.getLogger().severe("Database does not yet exist or cannot be read.");
-                return;
-            }
-        } catch (Exception ex) {
-            EasyRider.PLUGIN.getLogger().severe("Error in database path: " + ex.getMessage());
-            return;
-        }
-
-        try {
-            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            Path backupFile = backupsDir.resolve("EasyRider.db." + date);
-            if (!Files.exists(backupFile)) {
-                Files.copy(databaseFile, backupFile, StandardCopyOption.COPY_ATTRIBUTES);
-            }
-        } catch (Exception ex) {
-            EasyRider.PLUGIN.getLogger().severe("Error backing up database: " + ex.getMessage());
-            return;
-        }
-    } // backup
+        _impl.backup();
+    }
 
     // ------------------------------------------------------------------------
     /**
@@ -181,15 +145,8 @@ public class HorseDB {
      */
     public void load() {
         long start = System.nanoTime();
-
-        try {
-            getDatabase().find(SavedHorse.class).findRowCount();
-            for (SavedHorse h : getDatabase().find(SavedHorse.class).findList()) {
-                _cache.put(h.getUuid(), h);
-            }
-        } catch (PersistenceException ex) {
-            EasyRider.PLUGIN.getLogger().info("First run, initialising database.");
-            EasyRider.PLUGIN.installDDL();
+        for (SavedHorse savedHorse : _impl.loadAll()) {
+            _cache.put(savedHorse.getUuid(), savedHorse);
         }
 
         double millis = 1e-6 * (System.nanoTime() - start);
@@ -202,22 +159,7 @@ public class HorseDB {
      */
     public void save() {
         long start = System.nanoTime();
-
-        getDatabase().beginTransaction();
-        try {
-            for (SavedHorse horse : _cache.values()) {
-                if (horse.isDirty()) {
-                    getDatabase().save(horse);
-                    horse.setClean();
-                }
-            }
-            getDatabase().commitTransaction();
-        } catch (Exception ex) {
-            EasyRider.PLUGIN.getLogger().severe("Error saving horses: " + ex.getMessage());
-
-        } finally {
-            getDatabase().endTransaction();
-        }
+        _impl.saveAll(_cache.values());
 
         double millis = 1e-6 * (System.nanoTime() - start);
         EasyRider.PLUGIN.getLogger().info("Database save time: " + millis + " ms");
@@ -229,35 +171,83 @@ public class HorseDB {
      */
     public void purgeAllRemovedHorses() {
         long start = System.nanoTime();
-
-        getDatabase().beginTransaction();
-        try {
-            for (SavedHorse savedHorse : _removedHorses.values()) {
-                getDatabase().delete(savedHorse);
-            }
-            getDatabase().commitTransaction();
-        } catch (Exception ex) {
-            EasyRider.PLUGIN.getLogger().severe("Error removing horses: " + ex.getMessage());
-        } finally {
-            getDatabase().endTransaction();
-        }
+        _impl.delete(_removedHorses.values());
         _removedHorses.clear();
 
         double millis = 1e-6 * (System.nanoTime() - start);
         EasyRider.PLUGIN.getLogger().info("Database purge time: " + millis + " ms");
     }
 
+    // --------------------------------------------------------------------------
+    /**
+     * Migrate the database to the specified implementation.
+     *
+     * @param sender the command sender.
+     * @param string the database implementation type identifier.
+     */
+    public void migrate(CommandSender sender, String implType) {
+        String oldImplType = _impl.getType();
+        if (oldImplType.equals(implType)) {
+            sender.sendMessage(ChatColor.RED + "The database implementation is already: " + implType);
+            return;
+        }
+
+        IHorseDBImpl newImpl = makeHorseDBImpl(implType);
+        if (newImpl == null) {
+            sender.sendMessage(ChatColor.RED + "Invalid database implementation specified: " + implType);
+            return;
+        }
+
+        // Write current implementation to disk.
+        // Equivalent to save() and purgeAllRemovedHorses():
+        _impl.saveAll(_cache.values());
+        _impl.delete(_removedHorses.values());
+        _removedHorses.clear();
+
+        // Clear out any existing contents of the new database.
+        newImpl.delete(newImpl.loadAll());
+
+        // Mark all horses in the cache as new (to be inserted), then save.
+        for (SavedHorse savedHorse : _cache.values()) {
+            savedHorse.setNew();
+        }
+        newImpl.saveAll(_cache.values());
+
+        // Update implementation reference and config setting.
+        _impl = newImpl;
+        EasyRider.CONFIG.DATABASE_IMPLEMENTATION = implType;
+        EasyRider.CONFIG.save();
+
+        sender.sendMessage(ChatColor.GOLD + "Database migrated from " + oldImplType + " to " + implType + ".");
+    } // migrate
+
     // ------------------------------------------------------------------------
     /**
-     * Return the Ebeans database.
+     * Create a database implementation of the specified type.
      * 
-     * @return the Ebeans database.
+     * @param implType identifies the database implementation; one of "sqlite",
+     *        "yaml" or "sqlite+yaml".
+     * @return the implementation, or null if the type is invalid.
      */
-    protected EbeanServer getDatabase() {
-        return EasyRider.PLUGIN.getDatabase();
+    protected IHorseDBImpl makeHorseDBImpl(String implType) {
+        switch (implType) {
+        case "sqlite":
+            return new HorseDBImplWithSqlite();
+        case "yaml":
+            return new HorseDBImplWithYAML();
+        case "sqlite+yaml":
+            return new HorseDBImplWithSqliteAndYAML();
+        default:
+            return null;
+        }
     }
 
     // ------------------------------------------------------------------------
+    /**
+     * Database implementation.
+     */
+    protected IHorseDBImpl _impl;
+
     /**
      * Known horses.
      */

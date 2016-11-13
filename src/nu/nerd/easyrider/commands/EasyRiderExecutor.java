@@ -16,7 +16,7 @@ public class EasyRiderExecutor extends ExecutorBase {
      * Default constructor.
      */
     public EasyRiderExecutor() {
-        super("easyrider", "reload", "help");
+        super("easyrider", "reload", "migrate", "help");
     }
 
     // ------------------------------------------------------------------------
@@ -31,6 +31,9 @@ public class EasyRiderExecutor extends ExecutorBase {
         } else if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
             EasyRider.CONFIG.reload();
             sender.sendMessage(ChatColor.GOLD + EasyRider.PLUGIN.getName() + " configuration reloaded.");
+            return true;
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("migrate")) {
+            EasyRider.DB.migrate(sender, args[1]);
             return true;
         } else {
             sender.sendMessage(ChatColor.RED + "Invalid command. Type \"/" + getName().toLowerCase() + " help\" for help.");

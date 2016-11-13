@@ -28,6 +28,11 @@ public class Configuration {
     public boolean DEBUG_SAVES;
 
     /**
+     * Database implementation name: "sqlite", "yaml" or "sqlite+yaml"
+     */
+    public String DATABASE_IMPLEMENTATION;
+
+    /**
      * Ratio of distance travelled in one tick to the current speed of a horse
      * for its level.
      *
@@ -210,6 +215,8 @@ public class Configuration {
         DEBUG_CONFIG = config.getBoolean("debug.config");
         DEBUG_EVENTS = config.getBoolean("debug.events");
         DEBUG_SAVES = config.getBoolean("debug.saves");
+
+        DATABASE_IMPLEMENTATION = config.getString("database.implementation");
         SPEED_LIMIT = config.getDouble("speed-limit");
 
         SPEED.load(config.getConfigurationSection("abilities.speed"), logger);
@@ -220,14 +227,24 @@ public class Configuration {
             logger.info("Configuration:");
             logger.info("DEBUG_EVENTS: " + DEBUG_EVENTS);
             logger.info("DEBUG_SAVES: " + DEBUG_SAVES);
+            logger.info("DATABASE_IMPLEMENTATION: " + DATABASE_IMPLEMENTATION);
             logger.info("SPEED_LIMIT: " + SPEED_LIMIT);
 
             logAbility(logger, SPEED);
             logAbility(logger, JUMP);
             logAbility(logger, HEALTH);
-
         }
     } // reload
+
+    // ------------------------------------------------------------------------
+    /**
+     * Save updated configuration.
+     */
+    public void save() {
+        FileConfiguration config = EasyRider.PLUGIN.getConfig();
+        config.set("database.implementation", DATABASE_IMPLEMENTATION);
+        EasyRider.PLUGIN.saveConfig();
+    }
 
     // ------------------------------------------------------------------------
     /**

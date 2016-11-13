@@ -40,6 +40,7 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command> reload§f - Reload the configuration.
+      §e/<command> migrate sqlite§f|§eyaml§f|§esqlite+yaml§f - Migrate the database to the specified implementation.
 
   horse-debug:
     description: Specify whether a horse will be subject to debug logging.

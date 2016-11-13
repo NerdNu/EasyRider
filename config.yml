@@ -3,6 +3,10 @@ debug:
   events: true
   saves: true
 
+database:
+  # 'sqlite', 'yaml' or 'sqlite+yaml'
+  implementation: sqlite
+
 speed-limit: 5.0
 
 abilities:

@@ -62,7 +62,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     /**
      * Horse database and cache.
      */
-    public static HorseDB DB = new HorseDB();
+    public static HorseDB DB;
 
     // ------------------------------------------------------------------------
     /**
@@ -75,6 +75,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         saveDefaultConfig();
         CONFIG.reload();
 
+        DB = new HorseDB(CONFIG.DATABASE_IMPLEMENTATION);
         DB.backup();
         DB.load();
 
