@@ -333,7 +333,6 @@ public class EasyRider extends JavaPlugin implements Listener {
             if (tickDistance > CONFIG.SPEED_LIMIT * maxSpeed) {
                 getLogger().warning(horse.getOwner().getName() + "'s horse " + horse.getUniqueId() +
                                     " moved impossibly fast for its level; ratio: " + (tickDistance / maxSpeed));
-                player.sendMessage(ChatColor.RED + "It might move faster with a jetpack, but that doesn't mean the horse is getting stronger!");
             } else {
                 Ability ability = (horse.isOnGround()) ? CONFIG.SPEED : CONFIG.JUMP;
                 ability.setEffort(savedHorse, ability.getEffort(savedHorse) + tickDistance);
