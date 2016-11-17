@@ -117,14 +117,7 @@ public class PlayerState {
         if (currentHorse == null || currentHorse != _riddenHorse || _riddenHorseLocation == null) {
             return 0;
         } else {
-            Location currentLoc = currentHorse.getLocation();
-            if (currentLoc.getWorld().equals(_riddenHorseLocation.getWorld())) {
-                double dx = currentLoc.getX() - _riddenHorseLocation.getX();
-                double dz = currentLoc.getZ() - _riddenHorseLocation.getZ();
-                return Math.sqrt(dx * dx + dz * dz);
-            } else {
-                return 0;
-            }
+            return Util.getHorizontalDistance(_riddenHorseLocation, currentHorse.getLocation());
         }
     }
 

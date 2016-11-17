@@ -1,5 +1,6 @@
 package nu.nerd.easyrider;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Horse.Variant;
 
@@ -22,6 +23,23 @@ public class Util {
                    STYLE_TO_APPEARANCE[horse.getStyle().ordinal()];
         } else {
             return variant.name().toLowerCase().replace('_', ' ');
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the horizontal distance from a to b, ignoring Y coordinate
+     * changes.
+     *
+     * @return the horizontal distance from a to b.
+     */
+    public static double getHorizontalDistance(Location a, Location b) {
+        if (a.getWorld().equals(b.getWorld())) {
+            double dx = b.getX() - a.getX();
+            double dz = b.getZ() - a.getZ();
+            return Math.sqrt(dx * dx + dz * dz);
+        } else {
+            return 0.0;
         }
     }
 

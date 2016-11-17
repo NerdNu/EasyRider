@@ -42,6 +42,17 @@ public class Configuration {
     public double SPEED_LIMIT;
 
     /**
+     * Distance a horse must be ridden to reduce hydration from full (1.0) to
+     * none (0.0).
+     */
+    public double DEHYDRATION_DISTANCE;
+
+    /**
+     * Amount of hydration added by one water bucket.
+     */
+    public double BUCKET_HYDRATION;
+
+    /**
      * Speed ability.
      */
     public Ability SPEED = new Ability("speed", "Speed", Attribute.GENERIC_MOVEMENT_SPEED) {
@@ -218,6 +229,8 @@ public class Configuration {
 
         DATABASE_IMPLEMENTATION = config.getString("database.implementation");
         SPEED_LIMIT = config.getDouble("speed-limit");
+        DEHYDRATION_DISTANCE = config.getDouble("dehydration-distance");
+        BUCKET_HYDRATION = config.getDouble("bucket-hydration");
 
         SPEED.load(config.getConfigurationSection("abilities.speed"), logger);
         JUMP.load(config.getConfigurationSection("abilities.jump"), logger);
@@ -229,6 +242,8 @@ public class Configuration {
             logger.info("DEBUG_SAVES: " + DEBUG_SAVES);
             logger.info("DATABASE_IMPLEMENTATION: " + DATABASE_IMPLEMENTATION);
             logger.info("SPEED_LIMIT: " + SPEED_LIMIT);
+            logger.info("DEHYDRATION_DISTANCE: " + DEHYDRATION_DISTANCE);
+            logger.info("BUCKET_HYDRATION: " + BUCKET_HYDRATION);
 
             logAbility(logger, SPEED);
             logAbility(logger, JUMP);

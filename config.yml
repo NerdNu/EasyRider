@@ -5,9 +5,13 @@ debug:
 
 database:
   # 'sqlite', 'yaml' or 'sqlite+yaml'
-  implementation: sqlite
+  implementation: yaml
 
 speed-limit: 5.0
+
+dehydration-distance: 1200.0
+
+bucket-hydration: 0.5
 
 abilities:
   speed:

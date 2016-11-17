@@ -9,13 +9,17 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Horse;
+import org.bukkit.entity.Player;
 
 import com.avaje.ebean.validation.NotNull;
 
+import nu.nerd.easyrider.EasyRider;
 import nu.nerd.easyrider.Util;
 
 // ----------------------------------------------------------------------------
@@ -45,6 +49,7 @@ public class SavedHorse {
         setOwnerUuid((owner != null) ? owner.getUniqueId() : null);
         setAppearance(Util.getAppearance(horse));
         speedLevel = jumpLevel = healthLevel = 1;
+        setHydration(0.5);
     }
 
     // ------------------------------------------------------------------------
@@ -402,6 +407,59 @@ public class SavedHorse {
 
     // ------------------------------------------------------------------------
     /**
+     * Set the hydration of this horse from 0.0 (dehydrated) to 1.0 (fully
+     * hydrated).
+     *
+     * @param hydration in the range [0.0, 1.0].
+     */
+    public void setHydration(double hydration) {
+        this.hydration = (hydration > 1.0 ? 1.0 : (hydration < 0.0 ? 0.0 : hydration));
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the hydration level of this horse in the range 0.0 (dehydrated) to
+     * 1.0 (fully hydrated).
+     *
+     * @return the hydration level of this horse in the range 0.0 (dehydrated)
+     *         to 1.0 (fully hydrated).
+     */
+    public double getHydration() {
+        return hydration;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * This method is called every tick when the horse is being ridden to do
+     * various accounting tasks.
+     *
+     * CAUTION: this method may throw the rider off the horse. Make it the last
+     * call in the movement event handler. This method should only be called
+     * when a Player is riding the horse, i.e. in onPlayerMove().
+     *
+     * @param relativeTick a counter that increases by one every tick; the
+     *        starting value is arbitrary.
+     * @param horse the Horse entity.
+     */
+    public void onRidden(int relativeTick, Horse horse) {
+        if (_lastLocation != null) {
+            double dist = Util.getHorizontalDistance(_lastLocation, horse.getLocation());
+            _lastLocation = horse.getLocation();
+
+            setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
+            if (getHydration() < 0.001) {
+                Player rider = (Player) horse.getPassenger();
+                rider.sendMessage(ChatColor.RED + "This horse is too dehydrated to ride. Give it a bucket of water.");
+                horse.eject();
+                return;
+            }
+        }
+        _lastLocation = horse.getLocation();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Load this horse from the specified section of a YAML file.
      *
      * @param section the ConfigurationSection.
@@ -420,6 +478,7 @@ public class SavedHorse {
         setSpeedLevel(section.getInt("speedLevel"));
         setJumpLevel(section.getInt("jumpLevel"));
         setHealthLevel(section.getInt("healthLevel"));
+        setHydration(section.getDouble("hydration", 1.0));
         setClean();
     }
 
@@ -451,6 +510,7 @@ public class SavedHorse {
         section.set("speedLevel", getSpeedLevel());
         section.set("jumpLevel", getJumpLevel());
         section.set("healthLevel", getHealthLevel());
+        section.set("hydration", getHydration());
         setClean();
     }
 
@@ -654,6 +714,12 @@ public class SavedHorse {
     private int healthLevel;
 
     /**
+     * Hydration level of the horse.
+     */
+    @NotNull
+    private double hydration;
+
+    /**
      * True if this bean has never been in the database, i.e. it will result in
      * a database insert.
      */
@@ -672,4 +738,10 @@ public class SavedHorse {
     @Transient
     private boolean _debug;
 
+    /**
+     * The location of the horse in the last call to onRidden(), or null if not
+     * called before.
+     */
+    @Transient
+    private Location _lastLocation;
 } // class SavedHorse

@@ -90,7 +90,14 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseTopExecutor());
 
         getServer().getPluginManager().registerEvents(this, this);
-    }
+
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+            @Override
+            public void run() {
+                ++_tickCounter;
+            }
+        }, 1, 1);
+    } // onEnable
 
     // ------------------------------------------------------------------------
     /**
@@ -217,78 +224,94 @@ public class EasyRider extends JavaPlugin implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
         Entity entity = event.getRightClicked();
-        if (entity instanceof Horse) {
-            Horse horse = (Horse) entity;
-            Player player = event.getPlayer();
-            PlayerState playerState = getState(player);
+        if (!(entity instanceof Horse)) {
+            return;
+        }
+        Horse horse = (Horse) entity;
+        Player player = event.getPlayer();
+        PlayerState playerState = getState(player);
 
-            if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
-                // If not owned, undead horses belong to whoever clicks first.
-                if (horse.getOwner() == null) {
-                    horse.setTamed(true);
-                    horse.setOwner(event.getPlayer());
-                    if (CONFIG.DEBUG_EVENTS) {
-                        debug(horse, horse.getVariant() + " owner set to " + player.getName());
-                    }
-                } else {
-                    // CobraCorral locks horses in the EntityTameEvent handler.
-                    // For un-tameable horses, do our own basic locking.
-                    if (!player.equals(horse.getOwner())) {
-                        // Prevent riding, leashing etc.
-                        event.setCancelled(true);
-
-                        // If they are clicking on the horse because of a
-                        // command, don't message about locking.
-                        if (!playerState.hasPendingInteraction()) {
-                            player.sendMessage(ChatColor.RED + "Undead and skeletal horses can only be accessed by their owner.");
-                        }
-                    }
+        if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
+            // If not owned, undead horses belong to whoever clicks first.
+            if (horse.getOwner() == null) {
+                horse.setTamed(true);
+                horse.setOwner(event.getPlayer());
+                if (CONFIG.DEBUG_EVENTS) {
+                    debug(horse, horse.getVariant() + " owner set to " + player.getName());
                 }
-            }
-
-            // Update stored owner, which may have changed.
-            SavedHorse savedHorse = DB.findOrAddHorse(horse);
-            savedHorse.setOwner(horse.getOwner());
-
-            Location horseLoc = horse.getLocation();
-            if (playerState.hasPendingInteraction()) {
-                playerState.handlePendingInteraction(event, savedHorse);
-
-                // Even though the event is cancelled, the player will end up
-                // facing the same direction as the horse, so make the horse
-                // face where the player should face.
-                horseLoc.setYaw(player.getLocation().getYaw());
-                horse.teleport(horseLoc);
-                event.setCancelled(true);
             } else {
-                // Handle health training. only if the event was not cancelled.
-                ItemStack foodItem = player.getEquipment().getItemInMainHand();
-                int nuggetValue = getNuggetValue(foodItem);
-                if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
-                    getLogger().info("Nugget value: " + nuggetValue);
-                }
+                // CobraCorral locks horses in the EntityTameEvent handler.
+                // For un-tameable horses, do our own basic locking.
+                if (!player.equals(horse.getOwner())) {
+                    // Prevent riding, leashing etc.
+                    event.setCancelled(true);
 
-                if (nuggetValue > 0) {
-                    // For undead horses, they take the food right away.
-                    if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
-                        foodItem.setAmount(foodItem.getAmount() - 1);
-                        player.getEquipment().setItemInMainHand(foodItem);
-                        consumeGoldenFood(savedHorse, horse, nuggetValue, player);
-
-                        // And let's simulate healing with golden food too.
-                        // Golden apples (both types) heal (10); carrots heal 4.
-                        int foodValue = (foodItem.getType() == Material.GOLDEN_APPLE) ? 10 : 4;
-                        horse.setHealth(Math.min(horse.getMaxHealth(), horse.getHealth() + foodValue));
-
-                    } else {
-                        // For other types of horses, detect whether the food
-                        // was consumed by running a task in the next tick.
-                        Bukkit.getScheduler().runTaskLater(this, new GoldConsumerTask(
-                            player, horse, foodItem, nuggetValue, player.getInventory().getHeldItemSlot()), 0);
+                    // If they are clicking on the horse because of a
+                    // command, don't message about locking.
+                    if (!playerState.hasPendingInteraction()) {
+                        player.sendMessage(ChatColor.RED + "Undead and skeletal horses can only be accessed by their owner.");
                     }
                 }
             }
         }
+
+        // Update stored owner, which may have changed.
+        SavedHorse savedHorse = DB.findOrAddHorse(horse);
+        savedHorse.setOwner(horse.getOwner());
+
+        Location horseLoc = horse.getLocation();
+        if (playerState.hasPendingInteraction()) {
+            playerState.handlePendingInteraction(event, savedHorse);
+
+            // Even though the event is cancelled, the player will end up
+            // facing the same direction as the horse, so make the horse
+            // face where the player should face.
+            horseLoc.setYaw(player.getLocation().getYaw());
+            horse.teleport(horseLoc);
+            event.setCancelled(true);
+        }
+
+        // Handle health training. only if the event was not cancelled.
+        if (!event.isCancelled()) {
+            ItemStack foodItem = player.getEquipment().getItemInMainHand();
+            int nuggetValue = getNuggetValue(foodItem);
+            if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
+                getLogger().info("Nugget value: " + nuggetValue);
+            }
+
+            if (nuggetValue > 0) {
+                // For undead horses, they take the food right away.
+                if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
+                    foodItem.setAmount(foodItem.getAmount() - 1);
+                    player.getEquipment().setItemInMainHand(foodItem);
+                    consumeGoldenFood(savedHorse, horse, nuggetValue, player);
+
+                    // And let's simulate healing with golden food too.
+                    // Golden apples (both types) heal (10); carrots heal 4.
+                    int foodValue = (foodItem.getType() == Material.GOLDEN_APPLE) ? 10 : 4;
+                    horse.setHealth(Math.min(horse.getMaxHealth(), horse.getHealth() + foodValue));
+
+                } else {
+                    // For other types of horses, detect whether the food
+                    // was consumed by running a task in the next tick.
+                    Bukkit.getScheduler().runTaskLater(this, new GoldConsumerTask(
+                        player, horse, foodItem, nuggetValue, player.getInventory().getHeldItemSlot()), 0);
+                }
+            } else if (foodItem != null && foodItem.getType() == Material.WATER_BUCKET) {
+                // Handle rehydration.
+                if (savedHorse.getHydration() < 0.99) {
+                    player.getEquipment().setItemInMainHand(new ItemStack(Material.BUCKET, 1));
+                    savedHorse.setHydration(savedHorse.getHydration() + EasyRider.CONFIG.BUCKET_HYDRATION);
+                    Location loc = horse.getLocation();
+                    loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 3.0f, 1.0f);
+                }
+                if (savedHorse.getHydration() > 0.99) {
+                    player.sendMessage(ChatColor.GOLD + "The horse is no longer thirsty.");
+                } else {
+                    player.sendMessage(ChatColor.GOLD + "The horse is still thirsty.");
+                }
+            }
+        } // if event not cancelled
     } // onPlayerInteractEntity
 
     // ------------------------------------------------------------------------
@@ -344,6 +367,9 @@ public class EasyRider extends JavaPlugin implements Listener {
 
         // Update stored location to compute distance in the next tick.
         playerState.updateRiddenHorse();
+
+        // Check for dehydration and throw rider if so.
+        savedHorse.onRidden(_tickCounter, horse);
 
         if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
             debug(horse, "supported: " + horse.isOnGround());
@@ -537,5 +563,10 @@ public class EasyRider extends JavaPlugin implements Listener {
      * A Player's PlayerState exists only for the duration of a login.
      */
     protected HashMap<String, PlayerState> _state = new HashMap<String, PlayerState>();
+
+    /**
+     * Counter updated monotonically every tick.
+     */
+    private int _tickCounter;
 
 } // class EasyRider
