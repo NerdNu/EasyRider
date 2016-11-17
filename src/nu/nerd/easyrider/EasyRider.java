@@ -409,7 +409,7 @@ public class EasyRider extends JavaPlugin implements Listener {
 
                 savedHorse.setHydration(1.0);
                 EasyRider.CONFIG.SPEED.updateAttributes(savedHorse, horse);
-                player.sendMessage(ChatColor.GOLD + "The horse is drinks until it is no longer thirsty!");
+                player.sendMessage(ChatColor.GOLD + "The horse drinks until it is no longer thirsty!");
                 Location loc = horse.getLocation();
                 loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 3.0f, 1.0f);
             }
