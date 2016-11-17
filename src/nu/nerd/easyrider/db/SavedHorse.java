@@ -12,6 +12,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Horse;
@@ -434,9 +436,8 @@ public class SavedHorse {
      * This method is called every tick when the horse is being ridden to do
      * various accounting tasks.
      *
-     * CAUTION: this method may throw the rider off the horse. Make it the last
-     * call in the movement event handler. This method should only be called
-     * when a Player is riding the horse, i.e. in onPlayerMove().
+     * This method should only be called when a Player is riding the horse, i.e.
+     * in onPlayerMove().
      *
      * @param relativeTick a counter that increases by one every tick; the
      *        starting value is arbitrary.
@@ -450,9 +451,14 @@ public class SavedHorse {
             setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
             if (getHydration() < 0.001) {
                 Player rider = (Player) horse.getPassenger();
-                rider.sendMessage(ChatColor.RED + "This horse is too dehydrated to ride. Give it a bucket of water.");
-                horse.eject();
-                return;
+                if (relativeTick - _lastMessageTick > 100) {
+                    rider.sendMessage(ChatColor.RED + "This horse is too dehydrated to ride. Give it a bucket of water.");
+                    _lastMessageTick = relativeTick;
+                }
+                AttributeInstance horseAttribute = horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                horseAttribute.setBaseValue(EasyRider.CONFIG.SPEED.getMinValue() / 4);
+            } else {
+                EasyRider.CONFIG.SPEED.updateAttributes(this, horse);
             }
         }
         _lastLocation = horse.getLocation();
@@ -744,4 +750,10 @@ public class SavedHorse {
      */
     @Transient
     private Location _lastLocation;
+
+    /**
+     * Tick value when the last message about dehydration was sent.
+     */
+    @Transient
+    private int _lastMessageTick;
 } // class SavedHorse
