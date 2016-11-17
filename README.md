@@ -36,6 +36,11 @@ Features
    with the level.
  * The maximum level, maximum significant training effort, exponential scaling,
    and the resulting range of horse attribute values are all configurable.
+ * Horses slowly get thirsty in proportion to horizontal distance travelled.
+   When they are completely dehydrated, they throw the rider and cannot be
+   ridden until rehydrated by right clicking on them with a water bucket.
+ * The full dehydration distance and rehydration value of a water bucket are
+   configurable.
  * Choice of horse database implementation.
  * Databases are backed up on restart in the `backups/` subdirectory of the 
    plugin folder, with a date/time stamp in the filename that has a granularity
@@ -126,6 +131,8 @@ Configuration
 | `debug.saves` | Enable debug logging in database saves. |
 | `database.implementation` | The database implementation type to choose. One of: "sqlite", "yaml" or "sqlite+yaml". In the last case, horses are written to both databases, and in the event of a discrepancy, the YAML file wins.
 | `speed-limit` | The ratio of distance travelled in one tick to the current speed of a horse for its level. Used mainly as a sanity check on computed distance in movement events. But it also controls a message to players if they attempt to piston a horse way above maximum speed. |
+| `dehydration-distance` | Distance a horse can travel horizontally before it is fully dehydrated. |
+| `bucket-hydration` | Amount of hydration from one water bucket; 1.0 is full hydration. |
 | `abilities.<ability>.max-level` | The integer maximum level attainable by training. |
 | `abilities.<ability>.max-effort` | The maximum amount of training effort that will be counted towards levelling up. The units of effort depend on the ability. For speed and jump, they are metres travelled horizontally on the ground or in the air, respectively. For health, the units are equivalent mass of gold nuggets consumed. |
 | `abilities.<ability>.effort-scale` | The scale factor that converts the effort base, raised to the level, into required effort. |
