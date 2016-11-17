@@ -403,10 +403,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             getState(player).clearHorseDistance();
 
             // Rehydrate if remounting in water.
-            Block feetBlock = horse.getLocation().getBlock();
-            if (feetBlock.getType() == Material.WATER ||
-                feetBlock.getType() == Material.STATIONARY_WATER) {
-
+            if (findDrinkableBlock(horse.getLocation())) {
                 savedHorse.setHydration(1.0);
                 EasyRider.CONFIG.SPEED.updateAttributes(savedHorse, horse);
                 player.sendMessage(ChatColor.GOLD + "The horse drinks until it is no longer thirsty!");
@@ -546,6 +543,61 @@ public class EasyRider extends JavaPlugin implements Listener {
 
         Location loc = horse.getLocation();
         loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_EAT, 3.0f, 1.0f);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true if there is a potable water block in the 7 x 7 square centred
+     * on the horse, either level with the horse's lower half or at ground level
+     * (one block below).
+     *
+     * @param loc the horse's location
+     * @return true if the horse can drink a block at feet level or ground level
+     *         within 3 blocks of its location.
+     */
+    protected boolean findDrinkableBlock(Location loc) {
+        return findDrinkableSquare(loc) ||
+               findDrinkableSquare(loc.clone().add(0, -1, 0));
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true if there is potable water in the 7 x 7 square centered on the
+     * specified location.
+     *
+     * @param loc the horse's location
+     * @return true if the horse can drink a block within 3 blocks of the
+     *         location at the same Y level.
+     */
+    protected boolean findDrinkableSquare(Location loc) {
+        Block feetBlock = loc.getBlock();
+        if (feetBlock == null) {
+            return false;
+        }
+
+        for (int x = -3; x <= 3; ++x) {
+            for (int z = -3; z <= 3; ++z) {
+                Block rel = feetBlock.getRelative(x, 0, z);
+                if (rel != null && isDrinkable(rel)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true if a block is a drinkable water source for a horse (filled
+     * cauldron or water block).
+     *
+     * @param block the block, which must not be null.
+     * @return true if a horse can drink the block.
+     */
+    protected boolean isDrinkable(Block block) {
+        return (block.getType() == Material.CAULDRON && block.getData() != 0) ||
+               block.getType() == Material.WATER ||
+               block.getType() == Material.STATIONARY_WATER;
     }
 
     // ------------------------------------------------------------------------
