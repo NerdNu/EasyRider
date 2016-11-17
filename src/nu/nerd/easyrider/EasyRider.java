@@ -11,6 +11,7 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.AnimalTamer;
@@ -400,6 +401,19 @@ public class EasyRider extends JavaPlugin implements Listener {
             savedHorse.setOwner(horse.getOwner());
 
             getState(player).clearHorseDistance();
+
+            // Rehydrate if remounting in water.
+            Block feetBlock = horse.getLocation().getBlock();
+            if (feetBlock.getType() == Material.WATER ||
+                feetBlock.getType() == Material.STATIONARY_WATER) {
+
+                savedHorse.setHydration(1.0);
+                EasyRider.CONFIG.SPEED.updateAttributes(savedHorse, horse);
+                player.sendMessage(ChatColor.GOLD + "The horse is drinks until it is no longer thirsty!");
+                Location loc = horse.getLocation();
+                loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 3.0f, 1.0f);
+            }
+
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
                 debug(horse, "passenger: " + player.getName());
             }
