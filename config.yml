@@ -9,7 +9,7 @@ database:
 
 speed-limit: 5.0
 
-dehydration-distance: 1200.0
+dehydration-distance: 3000.0
 
 bucket-hydration: 0.5
 
