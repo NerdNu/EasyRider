@@ -56,6 +56,39 @@ public class SavedHorse {
 
     // ------------------------------------------------------------------------
     /**
+     * Swap the training stats and Horse attributes of this SavedHorse with the
+     * specified other SavedHorse.
+     *
+     * @param otherHorse the other SavedHorse.
+     */
+    public void swapTrainingStats(SavedHorse otherHorse) {
+        int tempInt = otherHorse.getSpeedLevel();
+        otherHorse.setSpeedLevel(getSpeedLevel());
+        setSpeedLevel(tempInt);
+
+        tempInt = otherHorse.getJumpLevel();
+        otherHorse.setJumpLevel(getJumpLevel());
+        setJumpLevel(tempInt);
+
+        tempInt = otherHorse.getHealthLevel();
+        otherHorse.setHealthLevel(getHealthLevel());
+        setHealthLevel(tempInt);
+
+        double tempDouble = otherHorse.getDistanceTravelled();
+        otherHorse.setDistanceTravelled(getDistanceTravelled());
+        setDistanceTravelled(tempDouble);
+
+        tempDouble = otherHorse.getDistanceJumped();
+        otherHorse.setDistanceJumped(getDistanceJumped());
+        setDistanceJumped(tempDouble);
+
+        tempInt = otherHorse.getNuggetsEaten();
+        otherHorse.setNuggetsEaten(getNuggetsEaten());
+        setNuggetsEaten(tempInt);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Mark this as a new instance to be inserted into the database.
      */
     public void setNew() {
@@ -446,8 +479,6 @@ public class SavedHorse {
     public void onRidden(int relativeTick, Horse horse) {
         if (_lastLocation != null) {
             double dist = Util.getHorizontalDistance(_lastLocation, horse.getLocation());
-            _lastLocation = horse.getLocation();
-
             setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
             if (getHydration() < 0.001) {
                 Player rider = (Player) horse.getPassenger();

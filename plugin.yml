@@ -19,6 +19,10 @@ permissions:
   easyrider.setlevel:
     description: Permission to use /horse-set-level.
     default: op
+
+  easyrider.swap:
+    description: Permission to use /horse-swap.
+    default: op
     
   easyrider.levels:
     description: Permission to use /horse-levels.
@@ -56,6 +60,14 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command> §ehealth§f|§ejump§f|§espeed <number>§f - Set the level of the specified ability on the right-clicked horse.
+
+  horse-swap:
+    description: Swap the stats of a specific horse with those of a clicked horse.
+    permission: easyrider.swap
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> §e<partial-uuid>§f - Swap the stats of the horse with the specified UUID with those of a clicked-on horse.
 
   horse-levels:
     description: Show ability level information for a horse.

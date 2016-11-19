@@ -38,6 +38,7 @@ import nu.nerd.easyrider.commands.EasyRiderExecutor;
 import nu.nerd.easyrider.commands.ExecutorBase;
 import nu.nerd.easyrider.commands.HorseDebugExecutor;
 import nu.nerd.easyrider.commands.HorseLevelsExecutor;
+import nu.nerd.easyrider.commands.HorseSwapExecutor;
 import nu.nerd.easyrider.commands.HorseSetLevelExecutor;
 import nu.nerd.easyrider.commands.HorseTopExecutor;
 import nu.nerd.easyrider.commands.HorseUpgradesExecutor;
@@ -86,6 +87,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new EasyRiderExecutor());
         addCommandExecutor(new HorseDebugExecutor());
         addCommandExecutor(new HorseSetLevelExecutor());
+        addCommandExecutor(new HorseSwapExecutor());
         addCommandExecutor(new HorseLevelsExecutor());
         addCommandExecutor(new HorseUpgradesExecutor());
         addCommandExecutor(new HorseTopExecutor());
@@ -360,7 +362,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             } else {
                 Ability ability = (horse.isOnGround()) ? CONFIG.SPEED : CONFIG.JUMP;
                 ability.setEffort(savedHorse, ability.getEffort(savedHorse) + tickDistance);
-                if (ability.hasLevelIncreased(savedHorse, horse)) {
+                if (ability.hasLevelChanged(savedHorse, horse)) {
                     notifyLevelUp(player, savedHorse, horse, ability);
                 }
             }
@@ -537,7 +539,7 @@ public class EasyRider extends JavaPlugin implements Listener {
      */
     protected void consumeGoldenFood(SavedHorse savedHorse, Horse horse, int nuggetValue, Player player) {
         CONFIG.HEALTH.setEffort(savedHorse, CONFIG.HEALTH.getEffort(savedHorse) + nuggetValue);
-        if (CONFIG.HEALTH.hasLevelIncreased(savedHorse, horse)) {
+        if (CONFIG.HEALTH.hasLevelChanged(savedHorse, horse)) {
             notifyLevelUp(player, savedHorse, horse, CONFIG.HEALTH);
         }
 

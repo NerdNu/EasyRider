@@ -268,20 +268,21 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
-     * Checks whether the current effort of the horse should increase its level
-     * in this ability.
+     * Checks whether the current level of the horse in this ability does not
+     * match the trained level.
      *
-     * If so, the level is increased to match the training, and the horse
-     * entity's attributes are updated.
+     * If so, the level is changed to match the training, and the horse entity's
+     * attributes are updated. Usually, the change is an increase in level, but
+     * in the case of the /horse-swap command, a decrease is possible.
      *
      * @param savedHorse the database state of the horse.
      * @param horse the Horse entity whose attribute will be set.
      * @return true if the training effort resulted in a change in level (and
      *         attributes) of the horse.
      */
-    public boolean hasLevelIncreased(SavedHorse savedHorse, Horse horse) {
+    public boolean hasLevelChanged(SavedHorse savedHorse, Horse horse) {
         int trainedLevel = getQuantisedLevelForEffort(getEffort(savedHorse));
-        if (trainedLevel > getLevel(savedHorse)) {
+        if (trainedLevel != getLevel(savedHorse)) {
             setLevel(savedHorse, trainedLevel);
             updateAttributes(savedHorse, horse);
             return true;

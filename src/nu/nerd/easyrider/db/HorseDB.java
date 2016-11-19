@@ -1,8 +1,10 @@
 package nu.nerd.easyrider.db;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.UUID;
 
@@ -73,6 +75,24 @@ public class HorseDB {
      */
     public SavedHorse findHorse(Horse horse) {
         return _cache.get(horse.getUniqueId());
+    }
+
+    // --------------------------------------------------------------------------
+    /**
+     * Return a list of all horses whose UUID begins with the specified prefix.
+     *
+     * @param prefix the case insensitive UUID prefix to search for.
+     * @return a list of all horses whose UUID begins with the specified prefix.
+     */
+    public List<SavedHorse> findAllHorses(String prefix) {
+        prefix = prefix.toLowerCase();
+        ArrayList<SavedHorse> matches = new ArrayList<SavedHorse>();
+        for (SavedHorse savedHorse : _cache.values()) {
+            if (savedHorse.getUuid().toString().startsWith(prefix)) {
+                matches.add(savedHorse);
+            }
+        }
+        return matches;
     }
 
     // --------------------------------------------------------------------------
