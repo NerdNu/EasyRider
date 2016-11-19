@@ -120,6 +120,8 @@ Admin Commands
  * `/horse-set-level health|jump|speed|help` - Set the level of the specified
    ability on the right-clicked horse.
 
+ * `/horse-swap <partial-uuid>` - Swap the stats of the horse with the specified
+   UUID with those of a clicked-on horse.
 
 Configuration
 -------------
@@ -148,6 +150,7 @@ Permissions
  * `easyrider.admin` - Permission to administer the plugin (run `/easyrider reload`).
  * `easyrider.debug` - Players with this permission receive debug messages.
  * `easyrider.setlevel` - Permission to use `/horse-set-level`.
+ * `easyrider.swap` - Permission to use `/horse-swap`.
  * `easyrider.levels` - Permission to use `/horse-levels`.
  * `easyrider.upgrades` - Permission to use `/horse-upgrades`.
  * `easyrider.top` - Permission to use `/horse-top`.
