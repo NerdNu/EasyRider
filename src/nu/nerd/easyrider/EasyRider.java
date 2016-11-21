@@ -26,11 +26,13 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
+import org.bukkit.event.entity.HorseJumpEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -38,8 +40,8 @@ import nu.nerd.easyrider.commands.EasyRiderExecutor;
 import nu.nerd.easyrider.commands.ExecutorBase;
 import nu.nerd.easyrider.commands.HorseDebugExecutor;
 import nu.nerd.easyrider.commands.HorseLevelsExecutor;
-import nu.nerd.easyrider.commands.HorseSwapExecutor;
 import nu.nerd.easyrider.commands.HorseSetLevelExecutor;
+import nu.nerd.easyrider.commands.HorseSwapExecutor;
 import nu.nerd.easyrider.commands.HorseTopExecutor;
 import nu.nerd.easyrider.commands.HorseUpgradesExecutor;
 import nu.nerd.easyrider.db.HorseDB;
@@ -373,10 +375,6 @@ public class EasyRider extends JavaPlugin implements Listener {
 
         // Check for dehydration and throw rider if so.
         savedHorse.onRidden(_tickCounter, horse);
-
-        if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
-            debug(horse, "supported: " + horse.isOnGround());
-        }
     } // onPlayerMove
 
     // ------------------------------------------------------------------------
@@ -414,8 +412,49 @@ public class EasyRider extends JavaPlugin implements Listener {
             }
 
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
-                debug(horse, "passenger: " + player.getName());
+                debug(horse, "Vehicle enter: " + player.getName());
             }
+        }
+    } // onVehicleEnter
+
+    // ------------------------------------------------------------------------
+    /**
+     * Extra debugging to detect vehicle exits.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onVehicleExit(VehicleExitEvent event) {
+        Entity passenger = event.getExited();
+        if (!(event.getVehicle() instanceof Horse) ||
+            !(passenger instanceof Player)) {
+            return;
+        }
+
+        Horse horse = (Horse) event.getVehicle();
+        Player player = (Player) passenger;
+        SavedHorse savedHorse = DB.findOrAddHorse(horse);
+
+        if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
+            debug(horse, "Vehicle exit: " + player.getName());
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Debugging of horse jumps.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onHorseJump(HorseJumpEvent event) {
+        Horse horse = event.getEntity();
+        Entity passenger = horse.getPassenger();
+        if (!(passenger instanceof Player)) {
+            return;
+        }
+
+        Player player = (Player) passenger;
+        SavedHorse savedHorse = DB.findOrAddHorse(horse);
+
+        if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
+            debug(horse, "Horse jump: " + player.getName());
         }
     }
 
