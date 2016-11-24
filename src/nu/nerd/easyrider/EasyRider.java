@@ -175,6 +175,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         if (entity instanceof Horse) {
             Horse horse = (Horse) entity;
             if (!(horse.getPassenger() instanceof Player) &&
+                horse.getOwner() != null &&
                 (horse.getVariant() == Variant.SKELETON_HORSE ||
                  horse.getVariant() == Variant.UNDEAD_HORSE)) {
                 event.setCancelled(true);
@@ -260,9 +261,10 @@ public class EasyRider extends JavaPlugin implements Listener {
             }
         }
 
-        // Update stored owner, which may have changed.
+        // Update stored attributes that may have changed.
         SavedHorse savedHorse = DB.findOrAddHorse(horse);
         savedHorse.setOwner(horse.getOwner());
+        savedHorse.setDisplayName(horse.getCustomName());
 
         Location horseLoc = horse.getLocation();
         if (playerState.hasPendingInteraction()) {

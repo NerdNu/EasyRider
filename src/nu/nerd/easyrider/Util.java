@@ -45,6 +45,20 @@ public class Util {
 
     // ------------------------------------------------------------------------
     /**
+     * Limit a string to the specified maximum length, showing trailing elipses
+     * if truncated.
+     *
+     * @param s the string.
+     * @param maxLength the maximum length of the result, including the elipses.
+     * @return the string limited to the specified maximum length.
+     */
+    public static String limitString(String s, int maxLength) {
+        return s.length() <= maxLength ? s
+                                       : s.substring(0, maxLength - 1) + "\u2026";
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * The string form of Horse.Color constants as returned by getAppearance(),
      * listed in the same order as the enum.
      */

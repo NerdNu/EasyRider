@@ -7,6 +7,7 @@ import org.bukkit.command.CommandSender;
 
 import nu.nerd.easyrider.Ability;
 import nu.nerd.easyrider.EasyRider;
+import nu.nerd.easyrider.Util;
 import nu.nerd.easyrider.db.SavedHorse;
 
 // ----------------------------------------------------------------------------
@@ -56,10 +57,11 @@ public class HorseTopExecutor extends ExecutorBase {
                     double fractionalLevel = ability.getLevelForEffort(ability.getEffort(savedHorse));
                     ChatColor levelColour = (fractionalLevel >= ability.getMaxLevel()) ? ChatColor.RED : ChatColor.YELLOW;
                     sender.sendMessage(ChatColor.GOLD + "#" + (i + 1) + " " +
-                                       levelColour + "Level " + String.format("%5.3f ", fractionalLevel) +
+                                       levelColour + String.format("%5.3f ", fractionalLevel) +
                                        ChatColor.WHITE + ownerName + " " +
                                        ChatColor.GRAY + savedHorse.getAppearance() + " " +
-                                       ChatColor.WHITE + savedHorse.getUuid().toString().substring(0, 6) + "... ");
+                                       ChatColor.WHITE + Util.limitString(savedHorse.getUuid().toString(), 7) + " " +
+                                       ChatColor.YELLOW + Util.limitString(savedHorse.getDisplayName(), 16));
                 }
             }
             return true;

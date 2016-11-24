@@ -243,16 +243,23 @@ public class SavedHorse {
 
     // ------------------------------------------------------------------------
     /**
-     * Reserved for future use.
+     * Set the displayed custom name of the horse.
+     *
+     * Note: This is setting what is stored in the database, not changing the
+     * Horse Entity.
+     *
+     * @param displayName the displayed custom name of the horse.
      */
     public void setDisplayName(String displayName) {
-        this.displayName = displayName;
+        this.displayName = (displayName == null ? "" : displayName);
         setDirty();
     }
 
     // ------------------------------------------------------------------------
     /**
-     * Reserved for future use.
+     * Return the displayed custom name of the horse.
+     *
+     * @return the displayed custom name of the horse.
      */
     public String getDisplayName() {
         return displayName;
