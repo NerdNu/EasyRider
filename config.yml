@@ -4,7 +4,7 @@ debug:
   saves: true
 
 database:
-  # 'sqlite', 'yaml' or 'sqlite+yaml'
+  # 'yaml' only supported atm.
   implementation: yaml
 
 speed-limit: 5.0

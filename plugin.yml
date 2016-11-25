@@ -4,7 +4,6 @@ author: totemo
 authors: [totemo]
 description: ${project.description}
 website: ${project.url}
-database: true
 main: nu.nerd.easyrider.EasyRider
 
 permissions:

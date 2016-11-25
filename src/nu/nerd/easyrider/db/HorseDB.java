@@ -251,12 +251,8 @@ public class HorseDB {
      */
     protected IHorseDBImpl makeHorseDBImpl(String implType) {
         switch (implType) {
-        case "sqlite":
-            return new HorseDBImplWithSqlite();
         case "yaml":
             return new HorseDBImplWithYAML();
-        case "sqlite+yaml":
-            return new HorseDBImplWithSqliteAndYAML();
         default:
             return null;
         }

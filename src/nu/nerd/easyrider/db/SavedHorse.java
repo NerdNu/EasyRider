@@ -2,10 +2,6 @@ package nu.nerd.easyrider.db;
 
 import java.util.UUID;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.bukkit.Bukkit;
@@ -19,25 +15,17 @@ import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 
-import com.avaje.ebean.validation.NotNull;
-
 import nu.nerd.easyrider.EasyRider;
 import nu.nerd.easyrider.Util;
 
 // ----------------------------------------------------------------------------
 /**
- * Ebean for storing information about a horse.
+ * Holds the persistent state of a horse.
+ *
+ * The names of transient fields begin with an underscore; persistent fields do
+ * not, since it simplifies mapping to database columns when an ORM is used.
  */
-@Entity()
-@Table(name = "horses")
 public class SavedHorse {
-    // ------------------------------------------------------------------------
-    /**
-     * Default constructor, required for deserialisation.
-     */
-    public SavedHorse() {
-    }
-
     // ------------------------------------------------------------------------
     /**
      * Constructor.
@@ -675,7 +663,6 @@ public class SavedHorse {
     /**
      * The unique ID of the horse, used as the primary key.
      */
-    @Id
     private UUID uuid;
 
     /**
@@ -688,7 +675,6 @@ public class SavedHorse {
      *
      * Not currently used; reserved for future use.
      */
-    @Column(length = 32)
     private String name;
 
     /**
@@ -696,13 +682,11 @@ public class SavedHorse {
      *
      * Not currently used; reserved for future use.
      */
-    @Column(length = 32)
     private String displayName;
 
     /**
      * The horse's appearance: colour, markings and variant.
      */
-    @Column(length = 32)
     private String appearance;
 
     /**
@@ -710,7 +694,6 @@ public class SavedHorse {
      *
      * Not currently used; reserved for future use.
      */
-    @Column(length = 40)
     private String location;
 
     /**
@@ -718,49 +701,41 @@ public class SavedHorse {
      *
      * Not currently used; reserved for future use.
      */
-    @NotNull
     private int equipment;
 
     /**
      * The total distance travelled in metres.
      */
-    @NotNull
     private double distanceTravelled;
 
     /**
      * The total horizontal distance jumped in metres.
      */
-    @NotNull
     private double distanceJumped;
 
     /**
      * The total amount of gold consumed, converted to gold nuggets.
      */
-    @NotNull
     private int nuggetsEaten;
 
     /**
      * The 1-based level that determines the horse's speed.
      */
-    @NotNull
     private int speedLevel;
 
     /**
      * The 1-based level that determines the horse's jump strength.
      */
-    @NotNull
     private int jumpLevel;
 
     /**
      * The 1-based level that determines the horse's health.
      */
-    @NotNull
     private int healthLevel;
 
     /**
      * Hydration level of the horse.
      */
-    @NotNull
     private double hydration;
 
     /**
@@ -779,14 +754,12 @@ public class SavedHorse {
     /**
      * If true, this horse has been marked for debug logging.
      */
-    @Transient
     private boolean _debug;
 
     /**
      * The location of the horse in the last call to onRidden(), or null if not
      * called before.
      */
-    @Transient
     private Location _lastLocation;
 
     /**
