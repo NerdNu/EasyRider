@@ -280,6 +280,38 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
+     * Return true if this horse has a custom display name.
+     *
+     * @return true if this horse has a custom display name.
+     */
+    public boolean hasDisplayName() {
+        return getDisplayName() != null && getDisplayName().length() != 0;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the name of this horse to use in messages.
+     *
+     * That will either be the horse's display name, or "This horse" or "This
+     * mule" or "This donkey".
+     *
+     * @return the name of this horse to use in messages.
+     */
+    public String getMessageName() {
+        if (hasDisplayName()) {
+            return getDisplayName();
+        } else if (getAppearance() != null) {
+            if (getAppearance().equals("mule")) {
+                return "This mule";
+            } else if (getAppearance().equals("donkey")) {
+                return "This donkey";
+            }
+        }
+        return "This horse";
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Set the appearance of this horse.
      *
      * @param appearance the appearance of the horse, including colour, style
@@ -553,7 +585,7 @@ public class SavedHorse implements Cloneable {
         return getSpeedLevel() < 2 &&
                getJumpLevel() < 2 &&
                getNuggetsEaten() < 72 &&
-               (getDisplayName() == null || getDisplayName().length() == 0) &&
+               !hasDisplayName() &&
                (now - getLastAccessed()) > EasyRider.CONFIG.ABANDONED_DAYS * 24 * 60 * 60 * 1000 &&
                (getAppearance() != null &&
                 (getAppearance().startsWith("skeleton") ||
@@ -579,7 +611,8 @@ public class SavedHorse implements Cloneable {
             if (isDehydrated()) {
                 Player rider = (Player) horse.getPassenger();
                 if (relativeTick - _lastMessageTick > 100) {
-                    rider.sendMessage(ChatColor.RED + "This horse is too dehydrated to ride. Give it a bucket of water.");
+                    rider.sendMessage(ChatColor.RED + getMessageName() +
+                                      " is too dehydrated to ride. Give it a bucket of water.");
                     _lastMessageTick = relativeTick;
                 }
                 AttributeInstance horseAttribute = horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);

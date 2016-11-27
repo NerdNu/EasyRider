@@ -343,10 +343,11 @@ public class EasyRider extends JavaPlugin implements Listener {
                     Location loc = horse.getLocation();
                     loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 3.0f, 1.0f);
                 }
+
                 if (savedHorse.isFullyHydrated()) {
-                    player.sendMessage(ChatColor.GOLD + "The horse is no longer thirsty.");
+                    player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " is no longer thirsty.");
                 } else {
-                    player.sendMessage(ChatColor.GOLD + "The horse is still thirsty.");
+                    player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " is still thirsty.");
                 }
             }
         } // if event not cancelled
@@ -437,7 +438,8 @@ public class EasyRider extends JavaPlugin implements Listener {
             if (findDrinkableBlock(horse.getLocation())) {
                 savedHorse.setHydration(1.0);
                 EasyRider.CONFIG.SPEED.updateAttributes(savedHorse, horse);
-                player.sendMessage(ChatColor.GOLD + "The horse drinks until it is no longer thirsty!");
+                player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() +
+                                   " drinks until it is no longer thirsty!");
                 Location loc = horse.getLocation();
                 loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 3.0f, 1.0f);
             }
@@ -572,7 +574,8 @@ public class EasyRider extends JavaPlugin implements Listener {
      * @param ability the affected ability.
      */
     protected void notifyLevelUp(Player player, SavedHorse savedHorse, Horse horse, Ability ability) {
-        player.sendMessage(ChatColor.GOLD + "This horse is now Level " + ability.getLevel(savedHorse) +
+        player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() +
+                           " is now Level " + ability.getLevel(savedHorse) +
                            " in " + ability.getDisplayName() + ".");
         Location loc = horse.getLocation().add(0, 1, 0);
         loc.getWorld().spigot().playEffect(loc, Effect.HAPPY_VILLAGER, 0, 0, 2.0f, 1.0f, 2.0f, 0.0f, 100, 32);
