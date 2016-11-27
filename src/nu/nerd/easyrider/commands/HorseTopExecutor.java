@@ -185,7 +185,7 @@ public class HorseTopExecutor extends ExecutorBase {
                 String ownerName = (owner != null) ? owner.getName() : "<no owner>";
                 double fractionalLevel = ability.getLevelForEffort(ability.getEffort(savedHorse));
                 ChatColor levelColour = (fractionalLevel >= ability.getMaxLevel()) ? ChatColor.RED : ChatColor.YELLOW;
-                sender.sendMessage(ChatColor.GOLD + "#" + (start + i + 1) + " " +
+                sender.sendMessage(ChatColor.GOLD + "#" + (i + 1) + " " +
                                    levelColour + String.format("%5.3f ", fractionalLevel) +
                                    ChatColor.WHITE + ownerName + " " +
                                    ChatColor.GRAY + savedHorse.getAppearance() + " " +
