@@ -41,6 +41,12 @@ Features
    ridden until rehydrated by right clicking on them with a water bucket.
  * The full dehydration distance and rehydration value of a water bucket are
    configurable.
+ * Skeletal and undead horses that are not ridden or interacted with by their
+   owner for a long time (configurable, default 14 days) may be considered
+   abandoned and are then untamed and can be tamed or killed by another player,
+   or killed by the environment. Naming the horse with a nametag, training it
+   to level 2 or more in speed or jump, or feeding it 72 or more gold nuggets
+   worth of golden food will exempt a horse from abandonment.
  * Choice of horse database implementation, as long as you choose YAML. The
    Sqlite Ebeans implementation and the combined (YAML + Sqlite) implementation
    have been dropped due to Ebeans not working as expected and the API being
@@ -144,6 +150,7 @@ Configuration
 | `speed-limit` | The ratio of distance travelled in one tick to the current speed of a horse for its level. Used mainly as a sanity check on computed distance in movement events. But it also controls a message to players if they attempt to piston a horse way above maximum speed. |
 | `dehydration-distance` | Distance a horse can travel horizontally before it is fully dehydrated. |
 | `bucket-hydration` | Amount of hydration from one water bucket; 1.0 is full hydration. |
+| `abandoned-days` | Number of consecutive days a horse must not be ridden or interacted with by its owner to be considered abandoned. |
 | `abilities.<ability>.max-level` | The integer maximum level attainable by training. |
 | `abilities.<ability>.max-effort` | The maximum amount of training effort that will be counted towards levelling up. The units of effort depend on the ability. For speed and jump, they are metres travelled horizontally on the ground or in the air, respectively. For health, the units are equivalent mass of gold nuggets consumed. |
 | `abilities.<ability>.effort-scale` | The scale factor that converts the effort base, raised to the level, into required effort. |
