@@ -1,18 +1,14 @@
 package nu.nerd.easyrider.db;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Horse;
 
-import nu.nerd.easyrider.Ability;
 import nu.nerd.easyrider.EasyRider;
 
 // ----------------------------------------------------------------------------
@@ -46,7 +42,7 @@ public class HorseDB {
      * 
      * @param horse the Horse entity.
      */
-    public SavedHorse findOrAddHorse(Horse horse) {
+    public synchronized SavedHorse findOrAddHorse(Horse horse) {
         SavedHorse savedHorse = findHorse(horse);
         if (savedHorse == null) {
             savedHorse = new SavedHorse(horse);
@@ -73,7 +69,7 @@ public class HorseDB {
      * @param horse the Horse to find.
      * @return the corresponding database entry, or null if never saved.
      */
-    public SavedHorse findHorse(Horse horse) {
+    public synchronized SavedHorse findHorse(Horse horse) {
         return _cache.get(horse.getUniqueId());
     }
 
@@ -81,18 +77,55 @@ public class HorseDB {
     /**
      * Return a list of all horses whose UUID begins with the specified prefix.
      *
-     * @param prefix the case insensitive UUID prefix to search for.
+     * @param uuidPrefix the case insensitive UUID prefix to search for.
      * @return a list of all horses whose UUID begins with the specified prefix.
      */
-    public List<SavedHorse> findAllHorses(String prefix) {
-        prefix = prefix.toLowerCase();
+    public synchronized List<SavedHorse> findHorsesByUUID(String uuidPrefix) {
+        uuidPrefix = uuidPrefix.toLowerCase();
         ArrayList<SavedHorse> matches = new ArrayList<SavedHorse>();
         for (SavedHorse savedHorse : _cache.values()) {
-            if (savedHorse.getUuid().toString().startsWith(prefix)) {
+            if (savedHorse.getUuid().toString().startsWith(uuidPrefix)) {
                 matches.add(savedHorse);
             }
         }
         return matches;
+    }
+
+    // --------------------------------------------------------------------------
+    /**
+     * Return a list of all horses whose owner has the specified UUID.
+     *
+     * @param ownerUuid the UUID of the owning player.
+     * @return a list of all horses with the specified owner.
+     */
+    public synchronized List<SavedHorse> findHorsesByOwnerUUID(UUID ownerUuid) {
+        ArrayList<SavedHorse> matches = new ArrayList<SavedHorse>();
+        for (SavedHorse savedHorse : _cache.values()) {
+            if (ownerUuid.equals(savedHorse.getOwnerUuid())) {
+                matches.add(savedHorse);
+            }
+        }
+        return matches;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return a deep copy of all SavedHorses in arbitrary order.
+     *
+     * The returned list can be acted upon in other threads.
+     *
+     * @return a deep copy of all SavedHorses in arbitrary order.
+     */
+    public synchronized ArrayList<SavedHorse> cloneAllHorses() {
+        ArrayList<SavedHorse> horses = new ArrayList<SavedHorse>(_cache.size());
+        for (SavedHorse savedHorse : _cache.values()) {
+            try {
+                horses.add((SavedHorse) savedHorse.clone());
+            } catch (CloneNotSupportedException ex) {
+                // Should never happen.
+            }
+        }
+        return horses;
     }
 
     // --------------------------------------------------------------------------
@@ -102,50 +135,9 @@ public class HorseDB {
      *
      * @param savedHorse the database state of the horse.
      */
-    public void removeDeadHorse(SavedHorse savedHorse) {
+    public synchronized void removeDeadHorse(SavedHorse savedHorse) {
         _cache.remove(savedHorse.getUuid());
         _removedHorses.put(savedHorse.getUuid(), savedHorse);
-    }
-
-    // ------------------------------------------------------------------------
-    /**
-     * Return a specified number of the top horses ranked in descending order of
-     * the specified Ability.
-     *
-     * @param ability the Ability.
-     * @param count the maximum number of ranked horses to return.
-     * @return the top count horses in descending order of that ability.
-     */
-    public SavedHorse[] rank(Ability ability, int count) {
-        // Comparator ensures best horse is first, worst is last.
-        TreeSet<SavedHorse> rankings = new TreeSet<SavedHorse>(new Comparator<SavedHorse>() {
-            @Override
-            public int compare(SavedHorse h1, SavedHorse h2) {
-                double h1Level = ability.getLevelForEffort(ability.getEffort(h1));
-                double h2Level = ability.getLevelForEffort(ability.getEffort(h2));
-                if (h1Level < h2Level) {
-                    return 1;
-                } else if (h2Level < h1Level) {
-                    return -1;
-                } else {
-                    return h1.getUuid().compareTo(h2.getUuid());
-                }
-            }
-        });
-
-        for (SavedHorse horse : _cache.values()) {
-            rankings.add(horse);
-            if (rankings.size() > count) {
-                Iterator<SavedHorse> it = rankings.descendingIterator();
-                if (it.hasNext()) {
-                    it.next();
-                    it.remove();
-                }
-            }
-        }
-
-        SavedHorse[] result = new SavedHorse[Math.min(count, rankings.size())];
-        return rankings.toArray(result);
     }
 
     // ------------------------------------------------------------------------
@@ -153,7 +145,7 @@ public class HorseDB {
      * Make a backup of the database, if that is possible (e.g. backed by a
      * file).
      */
-    public void backup() {
+    public synchronized void backup() {
         _impl.backup();
     }
 
@@ -163,7 +155,7 @@ public class HorseDB {
      * 
      * On the first run, initialise the schema.
      */
-    public void load() {
+    public synchronized void load() {
         long start = System.nanoTime();
         for (SavedHorse savedHorse : _impl.loadAll()) {
             _cache.put(savedHorse.getUuid(), savedHorse);
@@ -177,7 +169,7 @@ public class HorseDB {
     /**
      * Save all updated horses to the database.
      */
-    public void save() {
+    public synchronized void save() {
         long start = System.nanoTime();
         _impl.saveAll(_cache.values());
 
@@ -189,7 +181,7 @@ public class HorseDB {
     /**
      * Delete all removed horses from the database.
      */
-    public void purgeAllRemovedHorses() {
+    public synchronized void purgeAllRemovedHorses() {
         long start = System.nanoTime();
         _impl.delete(_removedHorses.values());
         _removedHorses.clear();
@@ -205,7 +197,7 @@ public class HorseDB {
      * @param sender the command sender.
      * @param string the database implementation type identifier.
      */
-    public void migrate(CommandSender sender, String implType) {
+    public synchronized void migrate(CommandSender sender, String implType) {
         String oldImplType = _impl.getType();
         if (oldImplType.equals(implType)) {
             sender.sendMessage(ChatColor.RED + "The database implementation is already: " + implType);
@@ -249,7 +241,7 @@ public class HorseDB {
      *        "yaml" or "sqlite+yaml".
      * @return the implementation, or null if the type is invalid.
      */
-    protected IHorseDBImpl makeHorseDBImpl(String implType) {
+    protected synchronized IHorseDBImpl makeHorseDBImpl(String implType) {
         switch (implType) {
         case "yaml":
             return new HorseDBImplWithYAML();

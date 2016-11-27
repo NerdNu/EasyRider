@@ -45,7 +45,7 @@ public class HorseSwapExecutor extends ExecutorBase {
             }
 
             String prefix = args[0];
-            List<SavedHorse> matches = EasyRider.DB.findAllHorses(prefix);
+            List<SavedHorse> matches = EasyRider.DB.findHorsesByUUID(prefix);
             if (matches.size() == 1) {
                 SavedHorse originalHorse = matches.get(0);
                 player.sendMessage(ChatColor.GOLD + "Right click on the horse to swap stats with " +

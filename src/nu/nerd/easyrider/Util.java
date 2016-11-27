@@ -59,6 +59,21 @@ public class Util {
 
     // ------------------------------------------------------------------------
     /**
+     * Format a location as "(x, y, z) world", with integer coordinates.
+     *
+     * @param loc the location.
+     * @return the location as a formatted String.
+     */
+    public static String formatLocation(Location loc) {
+        return new StringBuilder().append('(')
+        .append(loc.getBlockX()).append(", ")
+        .append(loc.getBlockY()).append(", ")
+        .append(loc.getBlockZ()).append(") ")
+        .append(loc.getWorld().getName()).toString();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * The string form of Horse.Color constants as returned by getAppearance(),
      * listed in the same order as the enum.
      */

@@ -35,6 +35,14 @@ permissions:
     description: Permission to use /horse-top.
     default: true
 
+  easyrider.owned:
+    description: Permission to use /horse-owned.
+    default: true
+
+  easyrider.owned-player:
+    description: Permission to use /horse-owned <player>.
+    default: op
+
 commands:
   easyrider:
     description: ${project.name} administrative command.
@@ -90,4 +98,12 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command> §ehealth§f|§ejump§f|§espeed§f - Show the top 10 horses with the specified ability.
+      §e/<command> §ehealth§f|§ejump§f|§espeed§f [§e<page>§f] - List one page of 10 horses ranked in descending order by the specified ability. If no page number is specified, it defaults to page 1.
+
+  horse-owned:
+    description: List information about all horses owned by you or a specified player.
+    permission: easyrider.owned
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> §f[§e<player>§f] [<page>] - List information about all horses owned by you or a specified player.

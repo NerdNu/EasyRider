@@ -104,6 +104,8 @@ Player Facing Commands
  * `/horse-levels [help]` - Show level information about the horse currently
    ridden or right-clicked.
 
+ * `/horse-owned` - List information about all horses owned by you.
+
  * `/horse-upgrades health|jump|speed|help` - List all levels, corresponding
    attribute values and training effort for a specified ability.
 
@@ -113,9 +115,9 @@ Player Facing Commands
 Admin Commands
 --------------
  * `/easyrider help|reload` - Show help or reload the plugin configuration.
- * `/easyrider migrate sqlite|yaml|sqlite+yaml` - Change that database type. If
+ * `/easyrider migrate <type>` - Change to the specified database type. If
    a database of the new type exists, it will be rewritten to contain only the
-   currently loaded horses.
+   currently loaded horses. Currently, the only supported type is "yaml".
  
  * `/horse-debug on|off` - Turn debug logging on or off for the horse that was
    right-clicked.
@@ -125,6 +127,10 @@ Admin Commands
 
  * `/horse-swap <partial-uuid>` - Swap the stats of the horse with the specified
    UUID with those of a clicked-on horse.
+
+ * `/horse-owned <player>` - List information about all horses owned by the
+   specified player.
+
 
 Configuration
 -------------

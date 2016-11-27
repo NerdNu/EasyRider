@@ -40,6 +40,7 @@ import nu.nerd.easyrider.commands.EasyRiderExecutor;
 import nu.nerd.easyrider.commands.ExecutorBase;
 import nu.nerd.easyrider.commands.HorseDebugExecutor;
 import nu.nerd.easyrider.commands.HorseLevelsExecutor;
+import nu.nerd.easyrider.commands.HorseOwnedExecutor;
 import nu.nerd.easyrider.commands.HorseSetLevelExecutor;
 import nu.nerd.easyrider.commands.HorseSwapExecutor;
 import nu.nerd.easyrider.commands.HorseTopExecutor;
@@ -93,6 +94,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseLevelsExecutor());
         addCommandExecutor(new HorseUpgradesExecutor());
         addCommandExecutor(new HorseTopExecutor());
+        addCommandExecutor(new HorseOwnedExecutor());
 
         getServer().getPluginManager().registerEvents(this, this);
 
@@ -278,8 +280,11 @@ public class EasyRider extends JavaPlugin implements Listener {
             event.setCancelled(true);
         }
 
-        // Handle health training. only if the event was not cancelled.
         if (!event.isCancelled()) {
+            // Account for horse movement without a rider.
+            savedHorse.setLocation(horse.getLocation());
+
+            // Handle health training only if the event was not cancelled.
             ItemStack foodItem = player.getEquipment().getItemInMainHand();
             int nuggetValue = getNuggetValue(foodItem);
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
@@ -306,13 +311,13 @@ public class EasyRider extends JavaPlugin implements Listener {
                 }
             } else if (foodItem != null && foodItem.getType() == Material.WATER_BUCKET) {
                 // Handle rehydration.
-                if (savedHorse.getHydration() < 0.99) {
+                if (!savedHorse.isFullyHydrated()) {
                     player.getEquipment().setItemInMainHand(new ItemStack(Material.BUCKET, 1));
                     savedHorse.setHydration(savedHorse.getHydration() + EasyRider.CONFIG.BUCKET_HYDRATION);
                     Location loc = horse.getLocation();
                     loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 3.0f, 1.0f);
                 }
-                if (savedHorse.getHydration() > 0.99) {
+                if (savedHorse.isFullyHydrated()) {
                     player.sendMessage(ChatColor.GOLD + "The horse is no longer thirsty.");
                 } else {
                     player.sendMessage(ChatColor.GOLD + "The horse is still thirsty.");
@@ -355,7 +360,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         // the horse was on the ground.
         PlayerState playerState = getState(player);
         double tickDistance = playerState.getTickHorizontalDistance();
-        if (tickDistance > 0) {
+        if (tickDistance > 0 && !savedHorse.isDehydrated()) {
             // Sanity check: if the distance is so large as to be unattainable
             // in one tick, then don't apply the distance to the horse and log
             // in console. Ratio to max speed determined empirically.
@@ -374,8 +379,6 @@ public class EasyRider extends JavaPlugin implements Listener {
 
         // Update stored location to compute distance in the next tick.
         playerState.updateRiddenHorse();
-
-        // Check for dehydration and throw rider if so.
         savedHorse.onRidden(_tickCounter, horse);
     } // onPlayerMove
 
@@ -434,6 +437,9 @@ public class EasyRider extends JavaPlugin implements Listener {
         Horse horse = (Horse) event.getVehicle();
         Player player = (Player) passenger;
         SavedHorse savedHorse = DB.findOrAddHorse(horse);
+
+        // Update stored owner, which may have changed.
+        savedHorse.setOwner(horse.getOwner());
 
         if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
             debug(horse, "Vehicle exit: " + player.getName());
