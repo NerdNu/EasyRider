@@ -49,6 +49,7 @@ public class SavedHorse implements Cloneable {
         setAppearance(Util.getAppearance(horse));
         speedLevel = jumpLevel = healthLevel = 1;
         setHydration(0.5);
+        setLastAccessed(System.currentTimeMillis());
     }
 
     // ------------------------------------------------------------------------
@@ -509,6 +510,58 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
+     * Set the last accessed time stamp.
+     *
+     * @param lastAccessed a time stamp from System.currentTimeMillis().
+     */
+    public void setLastAccessed(long lastAccessed) {
+        this.lastAccessed = lastAccessed;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the last accessed time stamp of this horse.
+     *
+     * @return the last accessed time stamp of this horse.
+     */
+    public long getLastAccessed() {
+        return lastAccessed;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true if this horse is abandoned.
+     *
+     * For a horse to be abandoned, currently it must meet the following
+     * conditions:
+     * <ul>
+     * <li>It must be a skeletal or undead horse.</li>
+     * <li>The owner has not interacted with or ridden it for a period specified
+     * in the configuration (defaulting to 14 days).</li>
+     * <li>It has no custom display name set.</li>
+     * <li>Its quantised health and speed levels are below 2, i.e. they are both
+     * 1.</li>
+     * <li>It has eaten less than one golden apple or less than 9 golden carrots
+     * worth of gold.</li>
+     * </ul>
+     *
+     * @return true if this horse is abandoned.
+     */
+    public boolean isAbandoned() {
+        long now = System.currentTimeMillis();
+        return getSpeedLevel() < 2 &&
+               getJumpLevel() < 2 &&
+               getNuggetsEaten() < 72 &&
+               (getDisplayName() == null || getDisplayName().length() == 0) &&
+               (now - getLastAccessed()) > EasyRider.CONFIG.ABANDONED_DAYS * 24 * 60 * 60 * 1000 &&
+               (getAppearance() != null &&
+                (getAppearance().startsWith("skeleton") ||
+                 getAppearance().startsWith("undead")));
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * This method is called every tick when the horse is being ridden to do
      * various accounting tasks.
      *
@@ -536,6 +589,7 @@ public class SavedHorse implements Cloneable {
             }
         }
         setLocation(horse.getLocation());
+        setLastAccessed(System.currentTimeMillis());
     }
 
     // ------------------------------------------------------------------------
@@ -559,6 +613,7 @@ public class SavedHorse implements Cloneable {
         setJumpLevel(section.getInt("jumpLevel"));
         setHealthLevel(section.getInt("healthLevel"));
         setHydration(section.getDouble("hydration", 1.0));
+        setLastAccessed(section.getLong("lastAccessed", System.currentTimeMillis()));
         setClean();
     }
 
@@ -591,6 +646,7 @@ public class SavedHorse implements Cloneable {
         section.set("jumpLevel", getJumpLevel());
         section.set("healthLevel", getHealthLevel());
         section.set("hydration", getHydration());
+        section.set("lastAccessed", lastAccessed);
         setClean();
     }
 
@@ -614,6 +670,7 @@ public class SavedHorse implements Cloneable {
         temp = Double.doubleToLongBits(hydration);
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + jumpLevel;
+        result = prime * result + (int) (lastAccessed ^ (lastAccessed >>> 32));
         result = prime * result + ((location == null) ? 0 : location.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + nuggetsEaten;
@@ -669,6 +726,9 @@ public class SavedHorse implements Cloneable {
             return false;
         }
         if (jumpLevel != other.jumpLevel) {
+            return false;
+        }
+        if (lastAccessed != other.lastAccessed) {
             return false;
         }
         if (location == null) {
@@ -784,6 +844,12 @@ public class SavedHorse implements Cloneable {
      * Hydration level of the horse.
      */
     private double hydration;
+
+    /**
+     * Time stamp when the horse was last accessed, per
+     * System.currentTimeMillis().
+     */
+    private long lastAccessed;
 
     /**
      * True if this bean has never been in the database, i.e. it will result in

@@ -53,6 +53,12 @@ public class Configuration {
     public double BUCKET_HYDRATION;
 
     /**
+     * Number of consecutive days an untrained horse must not be accessed by its
+     * owner for it to be abandoned.
+     */
+    public int ABANDONED_DAYS;
+
+    /**
      * Speed ability.
      */
     public Ability SPEED = new Ability("speed", "Speed", Attribute.GENERIC_MOVEMENT_SPEED) {
@@ -231,6 +237,7 @@ public class Configuration {
         SPEED_LIMIT = config.getDouble("speed-limit");
         DEHYDRATION_DISTANCE = config.getDouble("dehydration-distance");
         BUCKET_HYDRATION = config.getDouble("bucket-hydration");
+        ABANDONED_DAYS = config.getInt("abandoned-days");
 
         SPEED.load(config.getConfigurationSection("abilities.speed"), logger);
         JUMP.load(config.getConfigurationSection("abilities.jump"), logger);
@@ -244,6 +251,7 @@ public class Configuration {
             logger.info("SPEED_LIMIT: " + SPEED_LIMIT);
             logger.info("DEHYDRATION_DISTANCE: " + DEHYDRATION_DISTANCE);
             logger.info("BUCKET_HYDRATION: " + BUCKET_HYDRATION);
+            logger.info("ABANDONED_DAYS" + ABANDONED_DAYS);
 
             logAbility(logger, SPEED);
             logAbility(logger, JUMP);

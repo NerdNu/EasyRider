@@ -170,6 +170,9 @@ public class EasyRider extends JavaPlugin implements Listener {
      * a player riding them.
      *
      * This is covering a gap in the horse locking protections of CobraCorral.
+     *
+     * Also, check for abandoned skeletal or undead horses and remove the
+     * database entry.
      */
     @EventHandler(ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
@@ -180,7 +183,15 @@ public class EasyRider extends JavaPlugin implements Listener {
                 horse.getOwner() != null &&
                 (horse.getVariant() == Variant.SKELETON_HORSE ||
                  horse.getVariant() == Variant.UNDEAD_HORSE)) {
-                event.setCancelled(true);
+
+                SavedHorse savedHorse = DB.findOrAddHorse(horse);
+                if (savedHorse.isAbandoned()) {
+                    // Remove owner of abandoned horse and drop from DB.
+                    horse.setOwner(null);
+                    DB.removeHorse(savedHorse);
+                } else {
+                    event.setCancelled(true);
+                }
             }
         }
     }
@@ -197,7 +208,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             Horse horse = (Horse) entity;
             SavedHorse savedHorse = DB.findHorse(horse);
             if (savedHorse != null) {
-                DB.removeDeadHorse(savedHorse);
+                DB.removeHorse(savedHorse);
 
                 StringBuilder message = new StringBuilder();
                 message.append("Horse died ");
@@ -239,11 +250,27 @@ public class EasyRider extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         PlayerState playerState = getState(player);
 
+        SavedHorse savedHorse = DB.findOrAddHorse(horse);
+        if (horse.getOwner() == player) {
+            savedHorse.setLastAccessed(System.currentTimeMillis());
+        } else {
+            // Undead horses that are not interacted with by their owner for a
+            // long time are spontaneously untamed.
+            if (savedHorse.isAbandoned()) {
+                // SavedHorse instance will be retained. Horse will be retamed
+                // by new owner, in this current event call.
+                horse.setOwner(null);
+                if (CONFIG.DEBUG_EVENTS) {
+                    debug(horse, "abandoned");
+                }
+            }
+        }
+
         if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
             // If not owned, undead horses belong to whoever clicks first.
             if (horse.getOwner() == null) {
                 horse.setTamed(true);
-                horse.setOwner(event.getPlayer());
+                horse.setOwner(player);
                 if (CONFIG.DEBUG_EVENTS) {
                     debug(horse, horse.getVariant() + " owner set to " + player.getName());
                 }
@@ -264,7 +291,6 @@ public class EasyRider extends JavaPlugin implements Listener {
         }
 
         // Update stored attributes that may have changed.
-        SavedHorse savedHorse = DB.findOrAddHorse(horse);
         savedHorse.setOwner(horse.getOwner());
         savedHorse.setDisplayName(horse.getCustomName());
 

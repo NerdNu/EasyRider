@@ -10,8 +10,9 @@ database:
 speed-limit: 5.0
 
 dehydration-distance: 3000.0
-
 bucket-hydration: 0.5
+
+abandoned-days: 14
 
 abilities:
   speed:

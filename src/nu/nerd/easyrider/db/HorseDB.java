@@ -130,12 +130,12 @@ public class HorseDB {
 
     // --------------------------------------------------------------------------
     /**
-     * Remove the specified horse from the cache when it dies, and queue up
-     * deletion from the database.
+     * Remove the specified horse from the cache, and queue up deletion from the
+     * database.
      *
      * @param savedHorse the database state of the horse.
      */
-    public synchronized void removeDeadHorse(SavedHorse savedHorse) {
+    public synchronized void removeHorse(SavedHorse savedHorse) {
         _cache.remove(savedHorse.getUuid());
         _removedHorses.put(savedHorse.getUuid(), savedHorse);
     }
@@ -156,12 +156,12 @@ public class HorseDB {
      * On the first run, initialise the schema.
      */
     public synchronized void load() {
-        long start = System.nanoTime();
+        long now = System.currentTimeMillis();
         for (SavedHorse savedHorse : _impl.loadAll()) {
             _cache.put(savedHorse.getUuid(), savedHorse);
         }
 
-        double millis = 1e-6 * (System.nanoTime() - start);
+        long millis = System.currentTimeMillis() - now;
         EasyRider.PLUGIN.getLogger().info("Database load time: " + millis + " ms");
     }
 
@@ -170,10 +170,10 @@ public class HorseDB {
      * Save all updated horses to the database.
      */
     public synchronized void save() {
-        long start = System.nanoTime();
+        long start = System.currentTimeMillis();
         _impl.saveAll(_cache.values());
 
-        double millis = 1e-6 * (System.nanoTime() - start);
+        long millis = System.currentTimeMillis() - start;
         EasyRider.PLUGIN.getLogger().info("Database save time: " + millis + " ms");
     }
 
