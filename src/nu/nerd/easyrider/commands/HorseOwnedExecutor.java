@@ -174,11 +174,11 @@ public class HorseOwnedExecutor extends ExecutorBase {
                 String formattedLoc = (loc == null) ? "" : Util.formatLocation(loc);
                 sender.sendMessage(ChatColor.GOLD + "    Last seen: " +
                                    ChatColor.WHITE + formattedLoc);
-                sender.sendMessage(ChatColor.GOLD + "    S/H/J: " +
+                sender.sendMessage(ChatColor.GOLD + "    Sp: " +
                                    formattedAbility(EasyRider.CONFIG.SPEED, savedHorse) +
-                                   ChatColor.WHITE + " / " +
+                                   ChatColor.GOLD + " He: " +
                                    formattedAbility(EasyRider.CONFIG.HEALTH, savedHorse) +
-                                   ChatColor.WHITE + " / " +
+                                   ChatColor.GOLD + " Ju: " +
                                    formattedAbility(EasyRider.CONFIG.JUMP, savedHorse));
             }
         }
