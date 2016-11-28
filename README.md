@@ -110,12 +110,12 @@ Player Facing Commands
  * `/horse-levels [help]` - Show level information about the horse currently
    ridden or right-clicked.
 
- * `/horse-owned` - List information about all horses owned by you.
+ * `/horse-owned [<page>]` - List information about all horses owned by you, optionally specifying the page number to show.
 
  * `/horse-upgrades health|jump|speed|help` - List all levels, corresponding
    attribute values and training effort for a specified ability.
 
- * `/horse-top health|jump|speed|help` - Show the top 10 horses with the specified ability.
+ * `/horse-top health|jump|speed|help [<page>]` - List one page of 10 horses ranked in descending order by the specified ability. If no page number is specified, it defaults to page 1.
 
 
 Admin Commands
@@ -134,7 +134,7 @@ Admin Commands
  * `/horse-swap <partial-uuid>` - Swap the stats of the horse with the specified
    UUID with those of a clicked-on horse.
 
- * `/horse-owned <player>` - List information about all horses owned by the
+ * `/horse-owned <player> [<page>]` - List information about all horses owned by the
    specified player.
 
 
