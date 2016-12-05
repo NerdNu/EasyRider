@@ -36,11 +36,20 @@ Features
    with the level.
  * The maximum level, maximum significant training effort, exponential scaling,
    and the resulting range of horse attribute values are all configurable.
- * Horses slowly get thirsty in proportion to horizontal distance travelled.
-   When they are completely dehydrated, they throw the rider and cannot be
-   ridden until rehydrated by right clicking on them with a water bucket.
+ * Horses have a hydration level that ranges between 0.0 and 1.0. Full hydration
+   is 1.0. Hydration declines in proportion to horizontal distance travelled.
+   When hydration reaches 0.0, training no longer increases the horse's levels.
+ * The rate at which a horse pants (breathes heavily) increases from once a
+   minute at full hydration to every four seconds at hydration 0.0.
+ * Horses can be rehydrated by right clicking on them with a bucket, or by
+   mounting them when they are within 3 blocks of a water block or cauldron
+   containing water, either at feet level or ground level (one block below).
  * The full dehydration distance and rehydration value of a water bucket are
    configurable.
+ * Players who have problems with chunks loading slowly when riding fast horses
+   can set a speed limit that applies to their motion while they are riding any
+   horse, using `/horse-speed-limit`. The innate maximum speed of a horse is not
+   affected by this command.
  * Skeletal and undead horses that are not ridden or interacted with by their
    owner for a long time (configurable, default 14 days) may be considered
    abandoned and are then untamed and can be tamed or killed by another player,
@@ -54,6 +63,7 @@ Features
  * Databases are backed up on restart in the `backups/` subdirectory of the 
    plugin folder, with a date/time stamp in the filename that has a granularity
    of 1 hour. If a matching backup already exists, it is not overwritten.
+
 
 Training Algorithm
 ------------------
@@ -117,10 +127,13 @@ Player Facing Commands
 
  * `/horse-top health|jump|speed|help [<page>]` - List one page of 10 horses ranked in descending order by the specified ability. If no page number is specified, it defaults to page 1.
 
+ * `/horse-speed-limit [help|<number>]` - Set your personal speed limit to `<number>` (in m/s), if specified, or show your current speed limit if the number is omitted.
+
 
 Admin Commands
 --------------
  * `/easyrider help|reload` - Show help or reload the plugin configuration.
+ 
  * `/easyrider migrate <type>` - Change to the specified database type. If
    a database of the new type exists, it will be rewritten to contain only the
    currently loaded horses. Currently, the only supported type is "yaml".
@@ -170,4 +183,7 @@ Permissions
  * `easyrider.levels` - Permission to use `/horse-levels`.
  * `easyrider.upgrades` - Permission to use `/horse-upgrades`.
  * `easyrider.top` - Permission to use `/horse-top`.
+ * `easyrider.speedlimit` - Permission to use `/horse-speed-limit`.
+ * `easyrider.owned` - Permission to use `/horse-owned`.
+ * `easyrider.owned-player` - Permission to specify a player name other than one's own when using `/horse-owned`.
  

@@ -35,6 +35,10 @@ permissions:
     description: Permission to use /horse-top.
     default: true
 
+  easyrider.speedlimit:
+    description: Permission to use /horse-speed-limit.
+    default: true
+
   easyrider.owned:
     description: Permission to use /horse-owned.
     default: true
@@ -93,12 +97,20 @@ commands:
       §e/<command> §ehealth§f|§ejump§f|§espeed§f - List all levels, corresponding attribute values and training effort for a specified ability.
       
   horse-top:
-    description: Show the top 10 horses for a specified ability.
+    description: List one page of 10 horses ranked in descending order by the specified ability.
     permission: easyrider.top
     usage: |
     
       §e/<command> help§f - Show usage help.
       §e/<command> §ehealth§f|§ejump§f|§espeed§f [§e<page>§f] - List one page of 10 horses ranked in descending order by the specified ability. If no page number is specified, it defaults to page 1.
+
+  horse-speed-limit:
+    description: 'Set or show your personal speed limit: the maximum speed (in m/s) that any horse you ride cannot exceed, even if it is capable of doing so.'
+    permission: easyrider.speedlimit
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> §f[§e<number>§f] - Set your personal speed limit to <number> (in m/s), if specified, or show your current speed limit.
 
   horse-owned:
     description: List information about all horses owned by you or a specified player.

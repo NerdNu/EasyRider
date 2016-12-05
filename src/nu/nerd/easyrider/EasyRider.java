@@ -42,6 +42,7 @@ import nu.nerd.easyrider.commands.HorseDebugExecutor;
 import nu.nerd.easyrider.commands.HorseLevelsExecutor;
 import nu.nerd.easyrider.commands.HorseOwnedExecutor;
 import nu.nerd.easyrider.commands.HorseSetLevelExecutor;
+import nu.nerd.easyrider.commands.HorseSpeedLimitExecutor;
 import nu.nerd.easyrider.commands.HorseSwapExecutor;
 import nu.nerd.easyrider.commands.HorseTopExecutor;
 import nu.nerd.easyrider.commands.HorseUpgradesExecutor;
@@ -95,6 +96,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseUpgradesExecutor());
         addCommandExecutor(new HorseTopExecutor());
         addCommandExecutor(new HorseOwnedExecutor());
+        addCommandExecutor(new HorseSpeedLimitExecutor());
 
         getServer().getPluginManager().registerEvents(this, this);
 
@@ -290,9 +292,17 @@ public class EasyRider extends JavaPlugin implements Listener {
             }
         }
 
+        // Do pending trainable attribute updates resulting from /horse-swap.
+        if (savedHorse.hasOutdatedAttributes()) {
+            savedHorse.updateAllAttributes(horse);
+        }
+
         // Update stored attributes that may have changed.
         savedHorse.setOwner(horse.getOwner());
         savedHorse.setDisplayName(horse.getCustomName());
+
+        // Fix appearance if wrong.
+        savedHorse.setAppearance(Util.getAppearance(horse));
 
         Location horseLoc = horse.getLocation();
         if (playerState.hasPendingInteraction()) {
@@ -341,7 +351,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                     player.getEquipment().setItemInMainHand(new ItemStack(Material.BUCKET, 1));
                     savedHorse.setHydration(savedHorse.getHydration() + EasyRider.CONFIG.BUCKET_HYDRATION);
                     Location loc = horse.getLocation();
-                    loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 3.0f, 1.0f);
+                    loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
                 }
 
                 if (savedHorse.isFullyHydrated()) {
@@ -398,7 +408,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             } else {
                 Ability ability = (horse.isOnGround()) ? CONFIG.SPEED : CONFIG.JUMP;
                 ability.setEffort(savedHorse, ability.getEffort(savedHorse) + tickDistance);
-                if (ability.hasLevelChanged(savedHorse, horse)) {
+                if (ability.hasLevelIncreased(savedHorse, horse)) {
                     notifyLevelUp(player, savedHorse, horse, ability);
                 }
             }
@@ -441,7 +451,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                 player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() +
                                    " drinks until it is no longer thirsty!");
                 Location loc = horse.getLocation();
-                loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 3.0f, 1.0f);
+                loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
             }
 
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
@@ -468,6 +478,10 @@ public class EasyRider extends JavaPlugin implements Listener {
 
         // Update stored owner, which may have changed.
         savedHorse.setOwner(horse.getOwner());
+
+        // Reset horse speed to that dictated by its level. It may have been
+        // limited by a player-specific maximum speed.
+        EasyRider.CONFIG.SPEED.updateAttributes(savedHorse, horse);
 
         if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
             debug(horse, "Vehicle exit: " + player.getName());
@@ -579,7 +593,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                            " in " + ability.getDisplayName() + ".");
         Location loc = horse.getLocation().add(0, 1, 0);
         loc.getWorld().spigot().playEffect(loc, Effect.HAPPY_VILLAGER, 0, 0, 2.0f, 1.0f, 2.0f, 0.0f, 100, 32);
-        loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 3.0f, 1.0f);
+        loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 2.0f, 1.0f);
     }
 
     // ------------------------------------------------------------------------
@@ -615,12 +629,12 @@ public class EasyRider extends JavaPlugin implements Listener {
      */
     protected void consumeGoldenFood(SavedHorse savedHorse, Horse horse, int nuggetValue, Player player) {
         CONFIG.HEALTH.setEffort(savedHorse, CONFIG.HEALTH.getEffort(savedHorse) + nuggetValue);
-        if (CONFIG.HEALTH.hasLevelChanged(savedHorse, horse)) {
+        if (CONFIG.HEALTH.hasLevelIncreased(savedHorse, horse)) {
             notifyLevelUp(player, savedHorse, horse, CONFIG.HEALTH);
         }
 
         Location loc = horse.getLocation();
-        loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_EAT, 3.0f, 1.0f);
+        loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_EAT, 2.0f, 1.0f);
     }
 
     // ------------------------------------------------------------------------

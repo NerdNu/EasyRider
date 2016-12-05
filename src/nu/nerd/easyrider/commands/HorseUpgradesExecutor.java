@@ -42,7 +42,8 @@ public class HorseUpgradesExecutor extends ExecutorBase {
             for (int level = 1; level <= ability.getMaxLevel(); ++level) {
                 sender.sendMessage(String.format("%s%2d %s%5.2f %s %s%5.2f %s",
                                                  ChatColor.GOLD.toString(), level,
-                                                 ChatColor.YELLOW.toString(), ability.getDisplayValue(level), ability.getValueUnits(),
+                                                 ChatColor.YELLOW.toString(),
+                                                 ability.toDisplayValue(ability.getValue(level)), ability.getValueUnits(),
                                                  ChatColor.GRAY.toString(), ability.getEffortForLevel(level), ability.getEffortUnits()));
             }
             return true;

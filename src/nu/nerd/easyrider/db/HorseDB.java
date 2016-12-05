@@ -48,15 +48,13 @@ public class HorseDB {
             savedHorse = new SavedHorse(horse);
             _cache.put(savedHorse.getUuid(), savedHorse);
 
-            EasyRider.CONFIG.SPEED.setLevel(savedHorse, 1);
-            EasyRider.CONFIG.SPEED.setEffort(savedHorse, 0);
-            EasyRider.CONFIG.SPEED.updateAttributes(savedHorse, horse);
-            EasyRider.CONFIG.JUMP.setLevel(savedHorse, 1);
-            EasyRider.CONFIG.JUMP.setEffort(savedHorse, 0);
-            EasyRider.CONFIG.JUMP.updateAttributes(savedHorse, horse);
-            EasyRider.CONFIG.HEALTH.setLevel(savedHorse, 1);
-            EasyRider.CONFIG.HEALTH.setEffort(savedHorse, 0);
-            EasyRider.CONFIG.HEALTH.updateAttributes(savedHorse, horse);
+            savedHorse.setDistanceTravelled(0);
+            savedHorse.setDistanceJumped(0);
+            savedHorse.setNuggetsEaten(0);
+            savedHorse.setSpeedLevel(1);
+            savedHorse.setJumpLevel(1);
+            savedHorse.setHealthLevel(1);
+            savedHorse.updateAllAttributes(horse);
         }
         return savedHorse;
     }

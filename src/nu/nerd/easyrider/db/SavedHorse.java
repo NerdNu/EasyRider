@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.ConfigurationSection;
@@ -16,6 +17,8 @@ import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 
 import nu.nerd.easyrider.EasyRider;
+import nu.nerd.easyrider.PlayerState;
+import nu.nerd.easyrider.RateLimiter;
 import nu.nerd.easyrider.Util;
 
 // ----------------------------------------------------------------------------
@@ -498,8 +501,11 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
-     * Set the hydration of this horse from 0.0 (dehydrated) to 1.0 (fully
-     * hydrated).
+     * Set the hydration of this horse from 0.0 (completely dehydrated) to 1.0
+     * (fully hydrated).
+     *
+     * At very low hydration, the horse will not gain any ability through
+     * training.
      *
      * @param hydration in the range [0.0, 1.0].
      */
@@ -594,6 +600,44 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
+     * Specify whether the corresponding Horse entity needs its attibutes
+     * updated by calling {#link {@link #updateAllAttributes(Horse)}.
+     *
+     * @param outdatedAttributes if true, the corresponding Horse entity needs
+     *        all its attributes updated.
+     */
+    public void setOutdatedAttributes(boolean outdatedAttributes) {
+        this.outdatedAttributes = outdatedAttributes;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true of the corresponding Horse entity needs its attributes
+     * updated to match the current levels of this database horse.
+     *
+     * @return true of the corresponding Horse entity needs its attributes
+     *         updated to match the current levels of this database horse.
+     */
+    public boolean hasOutdatedAttributes() {
+        return outdatedAttributes;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Update all attributes of the specified entity to match this SavedHorse.
+     *
+     * @param horse the Horse entity.
+     */
+    public void updateAllAttributes(Horse horse) {
+        EasyRider.CONFIG.SPEED.updateAttributes(this, horse);
+        EasyRider.CONFIG.JUMP.updateAttributes(this, horse);
+        EasyRider.CONFIG.HEALTH.updateAttributes(this, horse);
+        setOutdatedAttributes(false);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * This method is called every tick when the horse is being ridden to do
      * various accounting tasks.
      *
@@ -608,22 +652,38 @@ public class SavedHorse implements Cloneable {
         if (getLocation() != null) {
             double dist = Util.getHorizontalDistance(location, horse.getLocation());
             setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
+
+            Player rider = (Player) horse.getPassenger();
             if (isDehydrated()) {
-                Player rider = (Player) horse.getPassenger();
-                if (relativeTick - _lastMessageTick > 100) {
-                    rider.sendMessage(ChatColor.RED + getMessageName() +
-                                      " is too dehydrated to ride. Give it a bucket of water.");
-                    _lastMessageTick = relativeTick;
+                if (_messageRateLimiter.run(() -> rider.sendMessage(ChatColor.RED + getMessageName() +
+                                                                    " is too dehydrated to benefit from training. Give it a drink of water."))) {
+                    long newMessageCoolDown = Math.min(Math.max(MIN_MESSAGE_COOLDOWN_MILLIS,
+                                                                _messageRateLimiter.getCoolDownMillis() * 2),
+                                                       MAX_MESSAGE_COOLDOWN_MILLIS);
+                    _messageRateLimiter.setCoolDownMillis(newMessageCoolDown);
                 }
-                AttributeInstance horseAttribute = horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
-                horseAttribute.setBaseValue(EasyRider.CONFIG.SPEED.getMinValue() / 4);
             } else {
-                EasyRider.CONFIG.SPEED.updateAttributes(this, horse);
+                _messageRateLimiter.setCoolDownMillis(MIN_MESSAGE_COOLDOWN_MILLIS);
             }
+
+            PlayerState playerState = EasyRider.PLUGIN.getState(rider);
+            AttributeInstance horseAttribute = horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+            horseAttribute.setBaseValue(Math.min(playerState.getMaxSpeed(),
+                                                 EasyRider.CONFIG.SPEED.getValue(getSpeedLevel())));
+
+            // Reduce time between breaths to shortest when dehydrated.
+            long breathCoolDown = (long) Util.linterp(MIN_BREATH_PERIOD_MILLIS,
+                                                      MAX_BREATH_PERIOD_MILLIS,
+                                                      Math.max(0, getHydration()));
+            _breathRateLimiter.setCoolDownMillis(breathCoolDown);
+            _breathRateLimiter.run(() -> {
+                Location loc = horse.getLocation();
+                loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_BREATHE, 1.0f, 1.0f);
+            });
         }
         setLocation(horse.getLocation());
         setLastAccessed(System.currentTimeMillis());
-    }
+    } // onRidden
 
     // ------------------------------------------------------------------------
     /**
@@ -707,6 +767,7 @@ public class SavedHorse implements Cloneable {
         result = prime * result + ((location == null) ? 0 : location.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + nuggetsEaten;
+        result = prime * result + (outdatedAttributes ? 1231 : 1237);
         result = prime * result + ((ownerUuid == null) ? 0 : ownerUuid.hashCode());
         result = prime * result + speedLevel;
         result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
@@ -781,6 +842,9 @@ public class SavedHorse implements Cloneable {
         if (nuggetsEaten != other.nuggetsEaten) {
             return false;
         }
+        if (outdatedAttributes != other.outdatedAttributes) {
+            return false;
+        }
         if (ownerUuid == null) {
             if (other.ownerUuid != null) {
                 return false;
@@ -802,6 +866,27 @@ public class SavedHorse implements Cloneable {
     }
 
     // ------------------------------------------------------------------------
+    /**
+     * Minimum dehydration message cooldown in milliseconds.
+     */
+    private static final long MIN_MESSAGE_COOLDOWN_MILLIS = 15 * 1000;
+
+    /**
+     * Maximum dehydration message cooldown in milliseconds.
+     */
+    private static final long MAX_MESSAGE_COOLDOWN_MILLIS = 4 * 60 * 1000;
+
+    /**
+     * Minimum period between horse breath sounds, when the horse is dehydrated.
+     */
+    private static final long MIN_BREATH_PERIOD_MILLIS = 4 * 1000;
+
+    /**
+     * Maximum period between horse breath sounds, when the horse is fully
+     * hydrated.
+     */
+    private static final long MAX_BREATH_PERIOD_MILLIS = 60 * 1000;
+
     /**
      * The unique ID of the horse, used as the primary key.
      */
@@ -885,6 +970,17 @@ public class SavedHorse implements Cloneable {
     private long lastAccessed;
 
     /**
+     * If true, the corresponding Horse entity needs all its attributes updated
+     * to match current levels.
+     *
+     * This flag is set when swapping one horse with another using /horse-swap.
+     * Usually in that case, one of the horses is not loaded in the world and
+     * its attributes will be out of sync with the new levels applied to it.
+     * This is reconciled later, on the first interaction.
+     */
+    private boolean outdatedAttributes;
+
+    /**
      * True if this bean has never been in the database, i.e. it will result in
      * a database insert.
      */
@@ -903,8 +999,14 @@ public class SavedHorse implements Cloneable {
     private boolean _debug;
 
     /**
-     * Tick value when the last message about dehydration was sent.
+     * Limits the rate at which dehydration messages will be sent.
      */
     @Transient
-    private int _lastMessageTick;
+    private final RateLimiter _messageRateLimiter = new RateLimiter(0);
+
+    /**
+     * Limits the rate at horse breathing noises will be made.
+     */
+    @Transient
+    private final RateLimiter _breathRateLimiter = new RateLimiter(MAX_BREATH_PERIOD_MILLIS);
 } // class SavedHorse

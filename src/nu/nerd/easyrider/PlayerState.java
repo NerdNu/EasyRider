@@ -69,6 +69,32 @@ public class PlayerState {
 
     // --------------------------------------------------------------------------
     /**
+     * Set the maximum speed that any horse ridden by this player will move, in
+     * the natural units of a horse's speed attribute.
+     *
+     * The actual speed that horses move is the lesser of this value and the
+     * horse's innate maximum speed.
+     *
+     * @param maxSpeed the maximum speed that the player can move on any horse.
+     */
+    public void setMaxSpeed(double maxSpeed) {
+        _maxSpeed = Math.min(4 * EasyRider.CONFIG.SPEED.getMaxValue(), Math.max(0, maxSpeed));
+    }
+
+    // --------------------------------------------------------------------------
+    /**
+     * Return the maximum speed that the player can move on any horse, in the
+     * natural units of a horse's speed attribute.
+     *
+     * @return the maximum speed that the player can move on any horse, in the
+     *         natural units of a horse's speed attribute.
+     */
+    public double getMaxSpeed() {
+        return _maxSpeed;
+    }
+
+    // --------------------------------------------------------------------------
+    /**
      * Invalidate the stored last location of the ridden horse, clearing the
      * distance ridden in the last tick to zero.
      */
@@ -130,6 +156,7 @@ public class PlayerState {
     public void save(YamlConfiguration config) {
         ConfigurationSection section = config.getConfigurationSection(_player.getUniqueId().toString());
         section.set("name", _player.getName());
+        section.set("max-speed", getMaxSpeed());
     }
 
     // ------------------------------------------------------------------------
@@ -143,6 +170,7 @@ public class PlayerState {
         if (section == null) {
             section = config.createSection(_player.getUniqueId().toString());
         }
+        setMaxSpeed(section.getDouble("max-speed", 4 * EasyRider.CONFIG.SPEED.getMaxValue()));
     }
 
     // ------------------------------------------------------------------------
@@ -167,4 +195,13 @@ public class PlayerState {
      * tick, if the player was riding then too. Otherwise it is null.
      */
     protected Location _riddenHorseLocation;
+
+    /**
+     * The player-set maximum speed that any horse ridden by this player will
+     * move, in the natural units of the speed attribute.
+     *
+     * The actual speed that horses move is the lesser of this value and the
+     * horse's innate maximum speed.
+     */
+    protected double _maxSpeed;
 } // class PlayerState

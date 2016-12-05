@@ -89,7 +89,11 @@ public abstract class Ability {
 
     // --------------------------------------------------------------------------
     /**
-     * @param configurationSection
+     * Load the parameters of this ability from the specified configuration
+     * section.
+     *
+     * @param configurationSection the section.
+     * @param logger the Logger to send error messages to.
      */
     public void load(ConfigurationSection section, Logger logger) {
         _maxLevel = section.getInt("max-level");
@@ -263,26 +267,22 @@ public abstract class Ability {
      */
     public double getValue(int level) {
         double frac = (level - 1) / (double) (_maxLevel - 1);
-        return linterp(_minValue, _maxValue, frac);
+        return Util.linterp(_minValue, _maxValue, frac);
     }
 
     // ------------------------------------------------------------------------
     /**
-     * Checks whether the current level of the horse in this ability does not
-     * match the trained level.
-     *
-     * If so, the level is changed to match the training, and the horse entity's
-     * attributes are updated. Usually, the change is an increase in level, but
-     * in the case of the /horse-swap command, a decrease is possible.
+     * Checks whether the current level should increase due to training and, if
+     * so, increases the base Attribute accordingly.
      *
      * @param savedHorse the database state of the horse.
      * @param horse the Horse entity whose attribute will be set.
      * @return true if the training effort resulted in a change in level (and
      *         attributes) of the horse.
      */
-    public boolean hasLevelChanged(SavedHorse savedHorse, Horse horse) {
+    public boolean hasLevelIncreased(SavedHorse savedHorse, Horse horse) {
         int trainedLevel = getQuantisedLevelForEffort(getEffort(savedHorse));
-        if (trainedLevel != getLevel(savedHorse)) {
+        if (trainedLevel > getLevel(savedHorse)) {
             setLevel(savedHorse, trainedLevel);
             updateAttributes(savedHorse, horse);
             return true;
@@ -321,16 +321,27 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
-     * Return the displayable numeric value of the ability.
-     * 
-     * This is distinct from {@link #getValue(int)} which returns the value that
-     * should be set in Bukkit API methods. This method exists because the
-     * conversion from internal values to displayed values cannot always be
-     * implemented trivially (as just a scale factor).
-     * 
+     * Convert an Attribute value the to a number suitable for display
+     *
+     * This method exists because the conversion from internal values to
+     * displayed values cannot always be implemented trivially (as just a scale
+     * factor).
+     *
+     * @param value the value of the horse's Attribute in this ablility.
      * @return the displayable numeric value of the ability.
      */
-    public abstract double getDisplayValue(int level);
+    public abstract double toDisplayValue(double value);
+
+    // ------------------------------------------------------------------------
+    /**
+     * Convert a displayable value to the corresponding Attribute value of a
+     * horse.
+     *
+     * @param displayValue the displayable value of the horse's ablility.
+     * @return the corresponding Attribute value of the ability.
+     * @throws IllegalStateException if not implemented.
+     */
+    public abstract double toAttributeValue(double displayValue);
 
     // ------------------------------------------------------------------------
     /**
@@ -390,21 +401,6 @@ public abstract class Ability {
      * @return the stored training effort in this ability.
      */
     public abstract double getEffort(SavedHorse savedHorse);
-
-    // ------------------------------------------------------------------------
-    /**
-     * Return the linear interpolation between min and max.
-     * 
-     * @param min the value to return for the minimum value of frac (0.0).
-     * @param max the value to return for the maximum value of frac (1.0).
-     * @param frac the fraction, in the range [0,1] of the max argument, with
-     *        the remainder coming from the min argument. NOTE: if frac exceeds
-     *        1.0, extrapolate linearly.
-     * @return the interpolation between min and max.
-     */
-    protected static double linterp(double min, double max, double frac) {
-        return min + frac * (max - min);
-    }
 
     // ------------------------------------------------------------------------
     /**

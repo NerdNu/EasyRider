@@ -62,15 +62,20 @@ public class Configuration {
      * Speed ability.
      */
     public Ability SPEED = new Ability("speed", "Speed", Attribute.GENERIC_MOVEMENT_SPEED) {
+        @Override
+        public double toDisplayValue(double value) {
+            return value * 43;
+        }
 
         @Override
-        public double getDisplayValue(int level) {
-            return getValue(level) * 43;
+        public double toAttributeValue(double displayValue) {
+            return displayValue / 43;
         }
 
         @Override
         public String getFormattedValue(SavedHorse savedHorse) {
-            return String.format("%.2f %s", getDisplayValue(getLevel(savedHorse)), getValueUnits());
+            double displayValue = toDisplayValue(getValue(getLevel(savedHorse)));
+            return String.format("%.2f %s", displayValue, getValueUnits());
         }
 
         @Override
@@ -114,12 +119,12 @@ public class Configuration {
      */
     public Ability JUMP = new Ability("jump", "Jump Strength", Attribute.HORSE_JUMP_STRENGTH) {
         /**
-         * Display the jump height using the same algorithm as Zyin's HUD and
+         * Compute the jump height using the same algorithm as Zyin's HUD and
          * CobraCorral.
          */
         @Override
-        public double getDisplayValue(int level) {
-            double yVelocity = getValue(level);
+        public double toDisplayValue(double value) {
+            double yVelocity = value;
             double jumpHeight = 0;
             while (yVelocity > 0) {
                 jumpHeight += yVelocity;
@@ -130,8 +135,15 @@ public class Configuration {
         }
 
         @Override
+        public double toAttributeValue(double displayValue) {
+            // Reversing the jump physics is a waste of time if never used.
+            throw new IllegalStateException("not implemented");
+        }
+
+        @Override
         public String getFormattedValue(SavedHorse savedHorse) {
-            return String.format("%.2f%s", getDisplayValue(getLevel(savedHorse)), getValueUnits());
+            double displayValue = toDisplayValue(getValue(getLevel(savedHorse)));
+            return String.format("%.2f%s", displayValue, getValueUnits());
         }
 
         @Override
@@ -175,13 +187,19 @@ public class Configuration {
      */
     public Ability HEALTH = new Ability("health", "Max Health", Attribute.GENERIC_MAX_HEALTH) {
         @Override
-        public double getDisplayValue(int level) {
-            return getValue(level) * 0.5;
+        public double toDisplayValue(double value) {
+            return value * 0.5;
+        }
+
+        @Override
+        public double toAttributeValue(double displayValue) {
+            return displayValue * 2.0;
         }
 
         @Override
         public String getFormattedValue(SavedHorse savedHorse) {
-            return String.format("%.2g%s", getDisplayValue(getLevel(savedHorse)), getValueUnits());
+            double displayValue = toDisplayValue(getValue(getLevel(savedHorse)));
+            return String.format("%.2g%s", displayValue, getValueUnits());
         }
 
         @Override

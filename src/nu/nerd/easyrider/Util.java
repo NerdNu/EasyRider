@@ -74,6 +74,21 @@ public class Util {
 
     // ------------------------------------------------------------------------
     /**
+     * Return the linear interpolation between min and max.
+     *
+     * @param min the value to return for the minimum value of frac (0.0).
+     * @param max the value to return for the maximum value of frac (1.0).
+     * @param frac the fraction, in the range [0,1] of the max argument, with
+     *        the remainder coming from the min argument. NOTE: if frac exceeds
+     *        1.0, extrapolate linearly.
+     * @return the interpolation between min and max.
+     */
+    public static double linterp(double min, double max, double frac) {
+        return min + frac * (max - min);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * The string form of Horse.Color constants as returned by getAppearance(),
      * listed in the same order as the enum.
      */
@@ -87,4 +102,5 @@ public class Util {
      */
     private static final String[] STYLE_TO_APPEARANCE = {
         "", ", socks", ", whitefield", ", white dots", ", black dots" };
+
 } // class Util

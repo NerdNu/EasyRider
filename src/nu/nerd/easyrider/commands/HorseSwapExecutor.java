@@ -53,17 +53,13 @@ public class HorseSwapExecutor extends ExecutorBase {
                 EasyRider.PLUGIN.getState(player).setPendingInteraction(new IPendingInteraction() {
                     @Override
                     public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse newHorse) {
-                        newHorse.swapTrainingStats(originalHorse);
                         // The original horse may not be loaded; may even have
                         // been vaporised mysteriously. If it is interacted with
                         // or ridden later, its attributes will be updated at
                         // that time.
-
-                        Horse horse = (Horse) event.getRightClicked();
-                        EasyRider.CONFIG.SPEED.updateAttributes(newHorse, horse);
-                        EasyRider.CONFIG.JUMP.updateAttributes(newHorse, horse);
-                        EasyRider.CONFIG.HEALTH.updateAttributes(newHorse, horse);
-
+                        originalHorse.setOutdatedAttributes(true);
+                        newHorse.swapTrainingStats(originalHorse);
+                        newHorse.updateAllAttributes((Horse) event.getRightClicked());
                         sender.sendMessage(ChatColor.GOLD + "Horse " +
                                            originalHorse.getUuid() + " has swapped stats with " +
                                            newHorse.getUuid() + ".");
