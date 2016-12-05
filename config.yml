@@ -10,7 +10,7 @@ database:
 speed-limit: 5.0
 
 dehydration-distance: 3000.0
-bucket-hydration: 2.0
+bucket-hydration: 1.0
 
 abandoned-days: 14
 
