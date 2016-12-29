@@ -241,6 +241,20 @@ public class EasyRider extends JavaPlugin implements Listener {
     // ------------------------------------------------------------------------
     /**
      * Handle players right clicking on horses.
+     *
+     * For a player to be able to mount a skeletal or undead horse, the horse
+     * must be tame. Those horses spawn tame, but after a /horse-free, their
+     * tameness must be restored on the next interaction.
+     *
+     * Given that those horses will be kept tame full time, there is no point in
+     * delaying locking them until the player mounts. This is because cancelling
+     * the interaction (as happens when running a command) does not cancel the
+     * mount. If a player runs /hinfo or /horse-levels and right clicks on an
+     * undead horse, he will mount it, even though the command may cancel the
+     * interaction event.
+     *
+     * The only possible alternative would be to require that players run a
+     * command to tame these horses. But I that's undesirably counterintuitive.
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
