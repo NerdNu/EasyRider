@@ -687,6 +687,23 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
+     * When the horse has exceeded the maxium possible health, warn the player
+     * that feeding it more gold will not increase its health (rate limited).
+     *
+     * @param player the player doing the feeding.
+     * @param horse the horse entity.
+     */
+    public void onOverfed(Player player, Horse horse) {
+        _overfedRateLimiter.run(() -> {
+            player.sendMessage(ChatColor.RED + getMessageName()
+                               + " has exceeded the maximum possible health. Feeding it more gold will not increase its health.");
+            Location loc = horse.getLocation();
+            loc.getWorld().playSound(loc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+        });
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Load this horse from the specified section of a YAML file.
      *
      * @param section the ConfigurationSection.
@@ -1003,6 +1020,13 @@ public class SavedHorse implements Cloneable {
      */
     @Transient
     private final RateLimiter _messageRateLimiter = new RateLimiter(0);
+
+    /**
+     * Limits the rate at which the player is warned about the horse being fed
+     * past the maximum health level.
+     */
+    @Transient
+    private final RateLimiter _overfedRateLimiter = new RateLimiter(5000);
 
     /**
      * Limits the rate at horse breathing noises will be made.

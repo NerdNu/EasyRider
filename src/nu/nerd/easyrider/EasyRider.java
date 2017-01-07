@@ -638,6 +638,9 @@ public class EasyRider extends JavaPlugin implements Listener {
      *
      * Play the eat sound effect and level the horse up if appropriate.
      *
+     * Send the player a rate-limited notification message and sound if the
+     * horse is already at its maximum health level and is being over-trained.
+     *
      * @param savedHorse the database state of the horse.
      * @param horse the Horse entity.
      */
@@ -649,6 +652,10 @@ public class EasyRider extends JavaPlugin implements Listener {
 
         Location loc = horse.getLocation();
         loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_EAT, 2.0f, 1.0f);
+
+        if (CONFIG.HEALTH.getLevelForEffort(savedHorse.getNuggetsEaten()) > CONFIG.HEALTH.getMaxLevel()) {
+            savedHorse.onOverfed(player, horse);
+        }
     }
 
     // ------------------------------------------------------------------------
