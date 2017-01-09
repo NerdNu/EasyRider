@@ -1,8 +1,10 @@
 package nu.nerd.easyrider;
 
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import org.bukkit.attribute.Attribute;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import nu.nerd.easyrider.db.SavedHorse;
@@ -26,6 +28,11 @@ public class Configuration {
      * If true, log the time taken to save the database.
      */
     public boolean DEBUG_SAVES;
+
+    /**
+     * If true, log the time taken to scan worlds for horses.
+     */
+    public boolean DEBUG_SCANS;
 
     /**
      * Database implementation name: "sqlite", "yaml" or "sqlite+yaml"
@@ -57,6 +64,22 @@ public class Configuration {
      * owner for it to be abandoned.
      */
     public int ABANDONED_DAYS;
+
+    /**
+     * Period in seconds between horse search task runs.
+     */
+    public int SCAN_PERIOD_SECONDS;
+
+    /**
+     * Maximum duration of the horse search task in a single tick, expressed in
+     * microseconds.
+     */
+    public int SCAN_TIME_LIMIT_MICROS;
+
+    /**
+     * Map from world name to WorldBorder radius. (Assumed square.)
+     */
+    public HashMap<String, Integer> SCAN_WORLD_RADIUS = new HashMap<String, Integer>();
 
     /**
      * Speed ability.
@@ -250,12 +273,21 @@ public class Configuration {
         DEBUG_CONFIG = config.getBoolean("debug.config");
         DEBUG_EVENTS = config.getBoolean("debug.events");
         DEBUG_SAVES = config.getBoolean("debug.saves");
+        DEBUG_SCANS = config.getBoolean("debug.scans");
 
         DATABASE_IMPLEMENTATION = config.getString("database.implementation");
         SPEED_LIMIT = config.getDouble("speed-limit");
         DEHYDRATION_DISTANCE = config.getDouble("dehydration-distance");
         BUCKET_HYDRATION = config.getDouble("bucket-hydration");
         ABANDONED_DAYS = config.getInt("abandoned-days");
+
+        SCAN_PERIOD_SECONDS = config.getInt("scan.period-seconds");
+        SCAN_TIME_LIMIT_MICROS = config.getInt("scan.time-limit-micros");
+        SCAN_WORLD_RADIUS.clear();
+        ConfigurationSection worlds = config.getConfigurationSection("scan.worlds");
+        for (String worldName : worlds.getKeys(false)) {
+            SCAN_WORLD_RADIUS.put(worldName, worlds.getInt(worldName));
+        }
 
         SPEED.load(config.getConfigurationSection("abilities.speed"), logger);
         JUMP.load(config.getConfigurationSection("abilities.jump"), logger);
@@ -265,11 +297,18 @@ public class Configuration {
             logger.info("Configuration:");
             logger.info("DEBUG_EVENTS: " + DEBUG_EVENTS);
             logger.info("DEBUG_SAVES: " + DEBUG_SAVES);
+            logger.info("DEBUG_SCANS: " + DEBUG_SCANS);
             logger.info("DATABASE_IMPLEMENTATION: " + DATABASE_IMPLEMENTATION);
             logger.info("SPEED_LIMIT: " + SPEED_LIMIT);
             logger.info("DEHYDRATION_DISTANCE: " + DEHYDRATION_DISTANCE);
             logger.info("BUCKET_HYDRATION: " + BUCKET_HYDRATION);
-            logger.info("ABANDONED_DAYS" + ABANDONED_DAYS);
+            logger.info("ABANDONED_DAYS: " + ABANDONED_DAYS);
+            logger.info("SCAN_PERIOD_SECONDS: " + SCAN_PERIOD_SECONDS);
+            logger.info("SCAN_TIME_LIMIT_MICROS: " + SCAN_TIME_LIMIT_MICROS);
+            logger.info("Scanned worlds border radius: ");
+            for (String worldName : SCAN_WORLD_RADIUS.keySet()) {
+                logger.info(worldName + " = " + SCAN_WORLD_RADIUS.get(worldName));
+            }
 
             logAbility(logger, SPEED);
             logAbility(logger, JUMP);

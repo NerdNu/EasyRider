@@ -2,6 +2,7 @@ debug:
   config: true
   events: true
   saves: true
+  scans: false
 
 database:
   # 'yaml' only supported atm.
@@ -13,6 +14,14 @@ dehydration-distance: 3000.0
 bucket-hydration: 1.0
 
 abandoned-days: 14
+
+scan:
+  period-seconds: 60
+  time-limit-micros: 500
+  worlds:
+    world: 3000
+    world_nether: 3500
+    world_the_end: 3000
 
 abilities:
   speed:

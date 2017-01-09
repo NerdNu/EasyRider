@@ -7,6 +7,7 @@ import javax.persistence.Transient;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -15,8 +16,10 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.HorseInventory;
 
 import nu.nerd.easyrider.EasyRider;
+import nu.nerd.easyrider.HorseEquipment;
 import nu.nerd.easyrider.PlayerState;
 import nu.nerd.easyrider.RateLimiter;
 import nu.nerd.easyrider.Util;
@@ -47,12 +50,10 @@ public class SavedHorse implements Cloneable {
     public SavedHorse(Horse horse) {
         setNew();
         setUuid(horse.getUniqueId());
-        AnimalTamer owner = horse.getOwner();
-        setOwnerUuid((owner != null) ? owner.getUniqueId() : null);
-        setAppearance(Util.getAppearance(horse));
         speedLevel = jumpLevel = healthLevel = 1;
         setHydration(0.5);
         setLastAccessed(System.currentTimeMillis());
+        observe(horse);
     }
 
     // ------------------------------------------------------------------------
@@ -569,6 +570,27 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
+     * Set the last observed time stamp.
+     *
+     * @param lastObserved a time stamp from System.currentTimeMillis().
+     */
+    public void setLastObserved(long lastObserved) {
+        this.lastObserved = lastObserved;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the last observed time stamp of this horse.
+     *
+     * @return the last observed time stamp of this horse.
+     */
+    public long getLastObserved() {
+        return lastObserved;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Return true if this horse is abandoned.
      *
      * For a horse to be abandoned, currently it must meet the following
@@ -638,6 +660,54 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
+     * Update this SavedHorse to reflect the current state of the Horse Entity
+     * as it is observed in the world.
+     *
+     * Updated attributes include: last seen time, display name, appearance,
+     * owner, equipment and location
+     *
+     * @param horse the horse entity corresponding to this SavedHorse.
+     */
+    public void observe(Horse horse) {
+        lastObserved = System.currentTimeMillis();
+        AnimalTamer owner = horse.getOwner();
+        setOwnerUuid((owner != null) ? owner.getUniqueId() : null);
+        setDisplayName(horse.getCustomName());
+        setAppearance(Util.getAppearance(horse));
+        setLocation(horse.getLocation());
+        updateEquipment(horse);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Update the stored record of the Horse's equipment.
+     *
+     * This is written to permit persistent custom equipment to be stored in
+     * unused bits later.
+     */
+    public void updateEquipment(Horse horse) {
+        int equip = getEquipment() & ~HorseEquipment.ALL_REGULAR;
+        if (horse.isCarryingChest()) {
+            equip |= HorseEquipment.CHEST;
+        }
+        HorseInventory inv = horse.getInventory();
+        if (inv.getSaddle() != null && inv.getSaddle().getType() == Material.SADDLE) {
+            equip |= HorseEquipment.SADDLE;
+        }
+        if (inv.getArmor() != null) {
+            if (inv.getArmor().getType() == Material.IRON_BARDING) {
+                equip |= HorseEquipment.IRON_BARDING;
+            } else if (inv.getArmor().getType() == Material.GOLD_BARDING) {
+                equip |= HorseEquipment.GOLD_BARDING;
+            } else if (inv.getArmor().getType() == Material.DIAMOND_BARDING) {
+                equip |= HorseEquipment.DIAMOND_BARDING;
+            }
+        }
+        setEquipment(equip);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * This method is called every tick when the horse is being ridden to do
      * various accounting tasks.
      *
@@ -681,7 +751,7 @@ public class SavedHorse implements Cloneable {
                 loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_BREATHE, 1.0f, 1.0f);
             });
         }
-        setLocation(horse.getLocation());
+        observe(horse);
         setLastAccessed(System.currentTimeMillis());
     } // onRidden
 
@@ -724,6 +794,7 @@ public class SavedHorse implements Cloneable {
         setHealthLevel(section.getInt("healthLevel"));
         setHydration(section.getDouble("hydration", 1.0));
         setLastAccessed(section.getLong("lastAccessed", System.currentTimeMillis()));
+        setLastObserved(section.getLong("lastObserved", 0));
         setClean();
     }
 
@@ -756,7 +827,8 @@ public class SavedHorse implements Cloneable {
         section.set("jumpLevel", getJumpLevel());
         section.set("healthLevel", getHealthLevel());
         section.set("hydration", getHydration());
-        section.set("lastAccessed", lastAccessed);
+        section.set("lastAccessed", getLastAccessed());
+        section.set("lastObserved", getLastObserved());
         setClean();
     }
 
@@ -781,6 +853,7 @@ public class SavedHorse implements Cloneable {
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + jumpLevel;
         result = prime * result + (int) (lastAccessed ^ (lastAccessed >>> 32));
+        result = prime * result + (int) (lastObserved ^ (lastObserved >>> 32));
         result = prime * result + ((location == null) ? 0 : location.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + nuggetsEaten;
@@ -840,6 +913,9 @@ public class SavedHorse implements Cloneable {
             return false;
         }
         if (lastAccessed != other.lastAccessed) {
+            return false;
+        }
+        if (lastObserved != other.lastObserved) {
             return false;
         }
         if (location == null) {
@@ -923,8 +999,6 @@ public class SavedHorse implements Cloneable {
 
     /**
      * The display name (custom name) of the horse.
-     *
-     * Not currently used; reserved for future use.
      */
     private String displayName;
 
@@ -940,8 +1014,6 @@ public class SavedHorse implements Cloneable {
 
     /**
      * The equipment of the horse (saddle, armour) expressed as bit flags.
-     *
-     * Not currently used; reserved for future use.
      */
     private int equipment;
 
@@ -985,6 +1057,12 @@ public class SavedHorse implements Cloneable {
      * System.currentTimeMillis().
      */
     private long lastAccessed;
+
+    /**
+     * Time stamp when the horse was last observed in {@link #observe()}, per
+     * System.currentTimeMillis().
+     */
+    private long lastObserved;
 
     /**
      * If true, the corresponding Horse entity needs all its attributes updated
@@ -1033,4 +1111,5 @@ public class SavedHorse implements Cloneable {
      */
     @Transient
     private final RateLimiter _breathRateLimiter = new RateLimiter(MAX_BREATH_PERIOD_MILLIS);
+
 } // class SavedHorse

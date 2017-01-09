@@ -11,6 +11,7 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -106,6 +107,31 @@ public class EasyRider extends JavaPlugin implements Listener {
                 ++_tickCounter;
             }
         }, 1, 1);
+
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+            SynchronousTimeLimitedTask _scanTask = new SynchronousTimeLimitedTask();
+
+            @Override
+            public void run() {
+                if (_scanTask.isFinished()) {
+                    if (CONFIG.DEBUG_SCANS) {
+                        getLogger().info("Commencing new scan of loaded chunks.");
+                    }
+                    for (String worldName : CONFIG.SCAN_WORLD_RADIUS.keySet()) {
+                        World world = Bukkit.getWorld(worldName);
+                        if (world == null) {
+                            getLogger().warning("Configured world " + worldName + " does not exist to be scanned.");
+                        } else {
+                            _scanTask.addStep(new ScanLoadedChunksTask(world));
+                        }
+                    }
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(EasyRider.PLUGIN, _scanTask);
+                }
+
+                Bukkit.getScheduler().scheduleSyncDelayedTask(EasyRider.PLUGIN, this, 20 * CONFIG.SCAN_PERIOD_SECONDS);
+            }
+
+        }, 20 * CONFIG.SCAN_PERIOD_SECONDS);
     } // onEnable
 
     // ------------------------------------------------------------------------
@@ -311,12 +337,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             savedHorse.updateAllAttributes(horse);
         }
 
-        // Update stored attributes that may have changed.
-        savedHorse.setOwner(horse.getOwner());
-        savedHorse.setDisplayName(horse.getCustomName());
-
-        // Fix appearance if wrong.
-        savedHorse.setAppearance(Util.getAppearance(horse));
+        savedHorse.observe(horse);
 
         Location horseLoc = horse.getLocation();
         if (playerState.hasPendingInteraction()) {

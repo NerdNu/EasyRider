@@ -1,6 +1,8 @@
 package nu.nerd.easyrider.commands;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -13,6 +15,7 @@ import org.bukkit.entity.Player;
 
 import nu.nerd.easyrider.Ability;
 import nu.nerd.easyrider.EasyRider;
+import nu.nerd.easyrider.HorseEquipment;
 import nu.nerd.easyrider.Util;
 import nu.nerd.easyrider.db.SavedHorse;
 
@@ -152,7 +155,7 @@ public class HorseOwnedExecutor extends ExecutorBase {
      */
     protected void listHorses(CommandSender sender, OfflinePlayer owner,
                               ArrayList<SavedHorse> savedHorses, final int page) {
-        final int PAGE_SIZE = 5;
+        final int PAGE_SIZE = 4;
         final int start = (page - 1) * PAGE_SIZE;
         final int end = Math.min(savedHorses.size(), start + PAGE_SIZE);
         final int pageCount = (savedHorses.size() + PAGE_SIZE - 1) / PAGE_SIZE;
@@ -169,10 +172,26 @@ public class HorseOwnedExecutor extends ExecutorBase {
                 sender.sendMessage(ChatColor.GOLD + "#" + (i + 1) + " " +
                                    ChatColor.GRAY + Util.limitString(savedHorse.getUuid().toString(), 7) + " " +
                                    ChatColor.WHITE + savedHorse.getAppearance() + " " +
-                                   ChatColor.YELLOW + Util.limitString(savedHorse.getDisplayName(), 25));
+                                   ChatColor.YELLOW + Util.limitString(HorseEquipment.description(savedHorse.getEquipment()), 25));
+                if (savedHorse.getDisplayName().length() > 0) {
+                    sender.sendMessage(ChatColor.GOLD + "    Name: " +
+                                       ChatColor.YELLOW + savedHorse.getDisplayName());
+                }
+                String seenDate;
+                if (savedHorse.getLastObserved() == 0) {
+                    seenDate = "never";
+                } else {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTimeInMillis(savedHorse.getLastObserved());
+                    SimpleDateFormat format = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
+                    format.setCalendar(cal);
+                    seenDate = format.format(cal.getTime());
+                }
+                sender.sendMessage(ChatColor.GOLD + "    Last seen: " +
+                                   ChatColor.WHITE + seenDate);
                 Location loc = savedHorse.getLocation();
                 String formattedLoc = (loc == null) ? "" : Util.formatLocation(loc);
-                sender.sendMessage(ChatColor.GOLD + "    Last seen: " +
+                sender.sendMessage(ChatColor.GOLD + "    Location: " +
                                    ChatColor.WHITE + formattedLoc);
                 sender.sendMessage(ChatColor.GOLD + "    Sp: " +
                                    formattedAbility(EasyRider.CONFIG.SPEED, savedHorse) +
