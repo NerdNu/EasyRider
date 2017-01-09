@@ -728,6 +728,7 @@ public class EasyRider extends JavaPlugin implements Listener {
      * @param block the block, which must not be null.
      * @return true if a horse can drink the block.
      */
+    @SuppressWarnings("deprecation")
     protected boolean isDrinkable(Block block) {
         return (block.getType() == Material.CAULDRON && block.getData() != 0) ||
                block.getType() == Material.WATER ||
@@ -767,6 +768,6 @@ public class EasyRider extends JavaPlugin implements Listener {
     /**
      * Counter updated monotonically every tick.
      */
-    private int _tickCounter;
+    int _tickCounter;
 
 } // class EasyRider
