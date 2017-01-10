@@ -27,6 +27,10 @@ permissions:
     description: Permission to use /horse-tp.
     default: op
     
+  easyrider.tphere:
+    description: Permission to use /horse-tphere.
+    default: op
+    
   easyrider.levels:
     description: Permission to use /horse-levels.
     default: true
@@ -91,6 +95,14 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command> §e<partial-uuid>§f - Teleport to the horse whose UUID begins with the specified prefix.
+
+  horse-tphere:
+    description: Teleport the horse with the specified UUID to the player.
+    permission: easyrider.tphere
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> §e<partial-uuid>§f - Teleport the horse whose UUID begins with the specified prefix to you.
 
   horse-levels:
     description: Show ability level information for a horse.
