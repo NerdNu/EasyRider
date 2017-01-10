@@ -80,7 +80,9 @@ public class SynchronousTimeLimitedTask implements Runnable {
             Bukkit.getScheduler().scheduleSyncDelayedTask(EasyRider.PLUGIN, this);
         }
 
-        EasyRider.PLUGIN.getLogger().info("Time limited tasks ran for " + elapsed * 0.001 + " microseconds.");
+        if (EasyRider.CONFIG.DEBUG_SCANS) {
+            EasyRider.PLUGIN.getLogger().info("Time limited tasks ran for " + elapsed * 0.001 + " microseconds.");
+        }
     }
 
     // ------------------------------------------------------------------------
