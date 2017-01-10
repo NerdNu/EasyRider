@@ -3,6 +3,7 @@ debug:
   events: true
   saves: true
   scans: false
+  finds: false
 
 database:
   # 'yaml' only supported atm.

@@ -35,6 +35,11 @@ public class Configuration {
     public boolean DEBUG_SCANS;
 
     /**
+     * If true, log the time taken to find horses.
+     */
+    public boolean DEBUG_FINDS;
+
+    /**
      * Database implementation name: "sqlite", "yaml" or "sqlite+yaml"
      */
     public String DATABASE_IMPLEMENTATION;
@@ -274,6 +279,7 @@ public class Configuration {
         DEBUG_EVENTS = config.getBoolean("debug.events");
         DEBUG_SAVES = config.getBoolean("debug.saves");
         DEBUG_SCANS = config.getBoolean("debug.scans");
+        DEBUG_FINDS = config.getBoolean("debug.finds");
 
         DATABASE_IMPLEMENTATION = config.getString("database.implementation");
         SPEED_LIMIT = config.getDouble("speed-limit");
@@ -298,6 +304,7 @@ public class Configuration {
             logger.info("DEBUG_EVENTS: " + DEBUG_EVENTS);
             logger.info("DEBUG_SAVES: " + DEBUG_SAVES);
             logger.info("DEBUG_SCANS: " + DEBUG_SCANS);
+            logger.info("DEBUG_FINDS: " + DEBUG_FINDS);
             logger.info("DATABASE_IMPLEMENTATION: " + DATABASE_IMPLEMENTATION);
             logger.info("SPEED_LIMIT: " + SPEED_LIMIT);
             logger.info("DEHYDRATION_DISTANCE: " + DEHYDRATION_DISTANCE);

@@ -1,6 +1,12 @@
 package nu.nerd.easyrider;
 
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Horse.Variant;
 
@@ -9,6 +15,143 @@ import org.bukkit.entity.Horse.Variant;
  * Utility functions that don't necessarily belong in a specific class.
  */
 public class Util {
+    // ------------------------------------------------------------------------
+    /**
+     * Find the Horse entity with the specified UUID near the specified
+     * location.
+     *
+     * A square of chunks around the location are loaded if necessary. If that
+     * area does not contain the Horse, all loaded chunks in all worlds are
+     * searched, starting with the world containing the specified Location.
+     *
+     * @param uuid the Horse's UUID.
+     * @param loc the Location where the Horse was last seen; if null, it is not
+     *        used.
+     * @param chunkRadius the radius of a square, expressed in chunks, around
+     *        the Location that will be searched. This number should be small as
+     *        loading chunks can be time-consuming and may lag out the server.
+     * @return the matching Horse, if found, or null.
+     */
+    public static Horse findHorse(UUID uuid, Location loc, int chunkRadius) {
+        if (loc == null) {
+            return findHorse(uuid);
+        }
+
+        World centreWorld = loc.getWorld();
+        Chunk centreChunk = loc.getChunk();
+        Horse horse = findHorse(uuid, centreChunk);
+        if (horse != null) {
+            return horse;
+        }
+
+        for (int r = 1; r < chunkRadius; ++r) {
+            // Top and bottom rows of chunks around centreChunk.
+            for (int x = -chunkRadius; x <= chunkRadius; ++x) {
+                int chunkX = centreChunk.getX() + x;
+                Chunk chunk = centreWorld.getChunkAt(chunkX, centreChunk.getZ() - chunkRadius);
+                horse = findHorse(uuid, chunk);
+                if (horse != null) {
+                    return horse;
+                }
+                chunk = centreWorld.getChunkAt(chunkX, centreChunk.getZ() + chunkRadius);
+                horse = findHorse(uuid, chunk);
+                if (horse != null) {
+                    return horse;
+                }
+            }
+            // Left and right columns of chunks, excluding top/bottom row.
+            for (int z = -chunkRadius + 1; z <= chunkRadius - 1; ++z) {
+                int chunkZ = centreChunk.getZ() + z;
+                Chunk chunk = centreWorld.getChunkAt(centreChunk.getX() - chunkRadius, chunkZ);
+                horse = findHorse(uuid, chunk);
+                if (horse != null) {
+                    return horse;
+                }
+                chunk = centreWorld.getChunkAt(centreChunk.getX() + chunkRadius, chunkZ);
+                horse = findHorse(uuid, chunk);
+                if (horse != null) {
+                    return horse;
+                }
+            }
+        }
+
+        // Search loaded chunks, starting with original World.
+        horse = findHorse(uuid, centreWorld);
+        if (horse != null) {
+            return horse;
+        }
+        for (String worldName : EasyRider.CONFIG.SCAN_WORLD_RADIUS.keySet()) {
+            World world = Bukkit.getWorld(worldName);
+            if (world != null && world != centreWorld) {
+                horse = findHorse(uuid, world);
+                if (horse != null) {
+                    return horse;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Search all loaded chunks of all configured worlds, in arbitrary order,
+     * for a Horse with the specified UUID.
+     *
+     * @param uuid the Horse's UUID.
+     * @return the Horse entity or null if not found.
+     */
+    public static Horse findHorse(UUID uuid) {
+        for (String worldName : EasyRider.CONFIG.SCAN_WORLD_RADIUS.keySet()) {
+            World world = Bukkit.getWorld(worldName);
+            if (world != null) {
+                Horse horse = findHorse(uuid, world);
+                if (horse != null) {
+                    return horse;
+                }
+            }
+        }
+        return null;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Find the Horse entity with the specified UUID in the specified chunk.
+     *
+     * @param uuid the Horse's UUID.
+     * @param chunk the chunk to search.
+     * @return the matching Horse, if found, or null.
+     */
+    public static Horse findHorse(UUID uuid, Chunk chunk) {
+        if (!chunk.isLoaded() && !chunk.load(false)) {
+            return null;
+        }
+        for (Entity entity : chunk.getEntities()) {
+            if (entity.getUniqueId().equals(uuid)) {
+                return (Horse) entity;
+            }
+        }
+        return null;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Find the Horse entity with the specified UUID in the currently loaded
+     * chunks of the specified World.
+     *
+     * @param uuid the Horse's UUID.
+     * @param chunk the chunk to search.
+     * @return the matching Horse, if found, or null.
+     */
+    public static Horse findHorse(UUID uuid, World world) {
+        for (Entity entity : world.getEntities()) {
+            if (entity.getUniqueId().equals(uuid)) {
+                return (Horse) entity;
+            }
+        }
+        return null;
+    }
+
     // ------------------------------------------------------------------------
     /**
      * Return the appearance of the specified Horse as a displayable String.
