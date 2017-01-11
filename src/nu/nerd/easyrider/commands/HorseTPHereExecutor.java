@@ -65,7 +65,7 @@ public class HorseTPHereExecutor extends ExecutorBase {
 
             if (horse != null) {
                 tpHorse(horse, sendingPlayer);
-                savedHorse.observe(horse);
+                EasyRider.DB.observe(savedHorse, horse);
             } else {
                 sender.sendMessage(ChatColor.GOLD + "The specified horse could not be found.");
             }

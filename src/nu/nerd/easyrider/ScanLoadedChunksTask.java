@@ -48,7 +48,7 @@ public class ScanLoadedChunksTask implements BooleanSupplier {
                         Horse horse = (Horse) entity;
                         SavedHorse savedHorse = EasyRider.DB.findHorse(horse);
                         if (savedHorse != null) {
-                            savedHorse.observe(horse);
+                            EasyRider.DB.observe(savedHorse, horse);
                         }
                     }
                 }

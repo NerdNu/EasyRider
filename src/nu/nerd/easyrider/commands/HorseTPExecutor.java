@@ -64,7 +64,7 @@ public class HorseTPExecutor extends ExecutorBase {
             }
 
             if (horse != null) {
-                savedHorse.observe(horse);
+                EasyRider.DB.observe(savedHorse, horse);
                 tpToHorse(sendingPlayer, horse);
             } else {
                 if (loc == null) {

@@ -341,7 +341,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             savedHorse.updateAllAttributes(horse);
         }
 
-        savedHorse.observe(horse);
+        EasyRider.DB.observe(savedHorse, horse);
 
         Location horseLoc = horse.getLocation();
         if (playerState.hasPendingInteraction()) {

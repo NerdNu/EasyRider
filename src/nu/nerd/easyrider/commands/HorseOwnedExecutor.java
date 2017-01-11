@@ -3,7 +3,7 @@ package nu.nerd.easyrider.commands;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.stream.Collectors;
+import java.util.TreeSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -112,37 +112,10 @@ public class HorseOwnedExecutor extends ExecutorBase {
             }
         }
 
-        startFindTask(sender, owner, page);
+        TreeSet<SavedHorse> horses = EasyRider.DB.getOwnedHorses(owner);
+        listHorses(sender, owner, new ArrayList<SavedHorse>(horses), page);
         return true;
     } // onCommand
-
-    // ------------------------------------------------------------------------
-    /**
-     * Start an asynchronous task to find horses belonging to the specified
-     * owner and report a page of them back to the command sender.
-     *
-     * @param sender the command sender.
-     * @param owner the owner to search for.
-     * @param page the 1-based page of results to list.
-     */
-    protected void startFindTask(CommandSender sender, OfflinePlayer owner, int page) {
-        Bukkit.getScheduler().runTaskAsynchronously(EasyRider.PLUGIN, new Runnable() {
-            @Override
-            public void run() {
-                ArrayList<SavedHorse> ownedHorses = EasyRider.DB.cloneAllHorses().stream()
-                .filter(h -> owner.getUniqueId().equals(h.getOwnerUuid()))
-                .sorted((h1, h2) -> h1.getUuid().compareTo(h2.getUuid()))
-                .collect(Collectors.toCollection(ArrayList::new));
-
-                Bukkit.getScheduler().runTask(EasyRider.PLUGIN, new Runnable() {
-                    @Override
-                    public void run() {
-                        listHorses(sender, owner, ownedHorses, page);
-                    }
-                });
-            }
-        });
-    } // startFindTask
 
     // ------------------------------------------------------------------------
     /**

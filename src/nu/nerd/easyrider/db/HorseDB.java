@@ -2,11 +2,15 @@ package nu.nerd.easyrider.db;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Horse;
 
 import nu.nerd.easyrider.EasyRider;
@@ -136,6 +140,70 @@ public class HorseDB {
     public synchronized void removeHorse(SavedHorse savedHorse) {
         _cache.remove(savedHorse.getUuid());
         _removedHorses.put(savedHorse.getUuid(), savedHorse);
+        removeOwnedHorse(savedHorse.getOwnerUuid(), savedHorse);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the set of horses owned by a player.
+     *
+     * @param player the player.
+     * @return the set of horses owned by a player.
+     */
+    public TreeSet<SavedHorse> getOwnedHorses(OfflinePlayer player) {
+        return getOwnedHorses(player.getUniqueId());
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the set of horses owned by the player with the specified UUID.
+     *
+     * @param ownerUuid the owning player's UUID.
+     * @return the set of horses owned by the player with the specified UUID.
+     */
+    public TreeSet<SavedHorse> getOwnedHorses(UUID ownerUuid) {
+        TreeSet<SavedHorse> horses = _ownedHorses.get(ownerUuid);
+        if (horses == null) {
+            horses = new TreeSet<SavedHorse>((h1, h2) -> h1.getUuid().compareTo(h2.getUuid()));
+            _ownedHorses.put(ownerUuid, horses);
+        }
+
+        // Remove horses that have changed to a different owner.
+        for (Iterator<SavedHorse> it = horses.iterator(); it.hasNext();) {
+            SavedHorse savedHorse = it.next();
+            if (!ownerUuid.equals(savedHorse.getOwnerUuid())) {
+                it.remove();
+            }
+        }
+        return horses;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Update the SavedHorse to reflect the current state of the Horse Entity as
+     * it is observed in the world and update the mapping from owners to sets of
+     * owned horses.
+     *
+     * @see SavedHorse#observe(Horse)
+     * @param savedHorse the database state of the horse.
+     * @param horse the Horse Entity.
+     */
+    public void observe(SavedHorse savedHorse, Horse horse) {
+        UUID oldOwnerUuid = savedHorse.getOwnerUuid();
+        AnimalTamer owner = horse.getOwner();
+        UUID newOwnerUuid = (owner == null) ? null : owner.getUniqueId();
+        if (oldOwnerUuid == null) {
+            if (newOwnerUuid != null) {
+                savedHorse.setOwnerUuid(newOwnerUuid);
+                addOwnedHorse(newOwnerUuid, savedHorse);
+            }
+        } else {
+            if (!oldOwnerUuid.equals(newOwnerUuid)) {
+                removeOwnedHorse(oldOwnerUuid, savedHorse);
+                addOwnedHorse(newOwnerUuid, savedHorse);
+            }
+        }
+        savedHorse.observe(horse);
     }
 
     // ------------------------------------------------------------------------
@@ -157,6 +225,7 @@ public class HorseDB {
         long now = System.currentTimeMillis();
         for (SavedHorse savedHorse : _impl.loadAll()) {
             _cache.put(savedHorse.getUuid(), savedHorse);
+            addOwnedHorse(savedHorse.getOwnerUuid(), savedHorse);
         }
 
         long millis = System.currentTimeMillis() - now;
@@ -250,6 +319,37 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
+     * Add the horse to the set of horses attributed to the owner.
+     *
+     * @param ownerUuid the owning player's UUID.
+     * @param savedHorse the database horse.
+     */
+    protected void addOwnedHorse(UUID ownerUuid, SavedHorse savedHorse) {
+        if (ownerUuid == null) {
+            return;
+        }
+
+        getOwnedHorses(ownerUuid).add(savedHorse);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Remove the specified horse from the set of horses recorded as owned by
+     * its current owner.
+     *
+     * @param ownerUuid the owning player's UUID.
+     * @param savedHorse the database horse.
+     */
+    protected void removeOwnedHorse(UUID ownerUuid, SavedHorse savedHorse) {
+        if (ownerUuid == null) {
+            return;
+        }
+
+        getOwnedHorses(ownerUuid).remove(savedHorse);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Database implementation.
      */
     protected IHorseDBImpl _impl;
@@ -264,4 +364,13 @@ public class HorseDB {
      */
     protected HashMap<UUID, SavedHorse> _removedHorses = new HashMap<UUID, SavedHorse>();
 
+    /**
+     * Map from owner UUID to the set of horses owned by that player.
+     *
+     * Each set of horses is a TreeSet<> that orders the entries in ascending
+     * order by Horse Entity UUID. The set may be transiently incorrect when
+     * ownership changes. Extra horses will be removed from the set when
+     * returned by {#link getOwnedHorses()}.
+     */
+    protected HashMap<UUID, TreeSet<SavedHorse>> _ownedHorses = new HashMap<UUID, TreeSet<SavedHorse>>();
 } // class HorseDB

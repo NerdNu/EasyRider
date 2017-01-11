@@ -663,6 +663,9 @@ public class SavedHorse implements Cloneable {
      * Update this SavedHorse to reflect the current state of the Horse Entity
      * as it is observed in the world.
      *
+     * NOTE: Call {@link HorseDB#observe(SavedHorse, Horse)} instead so that the
+     * mapping of owner to owned horses is updated. That method calls this one.
+     *
      * Updated attributes include: last seen time, display name, appearance,
      * owner, equipment and location
      *
