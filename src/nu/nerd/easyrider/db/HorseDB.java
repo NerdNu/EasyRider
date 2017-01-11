@@ -145,37 +145,34 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
-     * Return the set of horses owned by a player.
+     * Return a non-null ArrayList<> of the horses owned by a player.
      *
      * @param player the player.
-     * @return the set of horses owned by a player.
+     * @return a non-null ArrayList<> of the horses owned by a player.
      */
-    public TreeSet<SavedHorse> getOwnedHorses(OfflinePlayer player) {
+    public ArrayList<SavedHorse> getOwnedHorses(OfflinePlayer player) {
         return getOwnedHorses(player.getUniqueId());
     }
 
     // ------------------------------------------------------------------------
     /**
-     * Return the set of horses owned by the player with the specified UUID.
+     * Return a non-null ArrayList<> of the horses owned by the player with the
+     * specified UUID.
      *
      * @param ownerUuid the owning player's UUID.
-     * @return the set of horses owned by the player with the specified UUID.
+     * @return the horses owned by the player with the specified UUID.
      */
-    public TreeSet<SavedHorse> getOwnedHorses(UUID ownerUuid) {
-        TreeSet<SavedHorse> horses = _ownedHorses.get(ownerUuid);
-        if (horses == null) {
-            horses = new TreeSet<SavedHorse>((h1, h2) -> h1.getUuid().compareTo(h2.getUuid()));
-            _ownedHorses.put(ownerUuid, horses);
-        }
-
+    public ArrayList<SavedHorse> getOwnedHorses(UUID ownerUuid) {
         // Remove horses that have changed to a different owner.
+        TreeSet<SavedHorse> horses = getOwnedHorsesSet(ownerUuid);
         for (Iterator<SavedHorse> it = horses.iterator(); it.hasNext();) {
             SavedHorse savedHorse = it.next();
             if (!ownerUuid.equals(savedHorse.getOwnerUuid())) {
                 it.remove();
             }
         }
-        return horses;
+
+        return new ArrayList<SavedHorse>(horses);
     }
 
     // ------------------------------------------------------------------------
@@ -319,6 +316,25 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
+     * Return a non-null reference to the mutable set of SavedHorses belonging
+     * to the player with the specified UUID.
+     *
+     * @param ownerUuid the UUID of the owning player.
+     * @return the corresponding set of owned SavedHorses, which may be empty
+     *         but will never be null.
+     */
+
+    protected TreeSet<SavedHorse> getOwnedHorsesSet(UUID ownerUuid) {
+        TreeSet<SavedHorse> horses = _ownedHorses.get(ownerUuid);
+        if (horses == null) {
+            horses = new TreeSet<SavedHorse>((h1, h2) -> h1.getUuid().compareTo(h2.getUuid()));
+            _ownedHorses.put(ownerUuid, horses);
+        }
+        return horses;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Add the horse to the set of horses attributed to the owner.
      *
      * @param ownerUuid the owning player's UUID.
@@ -329,7 +345,7 @@ public class HorseDB {
             return;
         }
 
-        getOwnedHorses(ownerUuid).add(savedHorse);
+        getOwnedHorsesSet(ownerUuid).add(savedHorse);
     }
 
     // ------------------------------------------------------------------------
@@ -345,7 +361,7 @@ public class HorseDB {
             return;
         }
 
-        getOwnedHorses(ownerUuid).remove(savedHorse);
+        getOwnedHorsesSet(ownerUuid).remove(savedHorse);
     }
 
     // ------------------------------------------------------------------------

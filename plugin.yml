@@ -47,6 +47,14 @@ permissions:
     description: Permission to use /horse-speed-limit.
     default: true
 
+  easyrider.gps:
+    description: Permission to use /horse-gps.
+    default: true
+
+  easyrider.gps-player:
+    description: Permission to use /horse-gps <player>.
+    default: op
+
   easyrider.owned:
     description: Permission to use /horse-owned.
     default: true
@@ -91,6 +99,7 @@ commands:
   horse-tp:
     description: Teleport to the horse with the specified UUID.
     permission: easyrider.tp
+    aliases: ['htp']
     usage: |
     
       §e/<command> help§f - Show usage help.
@@ -99,6 +108,7 @@ commands:
   horse-tphere:
     description: Teleport the horse with the specified UUID to the player.
     permission: easyrider.tphere
+    aliases: ['htphere']
     usage: |
     
       §e/<command> help§f - Show usage help.
@@ -107,6 +117,7 @@ commands:
   horse-levels:
     description: Show ability level information for a horse.
     permission: easyrider.levels
+    aliases: ['horse-info', 'hinfo']
     usage: |
     
       §e/<command> help§f - Show usage help.
@@ -115,6 +126,7 @@ commands:
   horse-upgrades:
     description: List all levels, corresponding attribute values and training effort for a specified ability.
     permission: easyrider.upgrades
+    aliases: ['hup']
     usage: |
     
       §e/<command> help§f - Show usage help.
@@ -123,6 +135,7 @@ commands:
   horse-top:
     description: List one page of 10 horses ranked in descending order by the specified ability.
     permission: easyrider.top
+    aliases: ['htop']
     usage: |
     
       §e/<command> help§f - Show usage help.
@@ -131,15 +144,26 @@ commands:
   horse-speed-limit:
     description: 'Set or show your personal speed limit: the maximum speed (in m/s) that any horse you ride cannot exceed, even if it is capable of doing so.'
     permission: easyrider.speedlimit
+    aliases: ['hlimit']
     usage: |
     
       §e/<command> help§f - Show usage help.
       §e/<command> §f[§e<number>§f] - Set your personal speed limit to <number> (in m/s), if specified, or show your current speed limit.
 
-  horse-owned:
-    description: List information about all horses owned by you or a specified player.
-    permission: easyrider.owned
+  horse-gps:
+    description: Points you towards the last known location of a horse.
+    permission: easyrider.gps
+    aliases: ['hgps']
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command> §f[§e<player>§f] [<page>] - List information about all horses owned by you or a specified player.
+      §e/<command> §f[§e<player>§f] §e<number>§f|§e<name>§f|§e<uuid>§f - Point towards a horse owned by you or the specified player. The horse can be specified as a number in /horse-owned output, a match on the start of its name (if named with a name tag), or a match on the start of its UUID. The name can include spaces.
+
+  horse-owned:
+    description: List information about all horses owned by you or a specified player.
+    permission: easyrider.owned
+    aliases: ['horse-list', 'hlist']
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> §f[§e<player>§f] [§e<page>§f] - List information about all horses owned by you or a specified player.

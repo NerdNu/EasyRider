@@ -3,7 +3,6 @@ package nu.nerd.easyrider.commands;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.TreeSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -112,8 +111,7 @@ public class HorseOwnedExecutor extends ExecutorBase {
             }
         }
 
-        TreeSet<SavedHorse> horses = EasyRider.DB.getOwnedHorses(owner);
-        listHorses(sender, owner, new ArrayList<SavedHorse>(horses), page);
+        listHorses(sender, owner, EasyRider.DB.getOwnedHorses(owner), page);
         return true;
     } // onCommand
 
