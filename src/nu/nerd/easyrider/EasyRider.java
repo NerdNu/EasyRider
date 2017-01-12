@@ -39,6 +39,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import nu.nerd.easyrider.commands.EasyRiderExecutor;
 import nu.nerd.easyrider.commands.ExecutorBase;
+import nu.nerd.easyrider.commands.HorseBypassExecutor;
 import nu.nerd.easyrider.commands.HorseDebugExecutor;
 import nu.nerd.easyrider.commands.HorseGPSExecutor;
 import nu.nerd.easyrider.commands.HorseLevelsExecutor;
@@ -98,6 +99,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseSwapExecutor());
         addCommandExecutor(new HorseTPExecutor());
         addCommandExecutor(new HorseTPHereExecutor());
+        addCommandExecutor(new HorseBypassExecutor());
         addCommandExecutor(new HorseLevelsExecutor());
         addCommandExecutor(new HorseUpgradesExecutor());
         addCommandExecutor(new HorseTopExecutor());

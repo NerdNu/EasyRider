@@ -31,6 +31,10 @@ permissions:
     description: Permission to use /horse-tphere.
     default: op
     
+  easyrider.bypass:
+    description: Permission to use /horse-bypass.
+    default: op
+    
   easyrider.levels:
     description: Permission to use /horse-levels.
     default: true
@@ -113,6 +117,15 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command> §e<partial-uuid>§f - Teleport the horse whose UUID begins with the specified prefix to you.
+
+  horse-bypass:
+    description: Toggle checks on your permission to access horses.
+    permission: easyrider.bypass
+    aliases: ['hbypass']
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command>§f - Toggle checks on your permission to access horses.
 
   horse-levels:
     description: Show ability level information for a horse.

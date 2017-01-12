@@ -147,6 +147,24 @@ public class PlayerState {
         }
     }
 
+    // --------------------------------------------------------------------------
+    /**
+     * Toggle horse access permission checks.
+     */
+    public void toggleBypassEnabled() {
+        _bypass = !_bypass;
+    }
+
+    // --------------------------------------------------------------------------
+    /**
+     * Return true if this player can bypass horse access permission checks.
+     *
+     * @return true if this player can bypass horse access permission checks.
+     */
+    public boolean isBypassEnabled() {
+        return _bypass;
+    }
+
     // ------------------------------------------------------------------------
     /**
      * Save this player's preferences to the specified configuration.
@@ -204,4 +222,9 @@ public class PlayerState {
      * horse's innate maximum speed.
      */
     protected double _maxSpeed;
+
+    /**
+     * If true, the player can bypass horse access permission checks.
+     */
+    protected boolean _bypass;
 } // class PlayerState
