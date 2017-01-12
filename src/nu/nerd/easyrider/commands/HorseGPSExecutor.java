@@ -42,7 +42,7 @@ public class HorseGPSExecutor extends ExecutorBase {
     public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED + "You must be in game to use this command.");
-            return false;
+            return true;
         }
 
         Player sendingPlayer = (Player) sender;
