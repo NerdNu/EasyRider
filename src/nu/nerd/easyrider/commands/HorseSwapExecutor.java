@@ -3,6 +3,7 @@ package nu.nerd.easyrider.commands;
 import java.util.List;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Horse;
@@ -63,6 +64,7 @@ public class HorseSwapExecutor extends ExecutorBase {
                         sender.sendMessage(ChatColor.GOLD + "Horse " +
                                            originalHorse.getUuid() + " has swapped stats with " +
                                            newHorse.getUuid() + ".");
+                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
                     }
                 });
             } else {

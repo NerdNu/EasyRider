@@ -1,6 +1,7 @@
 package nu.nerd.easyrider.commands;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Horse;
@@ -78,6 +79,7 @@ public class HorseSetLevelExecutor extends ExecutorBase {
                         ability.setEffort(savedHorse, ability.getEffortForLevel(newLevel));
                         ability.updateAttributes(savedHorse, horse);
                         showLevel(player, "New ", ability, savedHorse);
+                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
                     }
                 });
             } catch (NumberFormatException ex) {
