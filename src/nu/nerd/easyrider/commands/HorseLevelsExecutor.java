@@ -1,6 +1,7 @@
 package nu.nerd.easyrider.commands;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AnimalTamer;
@@ -71,6 +72,7 @@ public class HorseLevelsExecutor extends ExecutorBase {
         showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
         showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);
         showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
+        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
     }
 
     // ------------------------------------------------------------------------
