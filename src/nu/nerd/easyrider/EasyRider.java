@@ -41,6 +41,7 @@ import nu.nerd.easyrider.commands.EasyRiderExecutor;
 import nu.nerd.easyrider.commands.ExecutorBase;
 import nu.nerd.easyrider.commands.HorseBypassExecutor;
 import nu.nerd.easyrider.commands.HorseDebugExecutor;
+import nu.nerd.easyrider.commands.HorseFreeExecutor;
 import nu.nerd.easyrider.commands.HorseGPSExecutor;
 import nu.nerd.easyrider.commands.HorseLevelsExecutor;
 import nu.nerd.easyrider.commands.HorseOwnedExecutor;
@@ -102,6 +103,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseTPHereExecutor());
         addCommandExecutor(new HorseBypassExecutor());
         addCommandExecutor(new HorseTameExecutor());
+        addCommandExecutor(new HorseFreeExecutor());
         addCommandExecutor(new HorseLevelsExecutor());
         addCommandExecutor(new HorseUpgradesExecutor());
         addCommandExecutor(new HorseTopExecutor());
@@ -303,7 +305,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         PlayerState playerState = getState(player);
 
         SavedHorse savedHorse = DB.findOrAddHorse(horse);
-        if (horse.getOwner() == player) {
+        if (player.equals(horse.getOwner())) {
             savedHorse.setLastAccessed(System.currentTimeMillis());
         } else {
             // Undead horses that are not interacted with by their owner for a

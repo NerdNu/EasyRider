@@ -39,6 +39,10 @@ permissions:
     description: Permission to use /horse-tame.
     default: op
 
+  easyrider.free:
+    description: Permission to use /horse-free.
+    default: true
+
   easyrider.levels:
     description: Permission to use /horse-levels.
     default: true
@@ -139,6 +143,15 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command>§f - Tame a horse to the specified player.
+
+  horse-free:
+    description: Release a horse from your ownership.
+    permission: easyrider.free
+    aliases: ['hfree']
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command>§f - Release a horse from your ownership.
 
   horse-levels:
     description: Show ability level information for a horse.
