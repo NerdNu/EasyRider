@@ -35,6 +35,10 @@ permissions:
     description: Permission to use /horse-bypass.
     default: op
     
+  easyrider.tame:
+    description: Permission to use /horse-tame.
+    default: op
+
   easyrider.levels:
     description: Permission to use /horse-levels.
     default: true
@@ -126,6 +130,15 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command>§f - Toggle checks on your permission to access horses.
+
+  horse-tame:
+    description: Tame a horse to the specified player.
+    permission: easyrider.tame
+    aliases: ['htame']
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command>§f - Tame a horse to the specified player.
 
   horse-levels:
     description: Show ability level information for a horse.
