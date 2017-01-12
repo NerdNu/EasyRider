@@ -3,6 +3,7 @@ package nu.nerd.easyrider.commands;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Horse;
@@ -46,6 +47,8 @@ public class HorseTameExecutor extends ExecutorBase {
         OfflinePlayer newOwner = Bukkit.getOfflinePlayer(args[0]);
         if (newOwner == null) {
             sender.sendMessage(ChatColor.RED + args[0] + " is not a valid player name.");
+        } else if (!newOwner.hasPlayedBefore()) {
+            sender.sendMessage(ChatColor.RED + args[0] + " has never played on this server.");
         } else {
             sender.sendMessage(ChatColor.GOLD + "Right click on the horse to tame to " + newOwner.getName());
             Player player = (Player) sender;
@@ -59,6 +62,7 @@ public class HorseTameExecutor extends ExecutorBase {
                     sender.sendMessage(ChatColor.GOLD +
                                        "Horse " + Util.limitString(savedHorse.getUuid().toString(), 20) +
                                        " now belongs to " + newOwner.getName() + ".");
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
                 }
             });
         }
