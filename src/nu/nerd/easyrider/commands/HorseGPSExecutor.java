@@ -58,7 +58,9 @@ public class HorseGPSExecutor extends ExecutorBase {
                 horses = findHorses(sendingPlayer, String.join(" ", args));
                 if (horses.size() == 0) {
                     OfflinePlayer owner = Bukkit.getOfflinePlayer(args[0]);
-                    horses = findHorses(owner, String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
+                    if (owner != null) {
+                        horses = findHorses(owner, String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
+                    }
                 }
             } else {
                 // If a player doesn't have permission to locate others' horses,
