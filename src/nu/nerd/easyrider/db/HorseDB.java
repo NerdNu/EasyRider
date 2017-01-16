@@ -93,23 +93,6 @@ public class HorseDB {
         return matches;
     }
 
-    // --------------------------------------------------------------------------
-    /**
-     * Return a list of all horses whose owner has the specified UUID.
-     *
-     * @param ownerUuid the UUID of the owning player.
-     * @return a list of all horses with the specified owner.
-     */
-    public synchronized List<SavedHorse> findHorsesByOwnerUUID(UUID ownerUuid) {
-        ArrayList<SavedHorse> matches = new ArrayList<SavedHorse>();
-        for (SavedHorse savedHorse : _cache.values()) {
-            if (ownerUuid.equals(savedHorse.getOwnerUuid())) {
-                matches.add(savedHorse);
-            }
-        }
-        return matches;
-    }
-
     // ------------------------------------------------------------------------
     /**
      * Return a deep copy of all SavedHorses in arbitrary order.
