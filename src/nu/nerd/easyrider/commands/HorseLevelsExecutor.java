@@ -89,7 +89,7 @@ public class HorseLevelsExecutor extends ExecutorBase {
      * @param savedHorse the database state of the horse.
      */
     protected void showLevel(Player player, Ability ability, SavedHorse savedHorse) {
-        double fractionalLevel = ability.getLevelForEffort(ability.getEffort(savedHorse));
+        double fractionalLevel = ability.getFractionalLevel(savedHorse);
         ChatColor levelColour = (fractionalLevel >= ability.getMaxLevel()) ? ChatColor.RED : ChatColor.WHITE;
         player.sendMessage(ChatColor.GOLD + ability.getDisplayName() + ": " +
                            levelColour + "Level " + String.format("%5.3f", fractionalLevel) +

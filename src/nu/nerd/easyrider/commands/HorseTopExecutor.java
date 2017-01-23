@@ -100,8 +100,8 @@ public class HorseTopExecutor extends ExecutorBase {
                 Comparator<SavedHorse> comparator = new Comparator<SavedHorse>() {
                     @Override
                     public int compare(SavedHorse h1, SavedHorse h2) {
-                        double h1Level = ability.getLevelForEffort(ability.getEffort(h1));
-                        double h2Level = ability.getLevelForEffort(ability.getEffort(h2));
+                        double h1Level = ability.getFractionalLevel(h1);
+                        double h2Level = ability.getFractionalLevel(h2);
                         if (h1Level < h2Level) {
                             return 1;
                         } else if (h2Level < h1Level) {
@@ -183,7 +183,7 @@ public class HorseTopExecutor extends ExecutorBase {
                 SavedHorse savedHorse = savedHorses.get(i);
                 OfflinePlayer owner = savedHorse.getOwner();
                 String ownerName = (owner != null) ? owner.getName() : "<no owner>";
-                double fractionalLevel = ability.getLevelForEffort(ability.getEffort(savedHorse));
+                double fractionalLevel = ability.getFractionalLevel(savedHorse);
                 ChatColor levelColour = (fractionalLevel >= ability.getMaxLevel()) ? ChatColor.RED : ChatColor.YELLOW;
                 sender.sendMessage(ChatColor.GOLD + "#" + (i + 1) + " " +
                                    levelColour + String.format("%5.3f ", fractionalLevel) +

@@ -56,9 +56,9 @@ public class HorseSetLevelExecutor extends ExecutorBase {
             }
 
             try {
-                int newLevel = Integer.parseInt(args[1]);
-                if (newLevel < 1) {
-                    sender.sendMessage(ChatColor.RED + "The new level must be at least 1.");
+                double newLevel = Double.parseDouble(args[1]);
+                if (newLevel < 1.0) {
+                    sender.sendMessage(ChatColor.RED + "The new level must be at least 1.0.");
                     return true;
                 }
                 if (newLevel > ability.getMaxLevel()) {
@@ -75,7 +75,7 @@ public class HorseSetLevelExecutor extends ExecutorBase {
                         Player player = event.getPlayer();
                         player.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + horse.getUniqueId());
                         showLevel(player, "Old ", ability, savedHorse);
-                        ability.setLevel(savedHorse, newLevel);
+                        ability.setLevel(savedHorse, (int) newLevel);
                         ability.setEffort(savedHorse, ability.getEffortForLevel(newLevel));
                         ability.updateAttributes(savedHorse, horse);
                         showLevel(player, "New ", ability, savedHorse);
@@ -83,7 +83,7 @@ public class HorseSetLevelExecutor extends ExecutorBase {
                     }
                 });
             } catch (NumberFormatException ex) {
-                sender.sendMessage(ChatColor.RED + "The new level must be an integer.");
+                sender.sendMessage(ChatColor.RED + "The new level must be a number.");
             }
             return true;
         }
@@ -101,7 +101,7 @@ public class HorseSetLevelExecutor extends ExecutorBase {
      */
     protected void showLevel(Player player, String prefix, Ability ability, SavedHorse savedHorse) {
         player.sendMessage(ChatColor.GOLD + prefix + ability.getDisplayName() + " Level: " +
-                           ChatColor.WHITE + ability.getLevel(savedHorse) +
+                           ChatColor.WHITE + String.format("%5.3f", ability.getFractionalLevel(savedHorse)) +
                            ChatColor.GOLD + " - " +
                            ChatColor.YELLOW + ability.getFormattedValue(savedHorse) +
                            ChatColor.GRAY + " (" + ability.getFormattedEffort(savedHorse) + ")");

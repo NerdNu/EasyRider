@@ -204,11 +204,11 @@ public abstract class Ability {
     /**
      * Return the minimum amount of effort required to attain the specified
      * level.
-     * 
-     * @param level the level.
+     *
+     * @param level the fractional level.
      * @return the minimum amount of effort required to attain it.
      */
-    public double getEffortForLevel(int level) {
+    public double getEffortForLevel(double level) {
         return _effortScale * (Math.pow(_effortBase, level - 1) - 1);
     }
 
@@ -216,13 +216,26 @@ public abstract class Ability {
     /**
      * Return the uncapped level corresponding to effort, including any
      * fractional completion.
-     * 
+     *
      * @param effort the effort.
      * @return the uncapped, unquantised level; the value will not be capped at
      *         the maximum level attainable through effort.
      */
     public double getLevelForEffort(double effort) {
         return 1 + Math.log(1 + effort / getEffortScale()) / Math.log(getEffortBase());
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the specified horse's level uncapped level in this Ability
+     * corresponding to training effort, including any fractional completion.
+     *
+     * @param savedHorse the database state of the horse.
+     * @return the uncapped, unquantised level; the value will not be capped at
+     *         the maximum level attainable through effort.
+     */
+    public double getFractionalLevel(SavedHorse savedHorse) {
+        return getLevelForEffort(getEffort(savedHorse));
     }
 
     // ------------------------------------------------------------------------
