@@ -185,7 +185,7 @@ public class HorseOwnedExecutor extends ExecutorBase {
      * @return the formatted ability level and attribute value.
      */
     protected String formattedAbility(Ability ability, SavedHorse savedHorse) {
-        double fractionalLevel = ability.getLevelForEffort(ability.getEffort(savedHorse));
+        double fractionalLevel = ability.getFractionalLevel(savedHorse);
         String formattedValue = ability.getFormattedValue(savedHorse);
         return new StringBuilder()
         .append((fractionalLevel >= ability.getMaxLevel()) ? ChatColor.RED : ChatColor.YELLOW)

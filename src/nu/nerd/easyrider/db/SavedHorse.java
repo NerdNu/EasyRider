@@ -1,6 +1,10 @@
 package nu.nerd.easyrider.db;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.Transient;
 
@@ -157,7 +161,6 @@ public class SavedHorse implements Cloneable {
      */
     public void setDebug(boolean debug) {
         _debug = debug;
-
     }
 
     // ------------------------------------------------------------------------
@@ -596,10 +599,10 @@ public class SavedHorse implements Cloneable {
      * For a horse to be abandoned, currently it must meet the following
      * conditions:
      * <ul>
-     * <li>It must be a skeletal or undead horse.</li>
      * <li>The owner has not interacted with or ridden it for a period specified
      * in the configuration (defaulting to 14 days).</li>
      * <li>It has no custom display name set.</li>
+     * <li>It has no equipment: saddle, chest, armour etc.</li>
      * <li>Its quantised health and speed levels are below 2, i.e. they are both
      * 1.</li>
      * <li>It has eaten less than one golden apple or less than 9 golden carrots
@@ -614,10 +617,8 @@ public class SavedHorse implements Cloneable {
                getJumpLevel() < 2 &&
                getNuggetsEaten() < 72 &&
                !hasDisplayName() &&
-               (now - getLastAccessed()) > EasyRider.CONFIG.ABANDONED_DAYS * 24 * 60 * 60 * 1000 &&
-               (getAppearance() != null &&
-                (getAppearance().startsWith("skeleton") ||
-                 getAppearance().startsWith("undead")));
+               getEquipment() == 0 &&
+               (now - getLastAccessed()) > EasyRider.CONFIG.ABANDONED_DAYS * 24 * 60 * 60 * 1000;
     }
 
     // ------------------------------------------------------------------------
@@ -652,10 +653,64 @@ public class SavedHorse implements Cloneable {
      * @param horse the Horse entity.
      */
     public void updateAllAttributes(Horse horse) {
-        EasyRider.CONFIG.SPEED.updateAttributes(this, horse);
-        EasyRider.CONFIG.JUMP.updateAttributes(this, horse);
-        EasyRider.CONFIG.HEALTH.updateAttributes(this, horse);
+        EasyRider.CONFIG.SPEED.updateAttribute(this, horse);
+        EasyRider.CONFIG.JUMP.updateAttribute(this, horse);
+        EasyRider.CONFIG.HEALTH.updateAttribute(this, horse);
         setOutdatedAttributes(false);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true if the specified player can access this horse.
+     *
+     * Only the owner and those players on the access list can do so.
+     *
+     * @param player the non-null player.
+     * @return true if the specified player can access this horse.
+     */
+    public boolean canBeAccessedBy(OfflinePlayer player) {
+        return player.getUniqueId().equals(getOwnerUuid()) || permittedPlayers.contains(player);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Retract all permission to access this horse except by the owner.
+     */
+    public void clearPermittedPlayers() {
+        permittedPlayers.clear();
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Grant permission to access this horse to the specified players.
+     *
+     * @param players a collection of players, which must not include the owner.
+     */
+    public void addPermittedPlayers(Collection<OfflinePlayer> players) {
+        permittedPlayers.addAll(players);
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Retract permission to access this horse from the specified players.
+     *
+     * @param players a collection of players, which must not include the owner.
+     */
+    public void removePermittedPlayers(Collection<OfflinePlayer> players) {
+        permittedPlayers.removeAll(players);
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return a list of the names of players permitted to access this horse.
+     *
+     * @return a list of the names of players permitted to access this horse.
+     */
+    public List<String> getAccessList() {
+        return permittedPlayers.stream().map(p -> p.getName()).collect(Collectors.toList());
     }
 
     // ------------------------------------------------------------------------
@@ -798,6 +853,21 @@ public class SavedHorse implements Cloneable {
         setHydration(section.getDouble("hydration", 1.0));
         setLastAccessed(section.getLong("lastAccessed", System.currentTimeMillis()));
         setLastObserved(section.getLong("lastObserved", 0));
+
+        clearPermittedPlayers();
+        for (String uuid : section.getStringList("permittedPlayers")) {
+            try {
+                OfflinePlayer player = Bukkit.getOfflinePlayer(UUID.fromString(uuid));
+                if (player != null && player.getName() != null) {
+                    permittedPlayers.add(player);
+                } else {
+                    EasyRider.PLUGIN.getLogger().warning("Horse " + getUuid().toString() + " could not load permitted player " + uuid);
+                }
+            } catch (IllegalArgumentException ex) {
+                EasyRider.PLUGIN.getLogger().warning("Horse " + getUuid().toString() + " could not load permitted player " + uuid);
+            }
+        }
+
         setClean();
     }
 
@@ -832,6 +902,9 @@ public class SavedHorse implements Cloneable {
         section.set("hydration", getHydration());
         section.set("lastAccessed", getLastAccessed());
         section.set("lastObserved", getLastObserved());
+
+        List<String> permittedUUIDs = permittedPlayers.stream().map(p -> p.getUniqueId().toString()).collect(Collectors.toList());
+        section.set("permittedPlayers", permittedUUIDs);
         setClean();
     }
 
@@ -1077,6 +1150,15 @@ public class SavedHorse implements Cloneable {
      * This is reconciled later, on the first interaction.
      */
     private boolean outdatedAttributes;
+
+    /**
+     * The set of players permitted to access this horse.
+     *
+     * Elements are compared by UUID, as OfflinePlayer.getName() is null during
+     * plugin initialisation, when {@link #load(ConfigurationSection)} is
+     * called.
+     */
+    private final HashSet<OfflinePlayer> permittedPlayers = new HashSet<OfflinePlayer>();
 
     /**
      * True if this bean has never been in the database, i.e. it will result in

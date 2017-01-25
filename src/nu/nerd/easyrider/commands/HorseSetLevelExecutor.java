@@ -77,7 +77,7 @@ public class HorseSetLevelExecutor extends ExecutorBase {
                         showLevel(player, "Old ", ability, savedHorse);
                         ability.setLevel(savedHorse, (int) newLevel);
                         ability.setEffort(savedHorse, ability.getEffortForLevel(newLevel));
-                        ability.updateAttributes(savedHorse, horse);
+                        ability.updateAttribute(savedHorse, horse);
                         showLevel(player, "New ", ability, savedHorse);
                         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
                     }

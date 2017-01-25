@@ -10,8 +10,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,12 +22,17 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Horse.Variant;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityPortalEvent;
+import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.entity.HorseJumpEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -34,11 +41,13 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import nu.nerd.easyrider.commands.EasyRiderExecutor;
 import nu.nerd.easyrider.commands.ExecutorBase;
+import nu.nerd.easyrider.commands.HorseAccessExecutor;
 import nu.nerd.easyrider.commands.HorseBypassExecutor;
 import nu.nerd.easyrider.commands.HorseDebugExecutor;
 import nu.nerd.easyrider.commands.HorseFreeExecutor;
@@ -109,6 +118,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseTopExecutor());
         addCommandExecutor(new HorseSpeedLimitExecutor());
         addCommandExecutor(new HorseGPSExecutor());
+        addCommandExecutor(new HorseAccessExecutor());
         addCommandExecutor(new HorseOwnedExecutor());
 
         getServer().getPluginManager().registerEvents(this, this);
@@ -180,10 +190,17 @@ public class EasyRider extends JavaPlugin implements Listener {
     // ------------------------------------------------------------------------
     /**
      * On quit, forget the {@link PlayerState}.
+     *
+     * If configured, automatically eject the player from its horse.
      */
     @EventHandler(ignoreCancelled = true)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        PlayerState state = _state.remove(event.getPlayer().getName());
+        Player player = event.getPlayer();
+        if (CONFIG.EJECT_ON_LOGOFF && player.getVehicle() instanceof Horse) {
+            ((Horse) player.getVehicle()).eject();
+        }
+
+        PlayerState state = _state.remove(player.getName());
         state.save(_playerConfig);
     }
 
@@ -196,8 +213,9 @@ public class EasyRider extends JavaPlugin implements Listener {
         Entity entity = event.getEntity();
         if (entity instanceof Horse) {
             Horse horse = (Horse) entity;
-
-            DB.findOrAddHorse(horse);
+            CONFIG.SPEED.setAttribute(horse, 1);
+            CONFIG.JUMP.setAttribute(horse, 1);
+            CONFIG.HEALTH.setAttribute(horse, 1);
             if (CONFIG.DEBUG_EVENTS) {
                 debug(horse, " spawned, reason: " + event.getSpawnReason());
             }
@@ -206,31 +224,78 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
-     * Protect owned undead or skeletal horses from damage when they don't have
-     * a player riding them.
+     * Log taming of horses, play the lock sound and message the owner when they
+     * tame (lock) a horse.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityTame(EntityTameEvent event) {
+        Entity entity = event.getEntity();
+        Player owner = (Player) event.getOwner();
+        if (entity instanceof Horse && owner != null) {
+            owner.playSound(owner.getLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1f, 1f);
+            owner.sendMessage(ChatColor.GOLD + "This horse has been locked.");
+            getLogger().info(owner.getName() + " tamed " + ((Horse) entity).getVariant().toString() +
+                             entity.getUniqueId().toString());
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Protect owned horses from damage when they don't have a player riding
+     * them.
      *
-     * This is covering a gap in the horse locking protections of CobraCorral.
-     *
-     * Also, check for abandoned skeletal or undead horses and remove the
-     * database entry.
+     * Check for abandoned horses and remove the database entry. Riderless
+     * horses taking damage from the void are teleported to their owner's bed
+     * spawn location, or the world's spawn if a bed spawn is not set.
      */
     @EventHandler(ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
         Entity entity = event.getEntity();
         if (entity instanceof Horse) {
             Horse horse = (Horse) entity;
-            if (!(horse.getPassenger() instanceof Player) &&
-                horse.getOwner() != null &&
-                (horse.getVariant() == Variant.SKELETON_HORSE ||
-                 horse.getVariant() == Variant.UNDEAD_HORSE)) {
-
+            if (horse.getOwner() != null && !(horse.getPassenger() instanceof Player)) {
                 SavedHorse savedHorse = DB.findOrAddHorse(horse);
+                DB.observe(savedHorse, horse);
                 if (savedHorse.isAbandoned()) {
-                    // Remove owner of abandoned horse and drop from DB.
                     horse.setOwner(null);
                     DB.removeHorse(savedHorse);
                 } else {
                     event.setCancelled(true);
+                    if (event.getCause() == DamageCause.VOID) {
+                        OfflinePlayer owner = (OfflinePlayer) horse.getOwner();
+                        Location safeLocation = owner.getBedSpawnLocation();
+                        if (safeLocation == null) {
+                            safeLocation = horse.getWorld().getSpawnLocation();
+                        }
+                        if (safeLocation != null) {
+                            horse.teleport(safeLocation);
+                            savedHorse.setLocation(safeLocation);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * If PvP is allowed, when an owned horse is being ridden it is vulnerable
+     * to attacks by players, including both direct attacks and projectiles.
+     *
+     * That includes inadvertent attacks by the owner or rider of the horse.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        if (event.getEntity() instanceof Horse && !CONFIG.ALLOW_PVP) {
+            Horse horse = (Horse) event.getEntity();
+            if (horse.getOwner() != null && horse.getPassenger() instanceof Player) {
+                Entity damager = event.getDamager();
+                if (damager instanceof Player) {
+                    event.setCancelled(true);
+                } else if (damager instanceof Projectile) {
+                    if (((Projectile) damager).getShooter() instanceof Player) {
+                        event.setCancelled(true);
+                    }
                 }
             }
         }
@@ -250,25 +315,44 @@ public class EasyRider extends JavaPlugin implements Listener {
             if (savedHorse != null) {
                 DB.removeHorse(savedHorse);
 
+                String passenger = "";
+                if (horse.getPassenger() != null) {
+                    passenger = horse.getPassenger() instanceof Player ? ((Player) horse.getPassenger()).getName()
+                                                                       : horse.getPassenger().toString();
+                }
+                String deathCause = (horse.getKiller() == null ? "the environment" : horse.getKiller().getName());
+
                 StringBuilder message = new StringBuilder();
                 message.append("Horse died ");
                 message.append(horse.getUniqueId().toString());
                 message.append(": ");
 
                 AnimalTamer owner = horse.getOwner();
-                if (owner == null) {
-                    message.append("No owner");
-                } else {
+                if (owner instanceof Player) {
                     message.append("Owner: ").append(owner.getName());
+
+                    // Tell the owner if someone else was riding.
+                    if (!owner.equals(horse.getPassenger())) {
+                        StringBuilder horseDescription = new StringBuilder();
+                        horseDescription.append(horse.getCustomName() != null ? horse.getCustomName() : horse.getVariant().toString());
+                        horseDescription.append(" (");
+                        horseDescription.append(Util.limitString(horse.getUniqueId().toString(), 12));
+                        horseDescription.append(") ");
+                        ((Player) owner).sendMessage(ChatColor.RED + horseDescription.toString() + " has died due to " + deathCause +
+                                                     (passenger.isEmpty() ? "." : " while being ridden by " + passenger + "."));
+                    }
+                } else {
+                    message.append("No owner");
                 }
 
                 message.append(". Appearance: ").append(savedHorse.getAppearance());
-                message.append(". Speed: ").append(savedHorse.getSpeedLevel());
+                message.append(". Speed: ").append(CONFIG.SPEED.getFractionalLevel(savedHorse));
                 message.append(" (").append(savedHorse.getDistanceTravelled()).append(")");
-                message.append(". Health: ").append(savedHorse.getHealthLevel());
+                message.append(". Health: ").append(CONFIG.HEALTH.getFractionalLevel(savedHorse));
                 message.append(" (").append(savedHorse.getNuggetsEaten()).append(")");
-                message.append(". Jump: ").append(savedHorse.getJumpLevel());
+                message.append(". Jump: ").append(CONFIG.JUMP.getFractionalLevel(savedHorse));
                 message.append(" (").append(savedHorse.getDistanceJumped()).append(")");
+                message.append(". Equipment: ").append(HorseEquipment.description(savedHorse.getEquipment()));
                 message.append(".");
 
                 getLogger().info(message.toString());
@@ -308,11 +392,10 @@ public class EasyRider extends JavaPlugin implements Listener {
         if (player.equals(horse.getOwner())) {
             savedHorse.setLastAccessed(System.currentTimeMillis());
         } else {
-            // Undead horses that are not interacted with by their owner for a
-            // long time are spontaneously untamed.
+            // Horses that are not interacted with by their owner for a
+            // long time are spontaneously untamed. Since the horse is
+            // being interacted with, the DB entry is retained.
             if (savedHorse.isAbandoned()) {
-                // SavedHorse instance will be retained. Horse will be retamed
-                // by new owner, in this current event call.
                 horse.setOwner(null);
                 if (CONFIG.DEBUG_EVENTS) {
                     debug(horse, "abandoned");
@@ -320,28 +403,10 @@ public class EasyRider extends JavaPlugin implements Listener {
             }
         }
 
-        if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
-            // If not owned, undead horses belong to whoever clicks first.
-            if (horse.getOwner() == null) {
-                horse.setTamed(true);
-                horse.setOwner(player);
-                if (CONFIG.DEBUG_EVENTS) {
-                    debug(horse, horse.getVariant() + " owner set to " + player.getName());
-                }
-            } else {
-                // CobraCorral locks horses in the EntityTameEvent handler.
-                // For un-tameable horses, do our own basic locking.
-                if (!player.equals(horse.getOwner())) {
-                    // Prevent riding, leashing etc.
-                    event.setCancelled(true);
-
-                    // If they are clicking on the horse because of a
-                    // command, don't message about locking.
-                    if (!playerState.hasPendingInteraction()) {
-                        player.sendMessage(ChatColor.RED + "Undead and skeletal horses can only be accessed by their owner.");
-                    }
-                }
-            }
+        // Normalisation of trap horses: if they spawned tame, untame.
+        if (horse.getOwner() == null && horse.isTamed()) {
+            horse.setTamed(false);
+            horse.setDomestication(1);
         }
 
         // Do pending trainable attribute updates resulting from /horse-swap.
@@ -351,63 +416,50 @@ public class EasyRider extends JavaPlugin implements Listener {
 
         EasyRider.DB.observe(savedHorse, horse);
 
-        Location horseLoc = horse.getLocation();
         if (playerState.hasPendingInteraction()) {
             playerState.handlePendingInteraction(event, savedHorse);
+            event.setCancelled(true);
+        } else {
+            // Allow players to feed golden carrots to living horses that they
+            // cannot access for breeding purposes. Other foods don't work due
+            // to vanilla limitations. May be broken in 1.11 because of:
+            // https://bugs.mojang.com/browse/MC-93824
+            // TODO: check in 1.11
+            ItemStack item = player.getEquipment().getItemInMainHand();
+            if (horse.getVariant() != Variant.SKELETON_HORSE && horse.getVariant() != Variant.UNDEAD_HORSE &&
+                item != null && item.getType() == Material.GOLDEN_CARROT) {
+                handleFeeding(horse, savedHorse, player);
+            } else {
+                // Prevent riding, leashing etc. of owned, locked horses.
+                if (horse.getOwner() != null && !savedHorse.canBeAccessedBy(player) && !playerState.isBypassEnabled()) {
+                    event.setCancelled(true);
+                    player.sendMessage(ChatColor.GOLD + "You don't have access to this horse.");
+                    if (player.hasPermission("easyrider.bypass")) {
+                        player.sendMessage(ChatColor.GOLD + "Run " + ChatColor.YELLOW + "/horse-bypass" +
+                                           ChatColor.GOLD + " to toggle the access bypass.");
+                    }
+                } else {
+                    handleFeeding(horse, savedHorse, player);
+                }
+            }
 
+            // Simulate taming of undead/skeletal horses. Vanilla code does most
+            // of the work. We just need to put the player on an untamed horse.
+            if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
+                if (!horse.isTamed()) {
+                    horse.setPassenger(player);
+                }
+            }
+        }
+
+        if (event.isCancelled()) {
             // Even though the event is cancelled, the player will end up
             // facing the same direction as the horse, so make the horse
             // face where the player should face.
+            Location horseLoc = horse.getLocation();
             horseLoc.setYaw(player.getLocation().getYaw());
             horse.teleport(horseLoc);
-            event.setCancelled(true);
         }
-
-        if (!event.isCancelled()) {
-            // Account for horse movement without a rider.
-            savedHorse.setLocation(horse.getLocation());
-
-            // Handle health training only if the event was not cancelled.
-            ItemStack foodItem = player.getEquipment().getItemInMainHand();
-            int nuggetValue = getNuggetValue(foodItem);
-            if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
-                getLogger().info("Nugget value: " + nuggetValue);
-            }
-
-            if (nuggetValue > 0) {
-                // For undead horses, they take the food right away.
-                if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
-                    foodItem.setAmount(foodItem.getAmount() - 1);
-                    player.getEquipment().setItemInMainHand(foodItem);
-                    consumeGoldenFood(savedHorse, horse, nuggetValue, player);
-
-                    // And let's simulate healing with golden food too.
-                    // Golden apples (both types) heal (10); carrots heal 4.
-                    int foodValue = (foodItem.getType() == Material.GOLDEN_APPLE) ? 10 : 4;
-                    horse.setHealth(Math.min(horse.getMaxHealth(), horse.getHealth() + foodValue));
-
-                } else {
-                    // For other types of horses, detect whether the food
-                    // was consumed by running a task in the next tick.
-                    Bukkit.getScheduler().runTaskLater(this, new GoldConsumerTask(
-                        player, horse, foodItem, nuggetValue, player.getInventory().getHeldItemSlot()), 0);
-                }
-            } else if (foodItem != null && foodItem.getType() == Material.WATER_BUCKET) {
-                // Handle rehydration.
-                if (!savedHorse.isFullyHydrated()) {
-                    player.getEquipment().setItemInMainHand(new ItemStack(Material.BUCKET, 1));
-                    savedHorse.setHydration(savedHorse.getHydration() + EasyRider.CONFIG.BUCKET_HYDRATION);
-                    Location loc = horse.getLocation();
-                    loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
-                }
-
-                if (savedHorse.isFullyHydrated()) {
-                    player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " is no longer thirsty.");
-                } else {
-                    player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " is still thirsty.");
-                }
-            }
-        } // if event not cancelled
     } // onPlayerInteractEntity
 
     // ------------------------------------------------------------------------
@@ -436,9 +488,8 @@ public class EasyRider extends JavaPlugin implements Listener {
             return;
         }
 
-        // Update stored owner, which may have changed.
         SavedHorse savedHorse = DB.findOrAddHorse(horse);
-        savedHorse.setOwner(horse.getOwner());
+        DB.observe(savedHorse, horse);
 
         // Compute distance moved and update speed or jump depending on whether
         // the horse was on the ground.
@@ -464,6 +515,13 @@ public class EasyRider extends JavaPlugin implements Listener {
         // Update stored location to compute distance in the next tick.
         playerState.updateRiddenHorse();
         savedHorse.onRidden(_tickCounter, horse);
+
+        // If the horse is owned and permission to ride the horse has been
+        // retracted, eject the rider.
+        if (horse.getOwner() != null && !savedHorse.canBeAccessedBy(player) && !playerState.isBypassEnabled()) {
+            player.sendMessage(ChatColor.GOLD + "You no longer have permission to ride this horse.");
+            horse.eject();
+        }
     } // onPlayerMove
 
     // ------------------------------------------------------------------------
@@ -485,20 +543,23 @@ public class EasyRider extends JavaPlugin implements Listener {
         if (passenger instanceof Player) {
             Player player = (Player) passenger;
 
-            // Update stored owner, which may have changed.
             SavedHorse savedHorse = DB.findOrAddHorse(horse);
-            savedHorse.setOwner(horse.getOwner());
+            DB.observe(savedHorse, horse);
 
             getState(player).clearHorseDistance();
 
             // Rehydrate if remounting in water.
             if (findDrinkableBlock(horse.getLocation())) {
                 savedHorse.setHydration(1.0);
-                EasyRider.CONFIG.SPEED.updateAttributes(savedHorse, horse);
+                EasyRider.CONFIG.SPEED.updateAttribute(savedHorse, horse);
                 player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() +
                                    " drinks until it is no longer thirsty!");
                 Location loc = horse.getLocation();
                 loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
+            }
+
+            if (horse.getOwner() != null && !player.equals(horse.getOwner())) {
+                player.sendMessage(ChatColor.GOLD + "You are now riding " + horse.getOwner().getName() + "'s horse.");
             }
 
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
@@ -509,29 +570,25 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
-     * Extra debugging to detect vehicle exits.
+     * Update observed horse state on vehicle exit.
+     *
+     * Include debug logging of vehicle exits.
      */
     @EventHandler(ignoreCancelled = true)
     public void onVehicleExit(VehicleExitEvent event) {
-        Entity passenger = event.getExited();
-        if (!(event.getVehicle() instanceof Horse) ||
-            !(passenger instanceof Player)) {
-            return;
-        }
+        if (event.getVehicle() instanceof Horse && event.getExited() instanceof Player) {
+            Horse horse = (Horse) event.getVehicle();
+            Player player = (Player) event.getExited();
+            SavedHorse savedHorse = DB.findOrAddHorse(horse);
+            DB.observe(savedHorse, horse);
 
-        Horse horse = (Horse) event.getVehicle();
-        Player player = (Player) passenger;
-        SavedHorse savedHorse = DB.findOrAddHorse(horse);
+            // Reset horse speed to that dictated by its level. It may have been
+            // limited by a player-specific maximum speed.
+            EasyRider.CONFIG.SPEED.updateAttribute(savedHorse, horse);
 
-        // Update stored owner, which may have changed.
-        savedHorse.setOwner(horse.getOwner());
-
-        // Reset horse speed to that dictated by its level. It may have been
-        // limited by a player-specific maximum speed.
-        EasyRider.CONFIG.SPEED.updateAttributes(savedHorse, horse);
-
-        if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
-            debug(horse, "Vehicle exit: " + player.getName());
+            if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
+                debug(horse, "Vehicle exit: " + player.getName());
+            }
         }
     }
 
@@ -557,6 +614,23 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
+     * On chunk unload, update database state of horses.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onChunkUnload(ChunkUnloadEvent event) {
+        for (Entity entity : event.getChunk().getEntities()) {
+            if (entity instanceof Horse) {
+                Horse horse = (Horse) entity;
+                SavedHorse savedHorse = DB.findHorse(horse);
+                if (savedHorse != null) {
+                    DB.observe(savedHorse, horse);
+                }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * If a horse teleports and takes a rider with it (is that possible?) clear
      * any distance travelled.
      */
@@ -567,6 +641,29 @@ public class EasyRider extends JavaPlugin implements Listener {
             if (horse.getPassenger() instanceof Player) {
                 Player player = (Player) horse.getPassenger();
                 getState(player).clearHorseDistance();
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Riderless horses travelling from the end are teleported to their owner's
+     * bed spawn.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityPortal(EntityPortalEvent event) {
+        if (event.getEntity() instanceof Horse) {
+            Horse horse = (Horse) event.getEntity();
+            if (!(horse.getPassenger() instanceof Player)) {
+                AnimalTamer owner = horse.getOwner();
+                if (owner instanceof Player && event.getFrom().getWorld().getEnvironment() == Environment.THE_END) {
+                    Location bedSpawnLoc = ((Player) owner).getBedSpawnLocation();
+                    if (bedSpawnLoc != null) {
+                        event.setCancelled(true);
+                        horse.teleport(bedSpawnLoc);
+                        DB.findOrAddHorse(horse).setLocation(bedSpawnLoc);
+                    }
+                }
             }
         }
     }
@@ -643,6 +740,57 @@ public class EasyRider extends JavaPlugin implements Listener {
         loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 2.0f, 1.0f);
     }
 
+    // --------------------------------------------------------------------------
+    /**
+     * Handle feeding and watering of horses.
+     *
+     * @param horse the fed horse.
+     * @param savedHorse the database state of the horse.
+     * @param player the player feeding the horse.
+     */
+    protected void handleFeeding(Horse horse, SavedHorse savedHorse, Player player) {
+        // Handle health training only if the event was not cancelled.
+        ItemStack foodItem = player.getEquipment().getItemInMainHand();
+        int nuggetValue = getNuggetValue(foodItem);
+        if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
+            getLogger().info("Nugget value: " + nuggetValue);
+        }
+
+        if (nuggetValue > 0) {
+            // For undead horses, they take the food right away.
+            if (horse.getVariant() == Variant.SKELETON_HORSE || horse.getVariant() == Variant.UNDEAD_HORSE) {
+                foodItem.setAmount(foodItem.getAmount() - 1);
+                player.getEquipment().setItemInMainHand(foodItem);
+                consumeGoldenFood(savedHorse, horse, nuggetValue, player);
+
+                // And let's simulate healing with golden food too.
+                // Golden apples (both types) heal (10); carrots heal 4.
+                int foodValue = (foodItem.getType() == Material.GOLDEN_APPLE) ? 10 : 4;
+                horse.setHealth(Math.min(horse.getMaxHealth(), horse.getHealth() + foodValue));
+
+            } else {
+                // For other types of horses, detect whether the food
+                // was consumed by running a task in the next tick.
+                Bukkit.getScheduler().runTaskLater(this, new GoldConsumerTask(
+                    player, horse, foodItem, nuggetValue, player.getInventory().getHeldItemSlot()), 0);
+            }
+        } else if (foodItem != null && foodItem.getType() == Material.WATER_BUCKET) {
+            // Handle rehydration.
+            if (!savedHorse.isFullyHydrated()) {
+                player.getEquipment().setItemInMainHand(new ItemStack(Material.BUCKET, 1));
+                savedHorse.setHydration(savedHorse.getHydration() + EasyRider.CONFIG.BUCKET_HYDRATION);
+                Location loc = horse.getLocation();
+                loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
+            }
+
+            if (savedHorse.isFullyHydrated()) {
+                player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " is no longer thirsty.");
+            } else {
+                player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " is still thirsty.");
+            }
+        }
+    } // handleFeeding
+
     // ------------------------------------------------------------------------
     /**
      * Return the gold mass of one item only in a stack of food items, in units
@@ -686,7 +834,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         Location loc = horse.getLocation();
         loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_EAT, 2.0f, 1.0f);
 
-        if (CONFIG.HEALTH.getLevelForEffort(savedHorse.getNuggetsEaten()) > CONFIG.HEALTH.getMaxLevel()) {
+        if (CONFIG.HEALTH.getFractionalLevel(savedHorse) > CONFIG.HEALTH.getMaxLevel()) {
             savedHorse.onOverfed(player, horse);
         }
     }

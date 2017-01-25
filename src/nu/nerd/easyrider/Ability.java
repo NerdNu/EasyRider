@@ -297,7 +297,7 @@ public abstract class Ability {
         int trainedLevel = getQuantisedLevelForEffort(getEffort(savedHorse));
         if (trainedLevel > getLevel(savedHorse)) {
             setLevel(savedHorse, trainedLevel);
-            updateAttributes(savedHorse, horse);
+            updateAttribute(savedHorse, horse);
             return true;
         }
         return false;
@@ -311,9 +311,21 @@ public abstract class Ability {
      * @param savedHorse the database state of the horse.
      * @param horse the Horse entity whose attribute will be set.
      */
-    public void updateAttributes(SavedHorse savedHorse, Horse horse) {
+    public void updateAttribute(SavedHorse savedHorse, Horse horse) {
+        setAttribute(horse, getLevel(savedHorse));
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Set the attribute of the specified Horse entity to the value appropriate
+     * to the specified level of this Ability.
+     *
+     * @param horse the Horse entity whose attribute will be set.
+     * @param level the level to set.
+     */
+    public void setAttribute(Horse horse, int level) {
         AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
-        horseAttribute.setBaseValue(getValue(getLevel(savedHorse)));
+        horseAttribute.setBaseValue(getValue(level));
     }
 
     // ------------------------------------------------------------------------

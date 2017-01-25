@@ -9,6 +9,9 @@ database:
   # 'yaml' only supported atm.
   implementation: yaml
 
+eject-on-logoff: false
+allow-pvp: false
+
 speed-limit: 5.0
 
 dehydration-distance: 3000.0

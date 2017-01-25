@@ -45,6 +45,17 @@ public class Configuration {
     public String DATABASE_IMPLEMENTATION;
 
     /**
+     * If true, eject the rider from the horse when he logs off.
+     */
+    public boolean EJECT_ON_LOGOFF;
+
+    /**
+     * If true, allow players to harm owned horses that are being ridden by a
+     * player.
+     */
+    public boolean ALLOW_PVP;
+
+    /**
      * Ratio of distance travelled in one tick to the current speed of a horse
      * for its level.
      *
@@ -282,6 +293,8 @@ public class Configuration {
         DEBUG_FINDS = config.getBoolean("debug.finds");
 
         DATABASE_IMPLEMENTATION = config.getString("database.implementation");
+        EJECT_ON_LOGOFF = config.getBoolean("eject-on-logoff");
+        ALLOW_PVP = config.getBoolean("allow-pvp");
         SPEED_LIMIT = config.getDouble("speed-limit");
         DEHYDRATION_DISTANCE = config.getDouble("dehydration-distance");
         BUCKET_HYDRATION = config.getDouble("bucket-hydration");
@@ -306,6 +319,8 @@ public class Configuration {
             logger.info("DEBUG_SCANS: " + DEBUG_SCANS);
             logger.info("DEBUG_FINDS: " + DEBUG_FINDS);
             logger.info("DATABASE_IMPLEMENTATION: " + DATABASE_IMPLEMENTATION);
+            logger.info("EJECT_ON_LOGOFF: " + EJECT_ON_LOGOFF);
+            logger.info("ALLOW_PVP: " + ALLOW_PVP);
             logger.info("SPEED_LIMIT: " + SPEED_LIMIT);
             logger.info("DEHYDRATION_DISTANCE: " + DEHYDRATION_DISTANCE);
             logger.info("BUCKET_HYDRATION: " + BUCKET_HYDRATION);

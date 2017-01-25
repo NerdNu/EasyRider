@@ -63,6 +63,10 @@ permissions:
     description: Permission to use /horse-gps.
     default: true
 
+  easyrider.access:
+    description: Permission to use /horse-access.
+    default: true
+    
   easyrider.gps-player:
     description: Permission to use /horse-gps <player>.
     default: op
@@ -197,6 +201,19 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command> §f[§e<player>§f] §e<number>§f|§e<name>§f|§e<uuid>§f - Point towards a horse owned by you or the specified player. The horse can be specified as a number in /horse-owned output, a match on the start of its name (if named with a name tag), or a match on the start of its UUID. The name can include spaces.
+
+  horse-access:
+    description: View or modify a horse's access list.
+    permission: easyrider.gps
+    aliases: ['haccess', 'hacl']
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> §f[§e<partial-uuid>§f] (§e+§f|§e-§f)§e<player>§f... - View or modify a horse's access list. Either click on the horse or specify it by the start of its UUID. Players are added with '+' and removed with '-'. Multiple players can be added or removed in a single command.
+      
+      §6Example:
+          §e/<command> 12abe4 -Alice +Bob§f - Give Bob access and revoke Alice's access to the horse whose UUID begins with 12abe4.   
+          §e/<command> +Charles +Don§f - Give Charles and Don access to the next horse the owner right clicks on.   
 
   horse-owned:
     description: List information about all horses owned by you or a specified player.

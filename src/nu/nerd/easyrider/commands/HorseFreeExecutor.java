@@ -65,7 +65,7 @@ public class HorseFreeExecutor extends ExecutorBase {
                         horse.getWorld().dropItemNaturally(horse.getLocation(), new ItemStack(Material.CHEST));
                     }
                     EasyRider.DB.observe(savedHorse, horse);
-                    // TODO: Clear access control list.
+                    savedHorse.clearPermittedPlayers();
                     sender.sendMessage(ChatColor.GOLD +
                                        "Horse " + Util.limitString(savedHorse.getUuid().toString(), 20) +
                                        " has been freed.");

@@ -58,7 +58,7 @@ public class HorseTameExecutor extends ExecutorBase {
                     Horse horse = (Horse) event.getRightClicked();
                     horse.setOwner(newOwner);
                     EasyRider.DB.observe(savedHorse, horse);
-                    // TODO: Clear access control list.
+                    savedHorse.clearPermittedPlayers();
                     sender.sendMessage(ChatColor.GOLD +
                                        "Horse " + Util.limitString(savedHorse.getUuid().toString(), 20) +
                                        " now belongs to " + newOwner.getName() + ".");
