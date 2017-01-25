@@ -232,10 +232,14 @@ public class EasyRider extends JavaPlugin implements Listener {
         Entity entity = event.getEntity();
         Player owner = (Player) event.getOwner();
         if (entity instanceof Horse && owner != null) {
+            Horse horse = (Horse) entity;
             owner.playSound(owner.getLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1f, 1f);
             owner.sendMessage(ChatColor.GOLD + "This horse has been locked.");
-            getLogger().info(owner.getName() + " tamed " + ((Horse) entity).getVariant().toString() +
+            getLogger().info(owner.getName() + " tamed " + horse.getVariant().toString() +
                              entity.getUniqueId().toString());
+
+            SavedHorse savedHorse = DB.findOrAddHorse(horse);
+            DB.observe(savedHorse, horse);
         }
     }
 

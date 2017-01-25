@@ -172,17 +172,10 @@ public class HorseDB {
         UUID oldOwnerUuid = savedHorse.getOwnerUuid();
         AnimalTamer owner = horse.getOwner();
         UUID newOwnerUuid = (owner == null) ? null : owner.getUniqueId();
-        if (oldOwnerUuid == null) {
-            if (newOwnerUuid != null) {
-                savedHorse.setOwnerUuid(newOwnerUuid);
-                addOwnedHorse(newOwnerUuid, savedHorse);
-            }
-        } else {
-            if (!oldOwnerUuid.equals(newOwnerUuid)) {
-                removeOwnedHorse(oldOwnerUuid, savedHorse);
-                addOwnedHorse(newOwnerUuid, savedHorse);
-            }
+        if (oldOwnerUuid != null && !oldOwnerUuid.equals(newOwnerUuid)) {
+            removeOwnedHorse(oldOwnerUuid, savedHorse);
         }
+        addOwnedHorse(newOwnerUuid, savedHorse);
         savedHorse.observe(horse);
     }
 
