@@ -206,18 +206,25 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
-     * When a horse spawns, set its stats to defaults.
+     * When a horse spawns, set its stats to defaults, unless it is already
+     * known to the database (as is the case with horses going through portals).
+     *
+     * Don't actually add the newly spawned horse to the database until a player
+     * interacts.
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
         Entity entity = event.getEntity();
         if (entity instanceof Horse) {
             Horse horse = (Horse) entity;
-            CONFIG.SPEED.setAttribute(horse, 1);
-            CONFIG.JUMP.setAttribute(horse, 1);
-            CONFIG.HEALTH.setAttribute(horse, 1);
-            if (CONFIG.DEBUG_EVENTS) {
-                debug(horse, " spawned, reason: " + event.getSpawnReason());
+            SavedHorse savedHorse = DB.findHorse(horse);
+            if (savedHorse == null) {
+                CONFIG.SPEED.setAttribute(horse, 1);
+                CONFIG.JUMP.setAttribute(horse, 1);
+                CONFIG.HEALTH.setAttribute(horse, 1);
+                if (CONFIG.DEBUG_EVENTS) {
+                    debug(horse, " spawned, reason: " + event.getSpawnReason());
+                }
             }
         }
     }
@@ -414,9 +421,9 @@ public class EasyRider extends JavaPlugin implements Listener {
         }
 
         // Do pending trainable attribute updates resulting from /horse-swap.
-        if (savedHorse.hasOutdatedAttributes()) {
-            savedHorse.updateAllAttributes(horse);
-        }
+        // Also fix some horses that got attributes minimised by mistake when
+        // they "spawned" by going through a portal.
+        savedHorse.updateAllAttributes(horse);
 
         EasyRider.DB.observe(savedHorse, horse);
 
