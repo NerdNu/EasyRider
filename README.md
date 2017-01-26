@@ -50,12 +50,15 @@ Features
    can set a speed limit that applies to their motion while they are riding any
    horse, using `/horse-speed-limit`. The innate maximum speed of a horse is not
    affected by this command.
- * Skeletal and undead horses that are not ridden or interacted with by their
-   owner for a long time (configurable, default 14 days) may be considered
-   abandoned and are then untamed and can be tamed or killed by another player,
-   or killed by the environment. Naming the horse with a nametag, training it
-   to level 2 or more in speed or jump, or feeding it 72 or more gold nuggets
-   worth of golden food will exempt a horse from abandonment.
+ * Untrained horses that are not ridden or interacted with by their owner for a
+   long time (configurable, default 14 days) may be considered abandoned and 
+   are then untamed and can be tamed or killed by another player, or killed by
+   the environment. Horses can be prevented from abandonment in any of the
+   following ways:
+   * naming the horse with a nametag, or
+   * giving it equipment (saddle, chest or armour), or 
+   * training it to level 2 or more in speed or jump, or 
+   * feeding it 72 or more gold nuggets worth of golden food.
  * Choice of horse database implementation, as long as you choose YAML. The
    Sqlite Ebeans implementation and the combined (YAML + Sqlite) implementation
    have been dropped due to Ebeans not working as expected and the API being
@@ -119,15 +122,43 @@ Player Facing Commands
 ----------------------
  * `/horse-levels [help]` - Show level information about the horse currently
    ridden or right-clicked.
+   * **Aliases:** `/horse-info`, `/hinfo` 
 
- * `/horse-owned [<page>]` - List information about all horses owned by you, optionally specifying the page number to show.
+ * `/horse-owned [<player>] [<page>]` - List information about all horses
+   owned by you or the specified player, optionally specifying the page number
+   to show.
+   * **Aliases:** `/horse-list`, `/hfree`
+   
+ * `/horse-free` - Release a horse from your ownership.
+   * **Aliases:** `/hfree`
+
+ * `/horse-gps [<player>] <number>|<name>|<uuid>` - Point towards a horse
+   owned by you or the specified player. The horse can be specified as a 
+   number in `/horse-owned` output, a match on the start of its name (if
+   named with a name tag), or a match on the start of its UUID. The name can 
+   include spaces.
+   * **Aliases:** `/hgps`
+
+ * `/horse-access [<uuid>] (+|-)<player>...` - View or modify a horse's 
+   access list. Either click on the horse, or specify it by the start of its UUID.
+   Players are added with '+' and removed with '-'. Multiple players can be 
+   added or removed in a single command.
+   * **Aliases:** `/haccess`, `/hacl`
+   * **Examples:**
+     * `/haccess 12abe4 -Alice +Bob` - Give Bob access and revoke Alice's 
+        access to the horse whose UUID begins with 12abe4.
+     * `/haccess +Charles +Don` - Give Charles and Don access to the next
+        horse the owner right clicks on.   
 
  * `/horse-upgrades health|jump|speed|help` - List all levels, corresponding
    attribute values and training effort for a specified ability.
+   * **Aliases:** `/hup`
 
  * `/horse-top health|jump|speed|help [<page>]` - List one page of 10 horses ranked in descending order by the specified ability. If no page number is specified, it defaults to page 1.
+   * **Aliases:** `/htop`
 
  * `/horse-speed-limit [help|<number>]` - Set your personal speed limit to `<number>` (in m/s), if specified, or show your current speed limit if the number is omitted.
+   * **Aliases:** `/hlimit`
 
 
 Admin Commands
@@ -147,8 +178,19 @@ Admin Commands
  * `/horse-swap <partial-uuid>` - Swap the stats of the horse with the specified
    UUID with those of a clicked-on horse.
 
- * `/horse-owned <player> [<page>]` - List information about all horses owned by the
-   specified player.
+ * `/horse-tp <partial-uuid>` - Teleport to the horse whose UUID begins 
+   with the specified prefix.
+   * **Aliases:** `/htp`
+   
+ * `/horse-tphere <partial-uuid>` - Teleport the horse whose UUID begins 
+   with the specified prefix to you.
+   * **Aliases:** `/htphere`
+
+ * `/horse-bypass` - Toggle checks on your permission to access horses.
+   * **Aliases:** `/hbypass`
+
+ * `/horse-tame <player>` - Tame a horse to the specified player.
+   * **Aliases:** `/htame`
 
 
 Configuration
@@ -156,10 +198,14 @@ Configuration
 
 | Setting | Description |
 | :--- | :--- |
-| `debug.config` | Log configuration settings on start up. |
-| `debug.events` | Show extra debug messages in event handlers. |
-| `debug.saves` | Enable debug logging in database saves. |
+| `debug.config` | If true, log configuration settings on start up. |
+| `debug.events` | If true, show extra debug messages in event handlers. |
+| `debug.saves` | If true, enable debug logging in database saves. |
+| `debug.scans` | If true, log the time taken to scan worlds for horses. |
+| `debug.finds` | If true, log the time taken to find horses.
 | `database.implementation` | The database implementation type to choose. Currently only "yaml" is supported. |
+| `eject-on-logoff` | If true, eject the rider from the horse when he logs off. |
+| `allow-pvp` | If true, allow players to harm owned horses that are being ridden by a player. |
 | `speed-limit` | The ratio of distance travelled in one tick to the current speed of a horse for its level. Used mainly as a sanity check on computed distance in movement events. But it also controls a message to players if they attempt to piston a horse way above maximum speed. |
 | `dehydration-distance` | Distance a horse can travel horizontally before it is fully dehydrated. |
 | `bucket-hydration` | Amount of hydration from one water bucket; 1.0 is full hydration. |
@@ -180,10 +226,18 @@ Permissions
  * `easyrider.debug` - Players with this permission receive debug messages.
  * `easyrider.setlevel` - Permission to use `/horse-set-level`.
  * `easyrider.swap` - Permission to use `/horse-swap`.
+ * `easyrider.tp` - Permission to use `/horse-tp`.
+ * `easyrider.tphere` - Permission to use `/horse-tphere`.
+ * `easyrider.bypass` - Permission to use `/horse-bypass`.
+ * `easyrider.tame` - Permission to use `/horse-tame`.
+ * `easyrider.free` - Permission to use `/horse-free`.
  * `easyrider.levels` - Permission to use `/horse-levels`.
  * `easyrider.upgrades` - Permission to use `/horse-upgrades`.
  * `easyrider.top` - Permission to use `/horse-top`.
  * `easyrider.speedlimit` - Permission to use `/horse-speed-limit`.
+ * `easyrider.gps` - Permission to use `/horse-gps`.
+ * `easyrider.gps-player` - Permission to specify a player name when using `/horse-gps`.
+ * `easyrider.access` - Permission to use `/horse-access`.
  * `easyrider.owned` - Permission to use `/horse-owned`.
  * `easyrider.owned-player` - Permission to specify a player name other than one's own when using `/horse-owned`.
  
