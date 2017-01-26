@@ -51,30 +51,34 @@ public class HorseGPSExecutor extends ExecutorBase {
         }
 
         List<SavedHorse> horses;
+        String identifier;
         if (args.length == 1) {
-            horses = findHorses(sendingPlayer, args[0]);
+            identifier = args[0];
+            horses = findHorses(sendingPlayer, identifier);
         } else {
-            if (sender.hasPermission("easyrider.gps-all")) {
-                horses = findHorses(sendingPlayer, String.join(" ", args));
+            identifier = String.join(" ", args);
+            if (sender.hasPermission("easyrider.gps-player")) {
+                horses = findHorses(sendingPlayer, identifier);
                 if (horses.size() == 0) {
                     OfflinePlayer owner = Bukkit.getOfflinePlayer(args[0]);
                     if (owner != null) {
-                        horses = findHorses(owner, String.join(" ", Arrays.copyOfRange(args, 1, args.length)));
+                        identifier = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+                        horses = findHorses(owner, identifier);
                     }
                 }
             } else {
                 // If a player doesn't have permission to locate others' horses,
                 // all args are the horse name.
-                horses = findHorses(sendingPlayer, String.join(" ", args));
+                horses = findHorses(sendingPlayer, identifier);
             }
         }
 
         if (horses.size() == 0) {
-            sender.sendMessage(ChatColor.GOLD + "No horse with that identifier could be found.");
+            sender.sendMessage(ChatColor.GOLD + "No horse with the identifier \"" + identifier + "\" could be found.");
         } else if (horses.size() == 1) {
             pointTo(sendingPlayer, horses.get(0));
         } else {
-            sender.sendMessage(ChatColor.GOLD + "That identifier matches multiple horses.");
+            sender.sendMessage(ChatColor.GOLD + "The identifier \"" + identifier + "\" matches multiple horses.");
         }
         return true;
     } // onCommand
