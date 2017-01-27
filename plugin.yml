@@ -62,14 +62,14 @@ permissions:
   easyrider.gps:
     description: Permission to use /horse-gps.
     default: true
+   
+  easyrider.gps-player:
+    description: Permission to use /horse-gps <player>.
+    default: op
 
   easyrider.access:
     description: Permission to use /horse-access.
     default: true
-    
-  easyrider.gps-player:
-    description: Permission to use /horse-gps <player>.
-    default: op
 
   easyrider.owned:
     description: Permission to use /horse-owned.
@@ -146,7 +146,7 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command>§f - Tame a horse to the specified player.
+      §e/<command> <player>§f - Tame a horse to the specified player.
 
   horse-free:
     description: Release a horse from your ownership.
