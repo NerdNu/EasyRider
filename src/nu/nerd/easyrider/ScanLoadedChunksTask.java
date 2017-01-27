@@ -3,9 +3,11 @@ package nu.nerd.easyrider;
 import java.util.function.BooleanSupplier;
 
 import org.bukkit.Chunk;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
+import org.bukkit.inventory.ItemStack;
 
 import nu.nerd.easyrider.db.SavedHorse;
 
@@ -16,7 +18,11 @@ import nu.nerd.easyrider.db.SavedHorse;
  */
 public class ScanLoadedChunksTask implements BooleanSupplier {
     // ------------------------------------------------------------------------
-
+    /**
+     * Constructor.
+     *
+     * @param world the world whose loaded chunks are scanned.
+     */
     public ScanLoadedChunksTask(World world) {
         _world = world;
     }
@@ -51,6 +57,17 @@ public class ScanLoadedChunksTask implements BooleanSupplier {
                             EasyRider.DB.observe(savedHorse, horse);
                             if (savedHorse.isAbandoned()) {
                                 EasyRider.DB.freeHorse(savedHorse, horse);
+                            }
+                        } else if (horse.getOwner() != null) {
+                            // Version 1.7.3 wrongly dropped the record for
+                            // abandoned horses. Those horses need their owner
+                            // cleared. Their inv will be empty, at least.
+                            horse.setOwner(null);
+                            horse.setTamed(false);
+                            horse.setDomestication(1);
+                            if (horse.isCarryingChest()) {
+                                horse.setCarryingChest(false);
+                                horse.getWorld().dropItemNaturally(horse.getLocation(), new ItemStack(Material.CHEST));
                             }
                         }
                     }
