@@ -8,10 +8,12 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Horse;
+import org.bukkit.inventory.ItemStack;
 
 import nu.nerd.easyrider.EasyRider;
 
@@ -160,13 +162,53 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
+     * Release a living horse.
+     *
+     * This will drop the horse's inventory, including chest contents.
+     *
+     * The horse argument might be null, which means that either the horse no
+     * longer exists, or the chunks containing it were not loaded during the
+     * search operation. If it still exists, it might be reobserved by the scan
+     * task and will spontaneously reappear on the owner's list. That shouldn't
+     * be a big deal.
+     *
+     * @param savedHorse the database state of the horse.
+     * @param horse the Horse Entity.
+     */
+    public void freeHorse(SavedHorse savedHorse, Horse horse) {
+        if (horse != null) {
+            horse.setOwner(null);
+            horse.setTamed(false);
+            horse.setDomestication(1);
+            for (ItemStack item : horse.getInventory().getContents()) {
+                if (item != null) {
+                    horse.getWorld().dropItemNaturally(horse.getLocation(), item);
+                    horse.getInventory().remove(item);
+                }
+            }
+            if (horse.isCarryingChest()) {
+                horse.setCarryingChest(false);
+                horse.getWorld().dropItemNaturally(horse.getLocation(), new ItemStack(Material.CHEST));
+            }
+        }
+        savedHorse.clearPermittedPlayers();
+        if (horse != null) {
+            observe(savedHorse, horse);
+        } else {
+            removeOwnedHorse(savedHorse.getOwnerUuid(), savedHorse);
+            savedHorse.setOwnerUuid(null);
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Update the SavedHorse to reflect the current state of the Horse Entity as
      * it is observed in the world and update the mapping from owners to sets of
      * owned horses.
      *
      * @see SavedHorse#observe(Horse)
      * @param savedHorse the database state of the horse.
-     * @param horse the Horse Entity.
+     * @param horse the Horse Entity; should never be null.
      */
     public void observe(SavedHorse savedHorse, Horse horse) {
         UUID oldOwnerUuid = savedHorse.getOwnerUuid();
@@ -192,13 +234,15 @@ public class HorseDB {
     /**
      * Load all horses into the in-memory cache.
      * 
-     * On the first run, initialise the schema.
+     * Drop abandoned horses. On the first run, initialise the schema.
      */
     public synchronized void load() {
         long now = System.currentTimeMillis();
         for (SavedHorse savedHorse : _impl.loadAll()) {
-            _cache.put(savedHorse.getUuid(), savedHorse);
-            addOwnedHorse(savedHorse.getOwnerUuid(), savedHorse);
+            if (!savedHorse.isAbandoned()) {
+                _cache.put(savedHorse.getUuid(), savedHorse);
+                addOwnedHorse(savedHorse.getOwnerUuid(), savedHorse);
+            }
         }
 
         long millis = System.currentTimeMillis() - now;

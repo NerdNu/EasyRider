@@ -155,7 +155,7 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command>§f - Release a horse from your ownership.
+      §e/<command> [<uuid>]§f - Release a horse from your ownership. Either click on the horse, or specify it by its UUID.
 
   horse-levels:
     description: Show ability level information for a horse.

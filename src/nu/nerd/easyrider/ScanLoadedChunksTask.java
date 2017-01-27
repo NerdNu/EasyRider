@@ -50,8 +50,7 @@ public class ScanLoadedChunksTask implements BooleanSupplier {
                         if (savedHorse != null) {
                             EasyRider.DB.observe(savedHorse, horse);
                             if (savedHorse.isAbandoned()) {
-                                horse.setOwner(null);
-                                EasyRider.DB.removeHorse(savedHorse);
+                                EasyRider.DB.freeHorse(savedHorse, horse);
                             }
                         }
                     }
