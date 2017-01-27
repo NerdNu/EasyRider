@@ -129,7 +129,7 @@ Player Facing Commands
    to show.
    * **Aliases:** `/horse-list`, `/hfree`
    
- * `/horse-free` - Release a horse from your ownership.
+ * `/horse-free [<uuid>]` - Release a horse from your ownership. Either click on the horse, or specify it by its UUID. Admins with the `easyrider.bypass` permission can click on other players' horses to free them.
    * **Aliases:** `/hfree`
 
  * `/horse-gps [<player>] <number>|<name>|<uuid>` - Point towards a horse
