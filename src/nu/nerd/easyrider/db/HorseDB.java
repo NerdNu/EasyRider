@@ -234,15 +234,13 @@ public class HorseDB {
     /**
      * Load all horses into the in-memory cache.
      * 
-     * Drop abandoned horses. On the first run, initialise the schema.
+     * On the first run, initialise the schema.
      */
     public synchronized void load() {
         long now = System.currentTimeMillis();
         for (SavedHorse savedHorse : _impl.loadAll()) {
-            if (!savedHorse.isAbandoned()) {
-                _cache.put(savedHorse.getUuid(), savedHorse);
-                addOwnedHorse(savedHorse.getOwnerUuid(), savedHorse);
-            }
+            _cache.put(savedHorse.getUuid(), savedHorse);
+            addOwnedHorse(savedHorse.getOwnerUuid(), savedHorse);
         }
 
         long millis = System.currentTimeMillis() - now;
