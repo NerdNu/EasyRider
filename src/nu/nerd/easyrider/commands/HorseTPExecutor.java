@@ -6,7 +6,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Horse;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Player;
 
 import nu.nerd.easyrider.EasyRider;
@@ -37,7 +37,7 @@ public class HorseTPExecutor extends ExecutorBase {
             return false;
         }
         if (args.length > 1) {
-            sender.sendMessage(ChatColor.RED + "This command expects a horse's UUID as its only argument.");
+            sender.sendMessage(ChatColor.RED + "This command expects an animal's UUID as its only argument.");
             return true;
         }
 
@@ -50,15 +50,15 @@ public class HorseTPExecutor extends ExecutorBase {
         String uuidPrefix = args[0];
         List<SavedHorse> horses = EasyRider.DB.findHorsesByUUID(uuidPrefix);
         if (horses.size() == 0) {
-            sender.sendMessage(ChatColor.RED + "The UUID prefix " + uuidPrefix + " doesn't match any horses.");
+            sender.sendMessage(ChatColor.RED + "The UUID prefix " + uuidPrefix + " doesn't match any animals.");
         } else if (horses.size() > 1) {
-            sender.sendMessage(ChatColor.RED + "The UUID prefix " + uuidPrefix + " matches more than one horse.");
+            sender.sendMessage(ChatColor.RED + "The UUID prefix " + uuidPrefix + " matches more than one animal.");
         } else {
             SavedHorse savedHorse = horses.get(0);
             Location loc = savedHorse.getLocation();
 
             long start = System.nanoTime();
-            Horse horse = Util.findHorse(savedHorse.getUuid(), loc, 2);
+            AbstractHorse horse = Util.findHorse(savedHorse.getUuid(), loc, 2);
             if (EasyRider.CONFIG.DEBUG_FINDS) {
                 EasyRider.PLUGIN.getLogger().info("findHorse() took " + (System.nanoTime() - start) * 0.001 + " microseconds.");
             }
@@ -68,9 +68,9 @@ public class HorseTPExecutor extends ExecutorBase {
                 tpToHorse(sendingPlayer, horse);
             } else {
                 if (loc == null) {
-                    sender.sendMessage(ChatColor.GOLD + "The horse cannot be found and has no known last location.");
+                    sender.sendMessage(ChatColor.GOLD + "The animal cannot be found and has no known last location.");
                 } else {
-                    sender.sendMessage(ChatColor.GOLD + "The horse doesn't appear to be loaded.");
+                    sender.sendMessage(ChatColor.GOLD + "The animal doesn't appear to be loaded.");
                     sender.sendMessage(ChatColor.GOLD + "Teleporting you to " + Util.formatLocation(loc) + ", " +
                                        savedHorse.getUuid().toString() + "'s last known location.");
                     sendingPlayer.teleport(loc);
@@ -82,12 +82,12 @@ public class HorseTPExecutor extends ExecutorBase {
 
     // ------------------------------------------------------------------------
     /**
-     * Teleport the player to a found Horse.
+     * Teleport the player to a found AbstractHorse.
      * 
      * @param player the player.
-     * @param horse the Horse.
+     * @param horse the AbstractHorse.
      */
-    protected void tpToHorse(Player player, Horse horse) {
+    protected void tpToHorse(Player player, AbstractHorse horse) {
         Location loc = horse.getLocation();
         player.sendMessage(ChatColor.GOLD +
                            "Teleporting you to " + horse.getUniqueId().toString() +

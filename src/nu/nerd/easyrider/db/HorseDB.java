@@ -11,8 +11,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.AnimalTamer;
-import org.bukkit.entity.Horse;
+import org.bukkit.entity.ChestedHorse;
 import org.bukkit.inventory.ItemStack;
 
 import nu.nerd.easyrider.EasyRider;
@@ -44,11 +45,12 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
-     * Find the specified Horse in the database cache, adding it as necessary.
+     * Find the specified AbstractHorse in the database cache, adding it as
+     * necessary.
      * 
-     * @param horse the Horse entity.
+     * @param horse the AbstractHorse entity.
      */
-    public synchronized SavedHorse findOrAddHorse(Horse horse) {
+    public synchronized SavedHorse findOrAddHorse(AbstractHorse horse) {
         SavedHorse savedHorse = findHorse(horse);
         if (savedHorse == null) {
             savedHorse = new SavedHorse(horse);
@@ -67,13 +69,13 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
-     * Return the SavedHorse corresponding to the in-game Horse entity, or null
-     * if not stored in the database.
+     * Return the SavedHorse corresponding to the in-game AbstractHorse entity,
+     * or null if not stored in the database.
      * 
-     * @param horse the Horse to find.
+     * @param horse the AbstractHorse to find.
      * @return the corresponding database entry, or null if never saved.
      */
-    public synchronized SavedHorse findHorse(Horse horse) {
+    public synchronized SavedHorse findHorse(AbstractHorse horse) {
         return _cache.get(horse.getUniqueId());
     }
 
@@ -173,9 +175,9 @@ public class HorseDB {
      * be a big deal.
      *
      * @param savedHorse the database state of the horse.
-     * @param horse the Horse Entity.
+     * @param horse the AbstractHorse Entity.
      */
-    public void freeHorse(SavedHorse savedHorse, Horse horse) {
+    public void freeHorse(SavedHorse savedHorse, AbstractHorse horse) {
         if (horse != null) {
             horse.setOwner(null);
             horse.setTamed(false);
@@ -186,9 +188,12 @@ public class HorseDB {
                     horse.getInventory().remove(item);
                 }
             }
-            if (horse.isCarryingChest()) {
-                horse.setCarryingChest(false);
-                horse.getWorld().dropItemNaturally(horse.getLocation(), new ItemStack(Material.CHEST));
+            if (horse instanceof ChestedHorse) {
+                ChestedHorse chestedHorse = (ChestedHorse) horse;
+                if (chestedHorse.isCarryingChest()) {
+                    chestedHorse.setCarryingChest(false);
+                    chestedHorse.getWorld().dropItemNaturally(chestedHorse.getLocation(), new ItemStack(Material.CHEST));
+                }
             }
         }
         savedHorse.clearPermittedPlayers();
@@ -202,15 +207,15 @@ public class HorseDB {
 
     // ------------------------------------------------------------------------
     /**
-     * Update the SavedHorse to reflect the current state of the Horse Entity as
-     * it is observed in the world and update the mapping from owners to sets of
-     * owned horses.
+     * Update the SavedHorse to reflect the current state of the AbstractHorse
+     * Entity as it is observed in the world and update the mapping from owners
+     * to sets of owned horses.
      *
-     * @see SavedHorse#observe(Horse)
+     * @see SavedHorse#observe(AbstractHorse)
      * @param savedHorse the database state of the horse.
-     * @param horse the Horse Entity; should never be null.
+     * @param horse the AbstractHorse Entity; should never be null.
      */
-    public void observe(SavedHorse savedHorse, Horse horse) {
+    public void observe(SavedHorse savedHorse, AbstractHorse horse) {
         UUID oldOwnerUuid = savedHorse.getOwnerUuid();
         AnimalTamer owner = horse.getOwner();
         UUID newOwnerUuid = (owner == null) ? null : owner.getUniqueId();
@@ -409,8 +414,8 @@ public class HorseDB {
      * Map from owner UUID to the set of horses owned by that player.
      *
      * Each set of horses is a TreeSet<> that orders the entries in ascending
-     * order by Horse Entity UUID. The set may be transiently incorrect when
-     * ownership changes. Extra horses will be removed from the set when
+     * order by AbstractHorse Entity UUID. The set may be transiently incorrect
+     * when ownership changes. Extra horses will be removed from the set when
      * returned by {#link getOwnedHorses()}.
      */
     protected HashMap<UUID, TreeSet<SavedHorse>> _ownedHorses = new HashMap<UUID, TreeSet<SavedHorse>>();

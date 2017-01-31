@@ -6,7 +6,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Horse;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
@@ -55,13 +55,14 @@ public class HorseTameExecutor extends ExecutorBase {
             EasyRider.PLUGIN.getState(player).setPendingInteraction(new IPendingInteraction() {
                 @Override
                 public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse savedHorse) {
-                    Horse horse = (Horse) event.getRightClicked();
-                    horse.setOwner(newOwner);
-                    EasyRider.DB.observe(savedHorse, horse);
+                    AbstractHorse abstractHorse = (AbstractHorse) event.getRightClicked();
+                    abstractHorse.setOwner(newOwner);
+                    EasyRider.DB.observe(savedHorse, abstractHorse);
                     savedHorse.clearPermittedPlayers();
                     sender.sendMessage(ChatColor.GOLD +
-                                       "Horse " + Util.limitString(savedHorse.getUuid().toString(), 20) +
-                                       " now belongs to " + newOwner.getName() + ".");
+                                       "The " + Util.entityTypeName(abstractHorse) + ", " +
+                                       Util.limitString(savedHorse.getUuid().toString(), 20) +
+                                       ", now belongs to " + newOwner.getName() + ".");
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
                 }
             });

@@ -13,7 +13,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Horse;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Player;
 
 import nu.nerd.easyrider.EasyRider;
@@ -74,11 +74,11 @@ public class HorseGPSExecutor extends ExecutorBase {
         }
 
         if (horses.size() == 0) {
-            sender.sendMessage(ChatColor.GOLD + "No horse with the identifier \"" + identifier + "\" could be found.");
+            sender.sendMessage(ChatColor.GOLD + "No animal with the identifier \"" + identifier + "\" could be found.");
         } else if (horses.size() == 1) {
             pointTo(sendingPlayer, horses.get(0));
         } else {
-            sender.sendMessage(ChatColor.GOLD + "The identifier \"" + identifier + "\" matches multiple horses.");
+            sender.sendMessage(ChatColor.GOLD + "The identifier \"" + identifier + "\" matches multiple animals.");
         }
         return true;
     } // onCommand
@@ -90,7 +90,8 @@ public class HorseGPSExecutor extends ExecutorBase {
      * 
      * @param owner the owning player.
      * @param identifier identifies the horse, either with the horse's
-     *        /horse-owned index, a Horse Entity UUID or the name of the horse.
+     *        /horse-owned index, an AbstractHorse Entity UUID or the name of
+     *        the horse.
      * @return a non-null list of SavedHorses; this will be empty if no match is
      *         found.
      */
@@ -134,7 +135,7 @@ public class HorseGPSExecutor extends ExecutorBase {
     protected void pointTo(Player player, SavedHorse savedHorse) {
         // Search for the horse only if no location has been saved.
         long start = System.nanoTime();
-        Horse horse = Util.findHorse(savedHorse.getUuid(), savedHorse.getLocation(), 1);
+        AbstractHorse horse = Util.findHorse(savedHorse.getUuid(), savedHorse.getLocation(), 1);
         if (EasyRider.CONFIG.DEBUG_FINDS) {
             EasyRider.PLUGIN.getLogger().info("findHorse() took " + (System.nanoTime() - start) * 0.001 + " microseconds.");
         }
@@ -146,7 +147,7 @@ public class HorseGPSExecutor extends ExecutorBase {
         Location horseLoc = savedHorse.getLocation();
         if (horseLoc == null) {
             playerLoc.getWorld().playSound(playerLoc, Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
-            player.sendMessage(ChatColor.GOLD + "The specified horse could not be found.");
+            player.sendMessage(ChatColor.GOLD + "The specified animal could not be found.");
         } else {
             playerLoc.getWorld().playSound(playerLoc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
             String id = (savedHorse.getDisplayName().length() > 0) ? savedHorse.getDisplayName()

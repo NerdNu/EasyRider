@@ -40,12 +40,12 @@ public class HorseDebugExecutor extends ExecutorBase {
         } else {
             Player player = (Player) sender;
             String debug = args[0].toLowerCase();
-            sender.sendMessage(ChatColor.GOLD + "Right click on a horse to turn debugging " + debug + ".");
+            sender.sendMessage(ChatColor.GOLD + "Right click on a horse or llama to turn debugging " + debug + ".");
             EasyRider.PLUGIN.getState(player).setPendingInteraction(new IPendingInteraction() {
                 @Override
                 public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse savedHorse) {
                     savedHorse.setDebug(debug.equals("on"));
-                    event.getPlayer().sendMessage(ChatColor.GOLD + "Debugging for horse " +
+                    event.getPlayer().sendMessage(ChatColor.GOLD + "Debugging for " +
                                                   event.getRightClicked().getUniqueId() +
                                                   " is now " + debug + ".");
                 }

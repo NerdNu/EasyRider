@@ -4,13 +4,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Horse;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 import nu.nerd.easyrider.Ability;
 import nu.nerd.easyrider.EasyRider;
 import nu.nerd.easyrider.IPendingInteraction;
+import nu.nerd.easyrider.Util;
 import nu.nerd.easyrider.db.SavedHorse;
 
 // ----------------------------------------------------------------------------
@@ -71,15 +72,20 @@ public class HorseSetLevelExecutor extends ExecutorBase {
                 EasyRider.PLUGIN.getState(player).setPendingInteraction(new IPendingInteraction() {
                     @Override
                     public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse savedHorse) {
-                        Horse horse = (Horse) event.getRightClicked();
-                        Player player = event.getPlayer();
-                        player.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + horse.getUniqueId());
-                        showLevel(player, "Old ", ability, savedHorse);
-                        ability.setLevel(savedHorse, (int) newLevel);
-                        ability.setEffort(savedHorse, ability.getEffortForLevel(newLevel));
-                        ability.updateAttribute(savedHorse, horse);
-                        showLevel(player, "New ", ability, savedHorse);
-                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                        AbstractHorse abstractHorse = (AbstractHorse) event.getRightClicked();
+                        if (Util.isTrainable(abstractHorse)) {
+                            Player player = event.getPlayer();
+                            player.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.YELLOW + abstractHorse.getUniqueId());
+                            showLevel(player, "Old ", ability, savedHorse);
+                            ability.setLevel(savedHorse, (int) newLevel);
+                            ability.setEffort(savedHorse, ability.getEffortForLevel(newLevel));
+                            ability.updateAttribute(savedHorse, abstractHorse);
+                            showLevel(player, "New ", ability, savedHorse);
+                            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                        } else {
+                            player.sendMessage(ChatColor.RED + "That " + Util.entityTypeName(abstractHorse) + " cannot be trained.");
+                            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                        }
                     }
                 });
             } catch (NumberFormatException ex) {

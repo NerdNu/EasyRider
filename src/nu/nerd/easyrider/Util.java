@@ -6,9 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
-import org.bukkit.entity.Horse.Variant;
+import org.bukkit.entity.Llama;
+import org.bukkit.entity.SkeletonHorse;
+import org.bukkit.entity.ZombieHorse;
 
 // ----------------------------------------------------------------------------
 /**
@@ -17,29 +20,80 @@ import org.bukkit.entity.Horse.Variant;
 public class Util {
     // ------------------------------------------------------------------------
     /**
-     * Find the Horse entity with the specified UUID near the specified
+     * Return true if the specified entity is trackable.
+     *
+     * Trackable entities have their location, appearance and some inventory
+     * state tracked. They are guaranteed to be instances of AbstractHorse.
+     *
+     * @param entity an entity.
+     * @return true if the specified entity is trackable.
+     */
+    public static boolean isTrackable(Entity entity) {
+        return entity instanceof AbstractHorse;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true if the entity can have its attributes improved through
+     * training.
+     *
+     * Horses, SkeletonHorses and ZombieHorses are trainable; Llamas are not.
+     *
+     * @param entity an entity.
+     * @return true if the entity can have its attributes improved through
+     *         training.
+     */
+    public static boolean isTrainable(Entity entity) {
+        return isTrackable(entity) && !(entity instanceof Llama);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true if the specified entity is a skeleton horse or zombie horse.
+     *
+     * @return true if the specified entity is a skeleton horse or zombie horse.
+     */
+    public static boolean isUndeadHorse(Entity entity) {
+        return entity instanceof SkeletonHorse ||
+               entity instanceof ZombieHorse;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return a human-readable entity type name.
+     *
+     * @param entity the Entity.
+     * @return a human-readable entity type name.
+     */
+    public static String entityTypeName(Entity entity) {
+        return entity.getType().name().toLowerCase().replace('_', ' ');
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Find the AbstractHorse entity with the specified UUID near the specified
      * location.
      *
      * A square of chunks around the location are loaded if necessary. If that
-     * area does not contain the Horse, all loaded chunks in all worlds are
-     * searched, starting with the world containing the specified Location.
+     * area does not contain the AbstractHorse, all loaded chunks in all worlds
+     * are searched, starting with the world containing the specified Location.
      *
-     * @param uuid the Horse's UUID.
-     * @param loc the Location where the Horse was last seen; if null, it is not
-     *        used.
+     * @param uuid the AbstractHorse's UUID.
+     * @param loc the Location where the AbstractHorse was last seen; if null,
+     *        it is not used.
      * @param chunkRadius the radius of a square, expressed in chunks, around
      *        the Location that will be searched. This number should be small as
      *        loading chunks can be time-consuming and may lag out the server.
-     * @return the matching Horse, if found, or null.
+     * @return the matching AbstractHorse, if found, or null.
      */
-    public static Horse findHorse(UUID uuid, Location loc, int chunkRadius) {
+    public static AbstractHorse findHorse(UUID uuid, Location loc, int chunkRadius) {
         if (loc == null) {
             return findHorse(uuid);
         }
 
         World centreWorld = loc.getWorld();
         Chunk centreChunk = loc.getChunk();
-        Horse horse = findHorse(uuid, centreChunk);
+        AbstractHorse horse = findHorse(uuid, centreChunk);
         if (horse != null) {
             return horse;
         }
@@ -96,16 +150,16 @@ public class Util {
     // ------------------------------------------------------------------------
     /**
      * Search all loaded chunks of all configured worlds, in arbitrary order,
-     * for a Horse with the specified UUID.
+     * for an AbstractHorse with the specified UUID.
      *
-     * @param uuid the Horse's UUID.
-     * @return the Horse entity or null if not found.
+     * @param uuid the AbstractHorse's UUID.
+     * @return the AbstractHorse entity or null if not found.
      */
-    public static Horse findHorse(UUID uuid) {
+    public static AbstractHorse findHorse(UUID uuid) {
         for (String worldName : EasyRider.CONFIG.SCAN_WORLD_RADIUS.keySet()) {
             World world = Bukkit.getWorld(worldName);
             if (world != null) {
-                Horse horse = findHorse(uuid, world);
+                AbstractHorse horse = findHorse(uuid, world);
                 if (horse != null) {
                     return horse;
                 }
@@ -116,19 +170,20 @@ public class Util {
 
     // ------------------------------------------------------------------------
     /**
-     * Find the Horse entity with the specified UUID in the specified chunk.
+     * Find the AbstractHorse entity with the specified UUID in the specified
+     * chunk.
      *
-     * @param uuid the Horse's UUID.
+     * @param uuid the AbstractHorse's UUID.
      * @param chunk the chunk to search.
-     * @return the matching Horse, if found, or null.
+     * @return the matching AbstractHorse, if found, or null.
      */
-    public static Horse findHorse(UUID uuid, Chunk chunk) {
+    public static AbstractHorse findHorse(UUID uuid, Chunk chunk) {
         if (!chunk.isLoaded() && !chunk.load(false)) {
             return null;
         }
         for (Entity entity : chunk.getEntities()) {
             if (entity.getUniqueId().equals(uuid)) {
-                return (Horse) entity;
+                return (AbstractHorse) entity;
             }
         }
         return null;
@@ -136,17 +191,17 @@ public class Util {
 
     // ------------------------------------------------------------------------
     /**
-     * Find the Horse entity with the specified UUID in the currently loaded
-     * chunks of the specified World.
+     * Find the AbstractHorse entity with the specified UUID in the currently
+     * loaded chunks of the specified World.
      *
-     * @param uuid the Horse's UUID.
+     * @param uuid the AbstractHorse's UUID.
      * @param chunk the chunk to search.
-     * @return the matching Horse, if found, or null.
+     * @return the matching AbstractHorse, if found, or null.
      */
-    public static Horse findHorse(UUID uuid, World world) {
+    public static AbstractHorse findHorse(UUID uuid, World world) {
         for (Entity entity : world.getEntities()) {
             if (entity.getUniqueId().equals(uuid)) {
-                return (Horse) entity;
+                return (AbstractHorse) entity;
             }
         }
         return null;
@@ -154,18 +209,24 @@ public class Util {
 
     // ------------------------------------------------------------------------
     /**
-     * Return the appearance of the specified Horse as a displayable String.
+     * Return the appearance of the specified AbstractHorse as a displayable
+     * String.
      * 
-     * @param horse the horse.
-     * @return the appearance of the specified Horse as a displayable String.
+     * @param abstractHorse the horse-like creature.
+     * @return the appearance of the specified AbstractHorse as a displayable
+     *         String.
      */
-    public static String getAppearance(Horse horse) {
-        Horse.Variant variant = horse.getVariant();
-        if (variant == Variant.HORSE) {
+    public static String getAppearance(AbstractHorse abstractHorse) {
+        if (abstractHorse instanceof Horse) {
+            Horse horse = (Horse) abstractHorse;
             return COLOR_TO_APPEARANCE[horse.getColor().ordinal()] +
                    STYLE_TO_APPEARANCE[horse.getStyle().ordinal()];
+        } else if (abstractHorse instanceof Llama) {
+            Llama llama = (Llama) abstractHorse;
+            Llama.Color colour = llama.getColor();
+            return colour.name().toLowerCase() + " llama";
         } else {
-            return variant.name().toLowerCase().replace('_', ' ');
+            return entityTypeName(abstractHorse);
         }
     }
 

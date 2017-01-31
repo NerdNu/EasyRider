@@ -11,16 +11,14 @@ import javax.persistence.Transient;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.AnimalTamer;
-import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.HorseInventory;
 
 import nu.nerd.easyrider.EasyRider;
 import nu.nerd.easyrider.HorseEquipment;
@@ -48,16 +46,29 @@ public class SavedHorse implements Cloneable {
     // ------------------------------------------------------------------------
     /**
      * Constructor.
-     * 
-     * @param horse the Horse entity.
+     *
+     * @param horse the AbstractHorse entity.
      */
-    public SavedHorse(Horse horse) {
+    public SavedHorse(AbstractHorse horse) {
         setNew();
         setUuid(horse.getUniqueId());
-        speedLevel = jumpLevel = healthLevel = 1;
+        speedLevel = jumpLevel = healthLevel = (Util.isTrainable(horse) ? 1 : 0);
         setHydration(0.5);
         setLastAccessed(System.currentTimeMillis());
         observe(horse);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true if the AbstractHorse entity is trainable.
+     *
+     * Untrainable AbstractHorses are distinguished by setting the speed, health
+     * and jump levels to 0.
+     *
+     * @return true if the AbstractHorse entity is trainable.
+     */
+    public boolean isTrainable() {
+        return speedLevel > 0;
     }
 
     // ------------------------------------------------------------------------
@@ -77,8 +88,8 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
-     * Swap the training stats and Horse attributes of this SavedHorse with the
-     * specified other SavedHorse.
+     * Swap the training stats and AbstractHorse attributes of this SavedHorse
+     * with the specified other SavedHorse.
      *
      * @param otherHorse the other SavedHorse.
      */
@@ -266,7 +277,7 @@ public class SavedHorse implements Cloneable {
      * Set the displayed custom name of the horse.
      *
      * Note: This is setting what is stored in the database, not changing the
-     * Horse Entity.
+     * AbstractHorse Entity.
      *
      * @param displayName the displayed custom name of the horse.
      */
@@ -300,7 +311,7 @@ public class SavedHorse implements Cloneable {
      * Return the name of this horse to use in messages.
      *
      * That will either be the horse's display name, or "This horse" or "This
-     * mule" or "This donkey".
+     * mule", "This donkey" or "This llama".
      *
      * @return the name of this horse to use in messages.
      */
@@ -312,6 +323,8 @@ public class SavedHorse implements Cloneable {
                 return "This mule";
             } else if (getAppearance().equals("donkey")) {
                 return "This donkey";
+            } else if (getAppearance().equals("llama")) {
+                return "This llama";
             }
         }
         return "This horse";
@@ -623,11 +636,12 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
-     * Specify whether the corresponding Horse entity needs its attibutes
-     * updated by calling {#link {@link #updateAllAttributes(Horse)}.
+     * Specify whether the corresponding AbstractHorse entity needs its
+     * attibutes updated by calling {#link
+     * {@link #updateAllAttributes(AbstractHorse)}.
      *
-     * @param outdatedAttributes if true, the corresponding Horse entity needs
-     *        all its attributes updated.
+     * @param outdatedAttributes if true, the corresponding AbstractHorse entity
+     *        needs all its attributes updated.
      */
     public void setOutdatedAttributes(boolean outdatedAttributes) {
         this.outdatedAttributes = outdatedAttributes;
@@ -636,11 +650,12 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
-     * Return true of the corresponding Horse entity needs its attributes
-     * updated to match the current levels of this database horse.
+     * Return true of the corresponding AbstractHorse entity needs its
+     * attributes updated to match the current levels of this database horse.
      *
-     * @return true of the corresponding Horse entity needs its attributes
-     *         updated to match the current levels of this database horse.
+     * @return true of the corresponding AbstractHorse entity needs its
+     *         attributes updated to match the current levels of this database
+     *         horse.
      */
     public boolean hasOutdatedAttributes() {
         return outdatedAttributes;
@@ -650,9 +665,9 @@ public class SavedHorse implements Cloneable {
     /**
      * Update all attributes of the specified entity to match this SavedHorse.
      *
-     * @param horse the Horse entity.
+     * @param horse the AbstractHorse entity.
      */
-    public void updateAllAttributes(Horse horse) {
+    public void updateAllAttributes(AbstractHorse horse) {
         EasyRider.CONFIG.SPEED.updateAttribute(this, horse);
         EasyRider.CONFIG.JUMP.updateAttribute(this, horse);
         EasyRider.CONFIG.HEALTH.updateAttribute(this, horse);
@@ -715,18 +730,19 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
-     * Update this SavedHorse to reflect the current state of the Horse Entity
-     * as it is observed in the world.
+     * Update this SavedHorse to reflect the current state of the AbstractHorse
+     * Entity as it is observed in the world.
      *
-     * NOTE: Call {@link HorseDB#observe(SavedHorse, Horse)} instead so that the
-     * mapping of owner to owned horses is updated. That method calls this one.
+     * NOTE: Call {@link HorseDB#observe(SavedHorse, AbstractHorse)} instead so
+     * that the mapping of owner to owned horses is updated. That method calls
+     * this one.
      *
      * Updated attributes include: last seen time, display name, appearance,
      * owner, equipment and location
      *
      * @param horse the horse entity corresponding to this SavedHorse.
      */
-    public void observe(Horse horse) {
+    public void observe(AbstractHorse horse) {
         lastObserved = System.currentTimeMillis();
         AnimalTamer owner = horse.getOwner();
         setOwnerUuid((owner != null) ? owner.getUniqueId() : null);
@@ -738,29 +754,15 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
-     * Update the stored record of the Horse's equipment.
+     * Update the stored record of the AbstractHorse's equipment.
      *
      * This is written to permit persistent custom equipment to be stored in
      * unused bits later.
+     *
+     * @param abstractHorse the horse-like entity.
      */
-    public void updateEquipment(Horse horse) {
-        int equip = getEquipment() & ~HorseEquipment.ALL_REGULAR;
-        if (horse.isCarryingChest()) {
-            equip |= HorseEquipment.CHEST;
-        }
-        HorseInventory inv = horse.getInventory();
-        if (inv.getSaddle() != null && inv.getSaddle().getType() == Material.SADDLE) {
-            equip |= HorseEquipment.SADDLE;
-        }
-        if (inv.getArmor() != null) {
-            if (inv.getArmor().getType() == Material.IRON_BARDING) {
-                equip |= HorseEquipment.IRON_BARDING;
-            } else if (inv.getArmor().getType() == Material.GOLD_BARDING) {
-                equip |= HorseEquipment.GOLD_BARDING;
-            } else if (inv.getArmor().getType() == Material.DIAMOND_BARDING) {
-                equip |= HorseEquipment.DIAMOND_BARDING;
-            }
-        }
+    public void updateEquipment(AbstractHorse abstractHorse) {
+        int equip = (getEquipment() & ~HorseEquipment.ALL_REGULAR) | HorseEquipment.bits(abstractHorse);
         setEquipment(equip);
     }
 
@@ -774,17 +776,20 @@ public class SavedHorse implements Cloneable {
      *
      * @param relativeTick a counter that increases by one every tick; the
      *        starting value is arbitrary.
-     * @param horse the Horse entity.
+     * @param horse the AbstractHorse entity.
      */
-    public void onRidden(int relativeTick, Horse horse) {
-        if (getLocation() != null) {
+    public void onRidden(int relativeTick, AbstractHorse horse) {
+        if (getLocation() != null && Util.isTrainable(horse)) {
             double dist = Util.getHorizontalDistance(location, horse.getLocation());
             setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
 
             Player rider = (Player) horse.getPassenger();
             if (isDehydrated()) {
-                if (_messageRateLimiter.run(() -> rider.sendMessage(ChatColor.RED + getMessageName() +
-                                                                    " is too dehydrated to benefit from training. Give it a drink of water."))) {
+                if (_messageRateLimiter.run(() -> {
+                    rider.sendMessage(ChatColor.RED + getMessageName() +
+                                      " is too dehydrated to benefit from training. Give it a drink of water.");
+                    rider.playSound(rider.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                })) {
                     long newMessageCoolDown = Math.min(Math.max(MIN_MESSAGE_COOLDOWN_MILLIS,
                                                                 _messageRateLimiter.getCoolDownMillis() * 2),
                                                        MAX_MESSAGE_COOLDOWN_MILLIS);
@@ -809,7 +814,6 @@ public class SavedHorse implements Cloneable {
                 loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_BREATHE, 1.0f, 1.0f);
             });
         }
-        observe(horse);
         setLastAccessed(System.currentTimeMillis());
     } // onRidden
 
@@ -821,7 +825,7 @@ public class SavedHorse implements Cloneable {
      * @param player the player doing the feeding.
      * @param horse the horse entity.
      */
-    public void onOverfed(Player player, Horse horse) {
+    public void onOverfed(Player player, AbstractHorse horse) {
         _overfedRateLimiter.run(() -> {
             player.sendMessage(ChatColor.RED + getMessageName()
                                + " has exceeded the maximum possible health. Feeding it more gold will not increase its health.");
@@ -1109,17 +1113,20 @@ public class SavedHorse implements Cloneable {
     private int nuggetsEaten;
 
     /**
-     * The 1-based level that determines the horse's speed.
+     * The 1-based level that determines the horse's speed, or 0 for
+     * non-trainable AbstractHorses.
      */
     private int speedLevel;
 
     /**
-     * The 1-based level that determines the horse's jump strength.
+     * The 1-based level that determines the horse's jump strength, or 0 for
+     * non-trainable AbstractHorses.
      */
     private int jumpLevel;
 
     /**
-     * The 1-based level that determines the horse's health.
+     * The 1-based level that determines the horse's health, or 0 for
+     * non-trainable AbstractHorses.
      */
     private int healthLevel;
 
@@ -1141,8 +1148,8 @@ public class SavedHorse implements Cloneable {
     private long lastObserved;
 
     /**
-     * If true, the corresponding Horse entity needs all its attributes updated
-     * to match current levels.
+     * If true, the corresponding AbstractHorse entity needs all its attributes
+     * updated to match current levels.
      *
      * This flag is set when swapping one horse with another using /horse-swap.
      * Usually in that case, one of the horses is not loaded in the world and

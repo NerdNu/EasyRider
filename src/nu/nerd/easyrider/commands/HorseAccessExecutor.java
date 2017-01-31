@@ -12,8 +12,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
@@ -84,8 +84,8 @@ public class HorseAccessExecutor extends ExecutorBase {
     protected void parseAccess(Player sendingPlayer, SavedHorse savedHorse, String[] args) {
         if (savedHorse == null) {
             Entity vehicle = sendingPlayer.getVehicle();
-            if (vehicle instanceof Horse) {
-                Horse horse = (Horse) vehicle;
+            if (vehicle instanceof AbstractHorse) {
+                AbstractHorse horse = (AbstractHorse) vehicle;
                 savedHorse = EasyRider.DB.findHorse(horse);
             }
         }

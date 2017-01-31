@@ -99,7 +99,7 @@ public class HorseOwnedExecutor extends ExecutorBase {
             } else {
                 // Owner is specified by name. Check permissions for this.
                 if (!sender.hasPermission("easyrider.owned-player")) {
-                    sender.sendMessage(ChatColor.RED + "You don't have permission to list other players' horses.");
+                    sender.sendMessage(ChatColor.RED + "You don't have permission to list other players' animals.");
                     return true;
                 }
 
@@ -132,12 +132,12 @@ public class HorseOwnedExecutor extends ExecutorBase {
         final int pageCount = (savedHorses.size() + PAGE_SIZE - 1) / PAGE_SIZE;
         if (start >= savedHorses.size()) {
             if (pageCount == 0) {
-                sender.sendMessage(ChatColor.GOLD + owner.getName() + " does not own any horses.");
+                sender.sendMessage(ChatColor.GOLD + owner.getName() + " does not own any horses or llamas.");
             } else {
                 sender.sendMessage(ChatColor.RED + "The specified page number (" + page + ") exceeds the number of pages (" + pageCount + ").");
             }
         } else {
-            sender.sendMessage(ChatColor.GOLD + "All horses owned by " + owner.getName() + ", page " + page + " of " + pageCount + ":");
+            sender.sendMessage(ChatColor.GOLD + "All horses and llamas owned by " + owner.getName() + ", page " + page + " of " + pageCount + ":");
             for (int i = start; i < end; ++i) {
                 SavedHorse savedHorse = savedHorses.get(i);
                 sender.sendMessage(ChatColor.GOLD + "#" + (i + 1) + " " +
@@ -164,20 +164,22 @@ public class HorseOwnedExecutor extends ExecutorBase {
                 String formattedLoc = (loc == null) ? "" : Util.formatLocation(loc);
                 sender.sendMessage(ChatColor.GOLD + "    Location: " +
                                    ChatColor.WHITE + formattedLoc);
-                sender.sendMessage(ChatColor.GOLD + "    Sp: " +
-                                   formattedAbility(EasyRider.CONFIG.SPEED, savedHorse) +
-                                   ChatColor.GOLD + " He: " +
-                                   formattedAbility(EasyRider.CONFIG.HEALTH, savedHorse) +
-                                   ChatColor.GOLD + " Ju: " +
-                                   formattedAbility(EasyRider.CONFIG.JUMP, savedHorse));
+                if (savedHorse.isTrainable()) {
+                    sender.sendMessage(ChatColor.GOLD + "    Sp: " +
+                                       formattedAbility(EasyRider.CONFIG.SPEED, savedHorse) +
+                                       ChatColor.GOLD + " He: " +
+                                       formattedAbility(EasyRider.CONFIG.HEALTH, savedHorse) +
+                                       ChatColor.GOLD + " Ju: " +
+                                       formattedAbility(EasyRider.CONFIG.JUMP, savedHorse));
+                }
             }
         }
     } // listHorses
 
     // ------------------------------------------------------------------------
     /**
-     * Format the level and corresponding Horse Entity attribute value for a
-     * specified Ability as a String.
+     * Format the level and corresponding AbstractHorse Entity attribute value
+     * for a specified Ability as a String.
      *
      * @param ability the Ability.
      * @param savedHorse the horse whose level and corresponding Attribute value

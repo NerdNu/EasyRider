@@ -1,8 +1,6 @@
 package nu.nerd.easyrider;
 
-import java.util.logging.Logger;
-
-import org.bukkit.entity.Horse;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -31,7 +29,7 @@ public final class GoldConsumerTask implements Runnable {
      * @param nuggetValue the computed value of one food item in gold nuggets.
      * @param heldItemSlot the players main hand item slot.
      */
-    public GoldConsumerTask(Player player, Horse horse, ItemStack beforeFoodItem,
+    public GoldConsumerTask(Player player, AbstractHorse horse, ItemStack beforeFoodItem,
                             int nuggetValue, int heldItemSlot) {
         _player = player;
         _horse = horse;
@@ -75,16 +73,6 @@ public final class GoldConsumerTask implements Runnable {
 
     // ------------------------------------------------------------------------
     /**
-     * Return the Logger.
-     *
-     * @return the Logger.
-     */
-    private Logger getLogger() {
-        return EasyRider.PLUGIN.getLogger();
-    }
-
-    // ------------------------------------------------------------------------
-    /**
      * The player.
      */
     private final Player _player;
@@ -92,7 +80,7 @@ public final class GoldConsumerTask implements Runnable {
     /**
      * The horse.
      */
-    private final Horse _horse;
+    private final AbstractHorse _horse;
 
     /**
      * The food item that was clicked on the horse.

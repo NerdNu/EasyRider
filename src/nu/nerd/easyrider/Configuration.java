@@ -112,8 +112,7 @@ public class Configuration {
         }
 
         @Override
-        public String getFormattedValue(SavedHorse savedHorse) {
-            double displayValue = toDisplayValue(getValue(getLevel(savedHorse)));
+        public String formatValue(double displayValue) {
             return String.format("%.2f %s", displayValue, getValueUnits());
         }
 
@@ -180,8 +179,7 @@ public class Configuration {
         }
 
         @Override
-        public String getFormattedValue(SavedHorse savedHorse) {
-            double displayValue = toDisplayValue(getValue(getLevel(savedHorse)));
+        public String formatValue(double displayValue) {
             return String.format("%.2f%s", displayValue, getValueUnits());
         }
 
@@ -236,8 +234,7 @@ public class Configuration {
         }
 
         @Override
-        public String getFormattedValue(SavedHorse savedHorse) {
-            double displayValue = toDisplayValue(getValue(getLevel(savedHorse)));
+        public String formatValue(double displayValue) {
             return String.format("%.2g%s", displayValue, getValueUnits());
         }
 

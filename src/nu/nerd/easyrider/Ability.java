@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Horse;
+import org.bukkit.entity.AbstractHorse;
 
 import nu.nerd.easyrider.db.SavedHorse;
 
@@ -293,7 +293,7 @@ public abstract class Ability {
      * @return true if the training effort resulted in a change in level (and
      *         attributes) of the horse.
      */
-    public boolean hasLevelIncreased(SavedHorse savedHorse, Horse horse) {
+    public boolean hasLevelIncreased(SavedHorse savedHorse, AbstractHorse horse) {
         int trainedLevel = getQuantisedLevelForEffort(getEffort(savedHorse));
         if (trainedLevel > getLevel(savedHorse)) {
             setLevel(savedHorse, trainedLevel);
@@ -305,27 +305,48 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
-     * Set the attribute of the specified Horse entity to match the current
-     * level of this horse in this Ability.
+     * Set the attribute of the specified AbstractHorse entity to match the
+     * current level of this horse in this Ability.
      *
      * @param savedHorse the database state of the horse.
-     * @param horse the Horse entity whose attribute will be set.
+     * @param horse the AbstractHorse entity whose attribute will be set.
      */
-    public void updateAttribute(SavedHorse savedHorse, Horse horse) {
+    public void updateAttribute(SavedHorse savedHorse, AbstractHorse horse) {
         setAttribute(horse, getLevel(savedHorse));
     }
 
     // ------------------------------------------------------------------------
     /**
-     * Set the attribute of the specified Horse entity to the value appropriate
-     * to the specified level of this Ability.
+     * Set the attribute of the specified AbstractHorse entity to the value
+     * appropriate to the specified level of this Ability.
      *
-     * @param horse the Horse entity whose attribute will be set.
+     * @param horse the AbstractHorse entity whose attribute will be set.
      * @param level the level to set.
      */
-    public void setAttribute(Horse horse, int level) {
+    public void setAttribute(AbstractHorse horse, int level) {
+        if (Util.isTrainable(horse)) {
+            AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
+            horseAttribute.setBaseValue(getValue(level));
+        } else {
+            EasyRider.PLUGIN.debug(horse, "trying to set attribute on untrainable entity");
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the base attribute value.
+     *
+     * This is here to retrieve the attributes of untrainable abstract horses
+     * (i.e. llamas) to log them on death for potential use in restoring the
+     * mob. Since the attribute is not dependent on training levels, it is
+     * retrieved directly from the entity, rather than being computed from a
+     * level.
+     *
+     * @return the base attribute value.
+     */
+    public double getAttribute(AbstractHorse horse) {
         AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
-        horseAttribute.setBaseValue(getValue(level));
+        return horseAttribute.getBaseValue();
     }
 
     // ------------------------------------------------------------------------
@@ -370,13 +391,25 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
+     * Format a displayable value as a string.
+     * 
+     * @param displayValue the displayable value.
+     * @return the formatted display value.
+     */
+    public abstract String formatValue(double displayValue);
+
+    // ------------------------------------------------------------------------
+    /**
      * Return the formatted display value corresponding to this ability on a
      * SavedHorse.
      * 
      * @param savedHorse the database state of the horse.
      * @return the formatted display value.
      */
-    public abstract String getFormattedValue(SavedHorse savedHorse);
+    public String getFormattedValue(SavedHorse savedHorse) {
+        double displayValue = toDisplayValue(getValue(getLevel(savedHorse)));
+        return formatValue(displayValue);
+    }
 
     // ------------------------------------------------------------------------
     /**
@@ -391,7 +424,7 @@ public abstract class Ability {
     /**
      * Set the stored level of the SavedHorse in this Ability.
      * 
-     * Horse attributes are not affected.
+     * AbstractHorse attributes are not affected.
      *
      * @param savedHorse the database state of the horse.
      * @param level the level.

@@ -3,8 +3,8 @@ package nu.nerd.easyrider;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
@@ -100,7 +100,7 @@ public class PlayerState {
      */
     public void clearHorseDistance() {
         Entity vehicle = _player.getVehicle();
-        _riddenHorse = (vehicle instanceof Horse) ? (Horse) vehicle : null;
+        _riddenHorse = (vehicle instanceof AbstractHorse) ? (AbstractHorse) vehicle : null;
         _riddenHorseLocation = null;
     }
 
@@ -115,8 +115,8 @@ public class PlayerState {
      */
     public void updateRiddenHorse() {
         Entity vehicle = _player.getVehicle();
-        if (vehicle instanceof Horse) {
-            Horse horse = (Horse) vehicle;
+        if (vehicle instanceof AbstractHorse) {
+            AbstractHorse horse = (AbstractHorse) vehicle;
             if (horse == null || horse.getVehicle() != null || _riddenHorse != horse) {
                 _riddenHorse = horse;
                 _riddenHorseLocation = null;
@@ -138,8 +138,8 @@ public class PlayerState {
      * @return the horizontal distance travelled.
      */
     public double getTickHorizontalDistance() {
-        Horse currentHorse = (_player.getVehicle() instanceof Horse) ? (Horse) _player.getVehicle()
-                                                                     : null;
+        AbstractHorse currentHorse = (_player.getVehicle() instanceof AbstractHorse) ? (AbstractHorse) _player.getVehicle()
+                                                                                     : null;
         if (currentHorse == null || currentHorse != _riddenHorse || _riddenHorseLocation == null) {
             return 0;
         } else {
@@ -203,10 +203,10 @@ public class PlayerState {
     protected IPendingInteraction _pendingInteraction;
 
     /**
-     * The Horse being ridden in the most recent call to
+     * The AbstractHorse being ridden in the most recent call to
      * {@link #updateRiddenHorse()}.
      */
-    protected Horse _riddenHorse;
+    protected AbstractHorse _riddenHorse;
 
     /**
      * When riding a horse, this is the location of the horse in the previous

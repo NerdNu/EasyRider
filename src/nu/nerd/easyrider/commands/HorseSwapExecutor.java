@@ -49,24 +49,33 @@ public class HorseSwapExecutor extends ExecutorBase {
             List<SavedHorse> matches = EasyRider.DB.findHorsesByUUID(prefix);
             if (matches.size() == 1) {
                 SavedHorse originalHorse = matches.get(0);
-                player.sendMessage(ChatColor.GOLD + "Right click on the horse to swap stats with " +
-                                   originalHorse.getUuid().toString() + ".");
-                EasyRider.PLUGIN.getState(player).setPendingInteraction(new IPendingInteraction() {
-                    @Override
-                    public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse newHorse) {
-                        // The original horse may not be loaded; may even have
-                        // been vaporised mysteriously. If it is interacted with
-                        // or ridden later, its attributes will be updated at
-                        // that time.
-                        originalHorse.setOutdatedAttributes(true);
-                        newHorse.swapTrainingStats(originalHorse);
-                        newHorse.updateAllAttributes((Horse) event.getRightClicked());
-                        sender.sendMessage(ChatColor.GOLD + "Horse " +
-                                           originalHorse.getUuid() + " has swapped stats with " +
-                                           newHorse.getUuid() + ".");
-                        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-                    }
-                });
+                if (originalHorse.isTrainable()) {
+                    player.sendMessage(ChatColor.GOLD + "Right click on the horse to swap stats with " +
+                                       originalHorse.getUuid().toString() + ".");
+                    EasyRider.PLUGIN.getState(player).setPendingInteraction(new IPendingInteraction() {
+                        @Override
+                        public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse newHorse) {
+                            if (newHorse.isTrainable()) {
+                                // The original horse may not be loaded; may
+                                // even have been vaporised mysteriously. If it
+                                // is interacted with or ridden later, its
+                                // attributes will be updated at that time.
+                                originalHorse.setOutdatedAttributes(true);
+                                newHorse.swapTrainingStats(originalHorse);
+                                newHorse.updateAllAttributes((Horse) event.getRightClicked());
+                                sender.sendMessage(ChatColor.GOLD + "Horse " +
+                                                   originalHorse.getUuid() + " has swapped stats with " +
+                                                   newHorse.getUuid() + ".");
+                                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                            } else {
+                                player.sendMessage(ChatColor.RED + "That animal is not trainable.");
+                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                            }
+                        }
+                    });
+                } else {
+                    player.sendMessage(ChatColor.RED + "That animal is not trainable.");
+                }
             } else {
                 if (matches.size() > 10) {
                     sender.sendMessage(ChatColor.RED + "The prefix " + prefix + " matches more than 10 horses. ");

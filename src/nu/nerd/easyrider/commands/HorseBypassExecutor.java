@@ -40,9 +40,9 @@ public class HorseBypassExecutor extends ExecutorBase {
         PlayerState state = EasyRider.PLUGIN.getState((Player) sender);
         state.toggleBypassEnabled();
         if (state.isBypassEnabled()) {
-            sender.sendMessage(ChatColor.GOLD + "You can now bypass horse access permission checks.");
+            sender.sendMessage(ChatColor.GOLD + "You can now bypass access permission checks.");
         } else {
-            sender.sendMessage(ChatColor.GOLD + "You can no longer bypass horse access permission checks.");
+            sender.sendMessage(ChatColor.GOLD + "You can no longer bypass access permission checks.");
         }
         return true;
     }

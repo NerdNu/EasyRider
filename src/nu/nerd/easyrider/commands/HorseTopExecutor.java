@@ -2,6 +2,7 @@ package nu.nerd.easyrider.commands;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -112,15 +113,17 @@ public class HorseTopExecutor extends ExecutorBase {
                     }
                 };
 
-                ArrayList<SavedHorse> savedHorses = EasyRider.DB.cloneAllHorses();
-                savedHorses.sort(comparator);
+                ArrayList<SavedHorse> trainableHorses = EasyRider.DB.cloneAllHorses().stream()
+                .filter(h -> h.isTrainable())
+                .collect(Collectors.toCollection(ArrayList::new));
+                trainableHorses.sort(comparator);
 
                 // Set a non-negative index for the command senders best horse.
-                final int ownBestIndex = findBestHorse(sender, savedHorses);
+                final int ownBestIndex = findBestHorse(sender, trainableHorses);
                 Bukkit.getScheduler().runTask(EasyRider.PLUGIN, new Runnable() {
                     @Override
                     public void run() {
-                        showPage(sender, ability, savedHorses, page, ownBestIndex);
+                        showPage(sender, ability, trainableHorses, page, ownBestIndex);
                     }
                 });
             }

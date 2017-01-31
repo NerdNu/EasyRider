@@ -5,8 +5,9 @@ import java.util.function.BooleanSupplier;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.ChestedHorse;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Horse;
 import org.bukkit.inventory.ItemStack;
 
 import nu.nerd.easyrider.db.SavedHorse;
@@ -50,8 +51,8 @@ public class ScanLoadedChunksTask implements BooleanSupplier {
             Chunk chunk = _chunks[_index++];
             if (chunk.isLoaded()) {
                 for (Entity entity : chunk.getEntities()) {
-                    if (entity instanceof Horse) {
-                        Horse horse = (Horse) entity;
+                    if (entity instanceof AbstractHorse) {
+                        AbstractHorse horse = (AbstractHorse) entity;
                         SavedHorse savedHorse = EasyRider.DB.findHorse(horse);
                         if (savedHorse != null) {
                             EasyRider.DB.observe(savedHorse, horse);
@@ -66,9 +67,12 @@ public class ScanLoadedChunksTask implements BooleanSupplier {
                             horse.setOwner(null);
                             horse.setTamed(false);
                             horse.setDomestication(1);
-                            if (horse.isCarryingChest()) {
-                                horse.setCarryingChest(false);
-                                horse.getWorld().dropItemNaturally(horse.getLocation(), new ItemStack(Material.CHEST));
+                            if (horse instanceof ChestedHorse) {
+                                ChestedHorse chestedHorse = (ChestedHorse) horse;
+                                if (chestedHorse.isCarryingChest()) {
+                                    chestedHorse.setCarryingChest(false);
+                                    chestedHorse.getWorld().dropItemNaturally(chestedHorse.getLocation(), new ItemStack(Material.CHEST));
+                                }
                             }
                         }
                     }

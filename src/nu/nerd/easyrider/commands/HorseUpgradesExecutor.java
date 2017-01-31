@@ -14,6 +14,7 @@ import nu.nerd.easyrider.EasyRider;
 public class HorseUpgradesExecutor extends ExecutorBase {
     // --------------------------------------------------------------------------
     /**
+     * Constructor.
      */
     public HorseUpgradesExecutor() {
         super("horse-upgrades", "health", "jump", "speed", "help");
