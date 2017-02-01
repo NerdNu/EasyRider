@@ -11,7 +11,7 @@ Features
      horses.
  * The following capabilities are supported for *Trackable Animals*:
    * they can be locked, 
-   * have an access control list that defines who (besides the owner) can ride
+   * they have an access control list that defines who (besides the owner) can ride
      them or access their inventory,
    * they can be listed, showing their name, type of animal, equipment, 
      appearance, location, and performance attributes,
