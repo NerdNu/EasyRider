@@ -4,11 +4,14 @@ import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.ChestedHorse;
+import org.bukkit.entity.Donkey;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Llama;
+import org.bukkit.entity.Mule;
 import org.bukkit.entity.SkeletonHorse;
 import org.bukkit.entity.ZombieHorse;
 import org.bukkit.inventory.HorseInventory;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.LlamaInventory;
 
@@ -46,27 +49,27 @@ public class HorseEquipment {
     public static final int CHEST = 0x10;
 
     /**
-     * Bit set to indicate the presence of a llama blanket (carpet/decor).
+     * Bit set to indicate the presence of a llama pack (carpet/decor).
      */
-    public static final int BLANKET = 0x20;
+    public static final int PACK = 0x20;
 
     /**
      * Bit set corresponding to a 4-bit field used to encode a llama's decor
-     * (blanket) colour.
+     * (pack) colour.
      */
-    public static final int BLANKET_COLOUR = 0x3C0;
+    public static final int PACK_COLOUR = 0x3C0;
 
     /**
-     * Number of bits to shift the blanket bits down to get a blanket colour
-     * number (0-15).
+     * Number of bits to shift the pack bits down to get a pack colour number
+     * (0-15).
      */
-    public static final int BLANKET_SHIFT = 6;
+    public static final int PACK_SHIFT = 6;
 
     /**
      * Bit set corresponding to all regular, vanilla equipment.
      */
     public static final int ALL_REGULAR = (SADDLE | IRON_BARDING | GOLD_BARDING | DIAMOND_BARDING | CHEST |
-                                           BLANKET | BLANKET_COLOUR);
+                                           PACK | PACK_COLOUR);
 
     // ------------------------------------------------------------------------
     /**
@@ -85,9 +88,7 @@ public class HorseEquipment {
             }
         }
 
-        if (abstractHorse instanceof Horse ||
-            abstractHorse instanceof SkeletonHorse ||
-            abstractHorse instanceof ZombieHorse) {
+        if (abstractHorse instanceof Horse) {
             HorseInventory inv = (HorseInventory) abstractHorse.getInventory();
             if (inv.getSaddle() != null && inv.getSaddle().getType() == Material.SADDLE) {
                 equip |= HorseEquipment.SADDLE;
@@ -101,14 +102,25 @@ public class HorseEquipment {
                     equip |= HorseEquipment.DIAMOND_BARDING;
                 }
             }
-        }
-
-        if (abstractHorse instanceof Llama) {
+        } else if (abstractHorse instanceof Donkey ||
+                   abstractHorse instanceof Mule) {
+            Inventory inv = abstractHorse.getInventory();
+            ItemStack saddleItem = inv.getItem(0);
+            if (saddleItem != null && saddleItem.getType() == Material.SADDLE) {
+                equip |= HorseEquipment.SADDLE;
+            }
+        } else if (abstractHorse instanceof SkeletonHorse ||
+                   abstractHorse instanceof ZombieHorse) {
+            Inventory inv = abstractHorse.getInventory();
+            if (inv.contains(Material.SADDLE)) {
+                equip |= HorseEquipment.SADDLE;
+            }
+        } else if (abstractHorse instanceof Llama) {
             Llama llama = (Llama) abstractHorse;
             LlamaInventory inv = llama.getInventory();
             ItemStack item = inv.getDecor();
             if (item != null && item.getType() == Material.CARPET) {
-                equip |= HorseEquipment.BLANKET | ((item.getDurability() & 0xF) << BLANKET_SHIFT);
+                equip |= HorseEquipment.PACK | ((item.getDurability() & 0xF) << PACK_SHIFT);
             }
 
         }
@@ -145,11 +157,11 @@ public class HorseEquipment {
             s.append(sep).append("chest");
             sep = ", ";
         }
-        if ((bits & BLANKET) != 0) {
-            int colourBits = (bits & BLANKET_COLOUR) >> BLANKET_SHIFT;
+        if ((bits & PACK) != 0) {
+            int colourBits = (bits & PACK_COLOUR) >> PACK_SHIFT;
             @SuppressWarnings("deprecation")
             DyeColor colour = DyeColor.getByWoolData((byte) colourBits);
-            s.append(colour.name().replace('_', ' ').toLowerCase()).append(" blanket");
+            s.append(sep).append(colour.name().replace('_', ' ').toLowerCase()).append(" pack");
             sep = ", ";
         }
         return s.toString();
