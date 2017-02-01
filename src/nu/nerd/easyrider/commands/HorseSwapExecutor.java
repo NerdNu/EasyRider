@@ -47,7 +47,9 @@ public class HorseSwapExecutor extends ExecutorBase {
 
             String prefix = args[0];
             List<SavedHorse> matches = EasyRider.DB.findHorsesByUUID(prefix);
-            if (matches.size() == 1) {
+            if (matches.size() == 0) {
+                sender.sendMessage(ChatColor.RED + "That UUID does not match any animals.");
+            } else if (matches.size() == 1) {
                 SavedHorse originalHorse = matches.get(0);
                 if (originalHorse.isTrainable()) {
                     player.sendMessage(ChatColor.GOLD + "Right click on the horse to swap stats with " +
@@ -78,9 +80,9 @@ public class HorseSwapExecutor extends ExecutorBase {
                 }
             } else {
                 if (matches.size() > 10) {
-                    sender.sendMessage(ChatColor.RED + "The prefix " + prefix + " matches more than 10 horses. ");
+                    sender.sendMessage(ChatColor.RED + "The prefix " + prefix + " matches more than 10 animals. ");
                 } else {
-                    sender.sendMessage(ChatColor.RED + "The prefix " + prefix + " matches the following horses: ");
+                    sender.sendMessage(ChatColor.RED + "The prefix " + prefix + " matches the following animals: ");
                     for (SavedHorse savedHorse : matches) {
                         sender.sendMessage(ChatColor.RED + savedHorse.getUuid().toString());
                     }
