@@ -3,10 +3,24 @@ EasyRider
 A Bukkit plugin that improves horses MMO-style by increasing their levels
 through training.
 
-
 Features
 --------
- * Horses can be trained in three abilities: speed, jump strength and health.
+ * The plugin manages two categories of animals:
+   * *Trackable Animals*: llamas.
+   * *Trainable Animals*: Horses, donkeys, mules, skeletal horses and zombie 
+     horses.
+ * The following capabilities are supported for *Trackable Animals*:
+   * they can be locked, 
+   * have an access control list that defines who (besides the owner) can ride
+     them or access their inventory,
+   * they can be listed, showing their name, type of animal, equipment, 
+     appearance, location, and performance attributes,
+   * they can be found, showing their coordinates and the direction to go to
+     reach them. 
+ * *Trainable Animals* support all of the capabilities provided for *Trackable 
+   Animals* and can also be trained to improve their performance.
+ * *Trainable Animals* can be trained in three abilities: speed, jump strength 
+   and health.
    * **Speed**: A horse’s speed increases according to the total horizontal
      distance travelled on the ground by the horse while carrying a rider.
    * **Jump Strength**:  A horse’s jump strength increases according to the total
@@ -19,46 +33,52 @@ Features
      the horse’s health. Horses eat one food item at a time. You may need to
      hurt them in order for them to eat golden apples. *What does not kill them
      makes them stronger!*
- * Horses start out at level 1 in each of these three abilities.
- * Horse attributes (health, jump and speed) improve in discrete steps when the
-   level of that ability is increased to the next whole number.
+ * *Trainable Animals* start out at level 1 in each of these three abilities.
+ * *Trainable Animal* attributes (health, jump and speed) improve in discrete
+   steps when the level of that ability is increased to the next whole number.
  * The level of each ability has a maximum value corresponding to an attribute
    that is generally a little bit better than the best possible vanilla
    Minecraft horse in that regard. But it will take a lot of effort to get
    there. It is not possible to exceed the maximum level by further training.
  * However, admins can set the level of a horse's ability *above* the maximum
    using the `/horse-set-level` command.
- * All types of horses, including donkeys, mules, skeletal and undead horses,
+ * All types of horses, including donkeys, mules, skeletal and zombie horses,
    have the same maximum level and maximum ability (in this version of the
    plugin). But other vanilla restrictions remain: only donkeys and mules can
-   carry chests and skeletal or undead horses cannot wear armour.
+   carry chests and skeletal or zombie horses cannot wear armour.
  * The total training effort to reach the next level increases *exponentially*
    with the level.
  * The maximum level, maximum significant training effort, exponential scaling,
    and the resulting range of horse attribute values are all configurable.
- * Horses have a hydration level that ranges between 0.0 and 1.0. Full hydration
-   is 1.0. Hydration declines in proportion to horizontal distance travelled.
-   When hydration reaches 0.0, training no longer increases the horse's levels.
- * The rate at which a horse pants (breathes heavily) increases from once a
+ * *Trainable Animals* have a hydration level that ranges between 0.0 and 1.0. 
+   Full hydration is 1.0. Hydration declines in proportion to horizontal 
+   distance travelled. When hydration reaches 0.0, training no longer increases
+   the animal's levels.
+ * The rate at which an animal pants (breathes heavily) increases from once a
    minute at full hydration to every four seconds at hydration 0.0.
- * Horses can be rehydrated by right clicking on them with a bucket, or by
-   mounting them when they are within 3 blocks of a water block or cauldron
-   containing water, either at feet level or ground level (one block below).
+ * *Trainable Animals* can be rehydrated by right clicking on them with a 
+   bucket, or by mounting them when they are within 3 blocks of a water block 
+   or cauldron containing water, either at feet level or ground level (one 
+   block below).
  * The full dehydration distance and rehydration value of a water bucket are
    configurable.
  * Players who have problems with chunks loading slowly when riding fast horses
    can set a speed limit that applies to their motion while they are riding any
    horse, using `/horse-speed-limit`. The innate maximum speed of a horse is not
    affected by this command.
- * Untrained horses that are not ridden or interacted with by their owner for a
+ * Animals that are not ridden or interacted with by their owner for a
    long time (configurable, default 14 days) may be considered abandoned and 
    are then untamed and can be tamed or killed by another player, or killed by
-   the environment. Horses can be prevented from abandonment in any of the
-   following ways:
-   * naming the horse with a nametag, or
-   * giving it equipment (saddle, chest or armour), or 
-   * training it to level 2 or more in speed or jump, or 
-   * feeding it 72 or more gold nuggets worth of golden food.
+   the environment.
+   * *Trainable Animals* can be prevented from abandonment in any of the 
+     following ways:
+     * naming the horse/donkey/mule with a name tag, or
+     * giving them equipment (saddle, chest or armour), or 
+     * training them to level 2 or more in speed or jump, or 
+     * feeding them 72 or more gold nuggets worth of golden food.
+   * *Llamas* can be prevented from abandonment by:
+     * naming them with a name tag, or
+     * giving them equipment (carpet or chest).
  * Choice of horse database implementation, as long as you choose YAML. The
    Sqlite Ebeans implementation and the combined (YAML + Sqlite) implementation
    have been dropped due to Ebeans not working as expected and the API being
@@ -116,6 +136,16 @@ Attributes such as speed, health (hearts) and jump strength are linearly
 interpolated according to the level, from 1 to the maximum level, and
 quantised to the value corresponding to `L(E)`, recalling that `L(E)` is always
 rounded down to an integer.
+
+Llimitations of Llamas
+----------------------
+`EasyRider` provides many commands and capabilities that apply equally to all
+types of horses (living, skeletal, zombie), mules, donkeys and llamas. Unless
+otherwise specified, the word "horse" in the documentation that follows refers
+to any of these animals, including llamas. However, since llamas cannot be
+trained, commands that show training information will instead show attributes and 
+will not show level values, and some admin commands that operate directly on
+training information may not be applicable to llamas.
 
 
 Player Facing Commands
