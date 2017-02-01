@@ -35,6 +35,7 @@ import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.entity.HorseJumpEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -42,6 +43,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -463,9 +465,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             if (Util.isTrainable(abstractHorse)) {
                 // Allow players to feed golden carrots to living horses that
                 // they cannot access for breeding purposes. Other foods don't
-                // work due to vanilla limitations. May be broken in 1.11
-                // because of: https://bugs.mojang.com/browse/MC-93824
-                // TODO: check in 1.11
+                // work due to vanilla limitations.
                 if (!Util.isUndeadHorse(abstractHorse) &&
                     item != null && item.getType() == Material.GOLDEN_CARROT) {
                     handleFeeding(abstractHorse, savedHorse, player);
@@ -571,12 +571,49 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
+     * When feeding golden carrots, it may be possible for the right click to
+     * get past the PlayerInteractEntityEvent even when the player doesn't have
+     * access. Ensure that inventory access control is enforced. See the doc
+     * comment for {@link EasyRider#onVehicleEnter(VehicleEnterEvent)} for more
+     * information.
+     */
+    @EventHandler
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        InventoryHolder holder = event.getInventory().getHolder();
+        if (!(holder instanceof AbstractHorse) || !(event.getPlayer() instanceof Player)) {
+            return;
+        }
+
+        Player player = (Player) event.getPlayer();
+        AbstractHorse abstractHorse = (AbstractHorse) holder;
+        if (Util.isTrackable(abstractHorse)) {
+            SavedHorse savedHorse = DB.findOrAddHorse(abstractHorse);
+            DB.observe(savedHorse, abstractHorse);
+
+            PlayerState playerState = getState(player);
+            if (!isAccessible(savedHorse, abstractHorse, player, playerState)) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * When a player mounts a horse, clear the recorded location of the horse in
      * the previous tick.
      *
      * Note that players can switch from horse to horse without dismounting,
      * which would mess up distance ridden calculations if we simply stored the
      * destination horse's location.
+     *
+     * In 1.11, since we allow players to feed horses golden carrots even if
+     * they are otherwise inaccessible, and since 1.11 horses will not consume
+     * the carrot if already in love mode (which we can't detect with a query
+     * method) it is possible for the interaction event to not be cancelled even
+     * though the player has no access and for the player to end up riding the
+     * horse or accessing it's inventory. Let's stop that here and in the
+     * inventory open event.
      */
     @EventHandler(ignoreCancelled = true)
     public void onVehicleEnter(VehicleEnterEvent event) {
@@ -590,7 +627,14 @@ public class EasyRider extends JavaPlugin implements Listener {
 
             SavedHorse savedHorse = DB.findOrAddHorse(abstractHorse);
             DB.observe(savedHorse, abstractHorse);
-            getState(player).clearHorseDistance();
+
+            PlayerState playerState = getState(player);
+            playerState.clearHorseDistance();
+
+            if (!isAccessible(savedHorse, abstractHorse, player, playerState)) {
+                event.setCancelled(true);
+                return;
+            }
 
             if (Util.isTrainable(abstractHorse)) {
                 // Rehydrate if remounting in water.
