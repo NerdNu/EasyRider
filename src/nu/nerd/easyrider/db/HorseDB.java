@@ -17,6 +17,7 @@ import org.bukkit.entity.ChestedHorse;
 import org.bukkit.inventory.ItemStack;
 
 import nu.nerd.easyrider.EasyRider;
+import nu.nerd.easyrider.Util;
 
 // ----------------------------------------------------------------------------
 /**
@@ -48,21 +49,25 @@ public class HorseDB {
      * Find the specified AbstractHorse in the database cache, adding it as
      * necessary.
      * 
-     * @param horse the AbstractHorse entity.
+     * @param abstractHorse the AbstractHorse entity.
      */
-    public synchronized SavedHorse findOrAddHorse(AbstractHorse horse) {
-        SavedHorse savedHorse = findHorse(horse);
+    public synchronized SavedHorse findOrAddHorse(AbstractHorse abstractHorse) {
+        SavedHorse savedHorse = findHorse(abstractHorse);
         if (savedHorse == null) {
-            savedHorse = new SavedHorse(horse);
+            savedHorse = new SavedHorse(abstractHorse);
             _cache.put(savedHorse.getUuid(), savedHorse);
 
             savedHorse.setDistanceTravelled(0);
             savedHorse.setDistanceJumped(0);
             savedHorse.setNuggetsEaten(0);
-            savedHorse.setSpeedLevel(1);
-            savedHorse.setJumpLevel(1);
-            savedHorse.setHealthLevel(1);
-            savedHorse.updateAllAttributes(horse);
+            boolean trainable = Util.isTrainable(abstractHorse);
+            int initialLevel = trainable ? 1 : 0;
+            savedHorse.setSpeedLevel(initialLevel);
+            savedHorse.setJumpLevel(initialLevel);
+            savedHorse.setHealthLevel(initialLevel);
+            if (trainable) {
+                savedHorse.updateAllAttributes(abstractHorse);
+            }
         }
         return savedHorse;
     }
@@ -72,11 +77,11 @@ public class HorseDB {
      * Return the SavedHorse corresponding to the in-game AbstractHorse entity,
      * or null if not stored in the database.
      * 
-     * @param horse the AbstractHorse to find.
+     * @param abstractHorse the AbstractHorse to find.
      * @return the corresponding database entry, or null if never saved.
      */
-    public synchronized SavedHorse findHorse(AbstractHorse horse) {
-        return _cache.get(horse.getUniqueId());
+    public synchronized SavedHorse findHorse(AbstractHorse abstractHorse) {
+        return _cache.get(abstractHorse.getUniqueId());
     }
 
     // --------------------------------------------------------------------------
@@ -175,21 +180,21 @@ public class HorseDB {
      * be a big deal.
      *
      * @param savedHorse the database state of the horse.
-     * @param horse the AbstractHorse Entity.
+     * @param abstractHorse the AbstractHorse Entity.
      */
-    public void freeHorse(SavedHorse savedHorse, AbstractHorse horse) {
-        if (horse != null) {
-            horse.setOwner(null);
-            horse.setTamed(false);
-            horse.setDomestication(1);
-            for (ItemStack item : horse.getInventory().getContents()) {
+    public void freeHorse(SavedHorse savedHorse, AbstractHorse abstractHorse) {
+        if (abstractHorse != null) {
+            abstractHorse.setOwner(null);
+            abstractHorse.setTamed(false);
+            abstractHorse.setDomestication(1);
+            for (ItemStack item : abstractHorse.getInventory().getContents()) {
                 if (item != null) {
-                    horse.getWorld().dropItemNaturally(horse.getLocation(), item);
-                    horse.getInventory().remove(item);
+                    abstractHorse.getWorld().dropItemNaturally(abstractHorse.getLocation(), item);
+                    abstractHorse.getInventory().remove(item);
                 }
             }
-            if (horse instanceof ChestedHorse) {
-                ChestedHorse chestedHorse = (ChestedHorse) horse;
+            if (abstractHorse instanceof ChestedHorse) {
+                ChestedHorse chestedHorse = (ChestedHorse) abstractHorse;
                 if (chestedHorse.isCarryingChest()) {
                     chestedHorse.setCarryingChest(false);
                     chestedHorse.getWorld().dropItemNaturally(chestedHorse.getLocation(), new ItemStack(Material.CHEST));
@@ -197,8 +202,8 @@ public class HorseDB {
             }
         }
         savedHorse.clearPermittedPlayers();
-        if (horse != null) {
-            observe(savedHorse, horse);
+        if (abstractHorse != null) {
+            observe(savedHorse, abstractHorse);
         } else {
             removeOwnedHorse(savedHorse.getOwnerUuid(), savedHorse);
             savedHorse.setOwnerUuid(null);
@@ -213,17 +218,17 @@ public class HorseDB {
      *
      * @see SavedHorse#observe(AbstractHorse)
      * @param savedHorse the database state of the horse.
-     * @param horse the AbstractHorse Entity; should never be null.
+     * @param abstractHorse the AbstractHorse Entity; should never be null.
      */
-    public void observe(SavedHorse savedHorse, AbstractHorse horse) {
+    public void observe(SavedHorse savedHorse, AbstractHorse abstractHorse) {
         UUID oldOwnerUuid = savedHorse.getOwnerUuid();
-        AnimalTamer owner = horse.getOwner();
+        AnimalTamer owner = abstractHorse.getOwner();
         UUID newOwnerUuid = (owner == null) ? null : owner.getUniqueId();
         if (oldOwnerUuid != null && !oldOwnerUuid.equals(newOwnerUuid)) {
             removeOwnedHorse(oldOwnerUuid, savedHorse);
         }
         addOwnedHorse(newOwnerUuid, savedHorse);
-        savedHorse.observe(horse);
+        savedHorse.observe(abstractHorse);
     }
 
     // ------------------------------------------------------------------------
