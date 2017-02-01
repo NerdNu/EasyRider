@@ -23,16 +23,16 @@ public final class GoldConsumerTask implements Runnable {
      * amount.
      *
      * @param player the player.
-     * @parma horse the horse.
+     * @param abstractHorse the horse.
      * @param beforeFoodItem the consumed golden food item before the amount is
      *        changed.
      * @param nuggetValue the computed value of one food item in gold nuggets.
      * @param heldItemSlot the players main hand item slot.
      */
-    public GoldConsumerTask(Player player, AbstractHorse horse, ItemStack beforeFoodItem,
+    public GoldConsumerTask(Player player, AbstractHorse abstractHorse, ItemStack beforeFoodItem,
                             int nuggetValue, int heldItemSlot) {
         _player = player;
-        _horse = horse;
+        _horse = abstractHorse;
         _beforeFoodItem = beforeFoodItem.clone();
         _nuggetValue = nuggetValue;
         _heldItemSlot = heldItemSlot;
@@ -62,10 +62,19 @@ public final class GoldConsumerTask implements Runnable {
             ItemStack afterFoodItem = _player.getInventory().getItem(_heldItemSlot);
             if ((afterFoodItem == null && _beforeFoodItem.getAmount() == 1)
                 ||
-                (afterFoodItem.getType() == _beforeFoodItem.getType() &&
+                (afterFoodItem != null &&
+                 afterFoodItem.getType() == _beforeFoodItem.getType() &&
                  afterFoodItem.getDurability() == _beforeFoodItem.getDurability() &&
                  afterFoodItem.getAmount() == _beforeFoodItem.getAmount() - 1)) {
+                EasyRider.PLUGIN.consumeGoldenFood(savedHorse, _horse, _nuggetValue, _player);
 
+            } else if (afterFoodItem != null &&
+                       afterFoodItem.getType() == _beforeFoodItem.getType() &&
+                       afterFoodItem.getDurability() == _beforeFoodItem.getDurability() &&
+                       afterFoodItem.getAmount() == _beforeFoodItem.getAmount()) {
+                // Nothing was consumed, but simulate consumption.
+                afterFoodItem.setAmount(afterFoodItem.getAmount() - 1);
+                _player.getInventory().setItem(_heldItemSlot, afterFoodItem);
                 EasyRider.PLUGIN.consumeGoldenFood(savedHorse, _horse, _nuggetValue, _player);
             }
         }
