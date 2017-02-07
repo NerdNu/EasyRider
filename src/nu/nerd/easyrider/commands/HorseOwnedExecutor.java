@@ -20,10 +20,7 @@ import nu.nerd.easyrider.db.SavedHorse;
 
 // ----------------------------------------------------------------------------
 /**
- * Executor for the /horse-owned command.
- * 
- * This command would be called /horse-list, if CobraCorral had not already
- * taken that name.
+ * Executor for the /horse-list command.
  */
 public class HorseOwnedExecutor extends ExecutorBase {
 
@@ -32,7 +29,7 @@ public class HorseOwnedExecutor extends ExecutorBase {
      * Default constructor.
      */
     public HorseOwnedExecutor() {
-        super("horse-owned", "help");
+        super("horse-list", "help");
     }
 
     // ------------------------------------------------------------------------
@@ -98,7 +95,7 @@ public class HorseOwnedExecutor extends ExecutorBase {
                 owner = sendingPlayer;
             } else {
                 // Owner is specified by name. Check permissions for this.
-                if (!sender.hasPermission("easyrider.owned-player")) {
+                if (!sender.hasPermission("easyrider.list-player")) {
                     sender.sendMessage(ChatColor.RED + "You don't have permission to list other players' animals.");
                     return true;
                 }

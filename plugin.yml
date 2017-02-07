@@ -43,8 +43,8 @@ permissions:
     description: Permission to use /horse-free.
     default: true
 
-  easyrider.levels:
-    description: Permission to use /horse-levels.
+  easyrider.info:
+    description: Permission to use /horse-info.
     default: true
 
   easyrider.upgrades:
@@ -71,12 +71,12 @@ permissions:
     description: Permission to use /horse-access.
     default: true
 
-  easyrider.owned:
-    description: Permission to use /horse-owned.
+  easyrider.list:
+    description: Permission to use /horse-list.
     default: true
 
-  easyrider.owned-player:
-    description: Permission to use /horse-owned <player>.
+  easyrider.list-player:
+    description: Permission to use /horse-list <player>.
     default: op
 
 commands:
@@ -157,10 +157,10 @@ commands:
       §e/<command> help§f - Show usage help.
       §e/<command> [<uuid>]§f - Release a horse from your ownership. Either click on the horse, or specify it by its UUID.
 
-  horse-levels:
+  horse-info:
     description: Show ability level information for a horse.
-    permission: easyrider.levels
-    aliases: ['horse-info', 'hinfo']
+    permission: easyrider.info
+    aliases: ['hinfo', 'horse-levels']
     usage: |
     
       §e/<command> help§f - Show usage help.
@@ -215,10 +215,10 @@ commands:
           §e/<command> 12abe4 -Alice +Bob§f - Give Bob access and revoke Alice's access to the horse whose UUID begins with 12abe4.   
           §e/<command> +Charles +Don§f - Give Charles and Don access to the next horse the owner right clicks on.   
 
-  horse-owned:
+  horse-list:
     description: List information about all horses owned by you or a specified player.
-    permission: easyrider.owned
-    aliases: ['horse-list', 'hlist']
+    permission: easyrider.list
+    aliases: ['hlist', 'horse-owned']
     usage: |
     
       §e/<command> help§f - Show usage help.

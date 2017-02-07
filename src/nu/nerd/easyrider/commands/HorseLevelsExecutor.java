@@ -19,7 +19,7 @@ import nu.nerd.easyrider.db.SavedHorse;
 
 //-----------------------------------------------------------------------------
 /**
- * CommandExecutor implementation for the /horse-level command.
+ * CommandExecutor implementation for the /horse-info command.
  */
 public class HorseLevelsExecutor extends ExecutorBase {
     // ------------------------------------------------------------------------
@@ -27,7 +27,7 @@ public class HorseLevelsExecutor extends ExecutorBase {
      * Default constructor.
      */
     public HorseLevelsExecutor() {
-        super("horse-levels", "help");
+        super("horse-info", "help");
     }
 
     // ------------------------------------------------------------------------
