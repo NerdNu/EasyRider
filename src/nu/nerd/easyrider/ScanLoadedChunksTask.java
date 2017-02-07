@@ -48,7 +48,7 @@ public class ScanLoadedChunksTask implements BooleanSupplier {
 
         int startIndex = _index;
         while (_index < _chunks.length) {
-            Chunk chunk = _chunks[_index++];
+            Chunk chunk = _chunks[_index];
             if (chunk.isLoaded()) {
                 for (Entity entity : chunk.getEntities()) {
                     if (entity instanceof AbstractHorse) {
@@ -79,6 +79,9 @@ public class ScanLoadedChunksTask implements BooleanSupplier {
                 }
             }
 
+            // Make chunk unreachable ASAP, just in case.
+            _chunks[_index++] = null;
+
             elapsed = System.nanoTime() - start;
             if (elapsed > EasyRider.CONFIG.SCAN_TIME_LIMIT_MICROS * 1000) {
                 if (EasyRider.CONFIG.DEBUG_SCANS) {
@@ -87,7 +90,7 @@ public class ScanLoadedChunksTask implements BooleanSupplier {
                 }
                 return true;
             }
-        }
+        } // while
 
         if (EasyRider.CONFIG.DEBUG_SCANS) {
             EasyRider.PLUGIN.getLogger().info("Scan of " + _world.getName() + " complete.");
