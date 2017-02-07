@@ -12,6 +12,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 import nu.nerd.easyrider.Ability;
 import nu.nerd.easyrider.EasyRider;
+import nu.nerd.easyrider.HorseEquipment;
 import nu.nerd.easyrider.IPendingInteraction;
 import nu.nerd.easyrider.Util;
 import nu.nerd.easyrider.db.SavedHorse;
@@ -62,8 +63,11 @@ public class HorseLevelsExecutor extends ExecutorBase {
 
     // ------------------------------------------------------------------------
     /**
-     * Send the specified player information about the current levels of the
-     * specified horse or the attributes of a llama.
+     * Send the player information about the current levels of the specified
+     * horse or the attributes of a llama.
+     *
+     * @param player the player.
+     * @param asbtractHorse the AbstractHorse.
      */
     protected void showLevels(Player player, AbstractHorse abstractHorse) {
         SavedHorse savedHorse = EasyRider.DB.findOrAddHorse(abstractHorse);
@@ -73,16 +77,19 @@ public class HorseLevelsExecutor extends ExecutorBase {
         AnimalTamer owner = abstractHorse.getOwner();
         String ownerName = (owner != null) ? owner.getName() : "<no owner>";
         player.sendMessage(ChatColor.GOLD + "Owner: " + ChatColor.YELLOW + ownerName);
+        player.sendMessage(ChatColor.GOLD + "Appearance: " +
+                           ChatColor.WHITE + Util.getAppearance(abstractHorse) + " " +
+                           ChatColor.YELLOW + HorseEquipment.description(HorseEquipment.bits(abstractHorse)));
         if (Util.isTrainable(abstractHorse)) {
             showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
             showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);
             showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
         } else if (abstractHorse instanceof Llama) {
             Llama llama = (Llama) abstractHorse;
-            player.sendMessage(ChatColor.GOLD + "Strength: " + ChatColor.GRAY + llama.getStrength());
             showAttribute(player, EasyRider.CONFIG.SPEED, abstractHorse);
             showAttribute(player, EasyRider.CONFIG.HEALTH, abstractHorse);
             showAttribute(player, EasyRider.CONFIG.JUMP, abstractHorse);
+            player.sendMessage(ChatColor.GOLD + "Strength: " + ChatColor.GRAY + llama.getStrength());
         }
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
     }
