@@ -150,14 +150,14 @@ training information may not be applicable to llamas.
 
 Player Facing Commands
 ----------------------
- * `/horse-levels [help]` - Show level information about the horse currently
+ * `/horse-info [help]` - Show level information about the horse currently
    ridden or right-clicked.
-   * **Aliases:** `/horse-info`, `/hinfo` 
+   * **Aliases:** `/hinfo`, `/horse-levels`
 
- * `/horse-owned [<player>] [<page>]` - List information about all horses
+ * `/horse-list [<player>] [<page>]` - List information about all horses
    owned by you or the specified player, optionally specifying the page number
    to show.
-   * **Aliases:** `/horse-list`, `/hfree`
+   * **Aliases:** `/hlist`, `/horse-owned`,
    
  * `/horse-free [<uuid>]` - Release a horse from your ownership. Either click on the horse, or specify it by its UUID. Admins with the `easyrider.bypass` permission can click on other players' horses to free them.
    * **Aliases:** `/hfree`
@@ -225,7 +225,6 @@ Admin Commands
 
 Configuration
 -------------
-
 | Setting | Description |
 | :--- | :--- |
 | `debug.config` | If true, log configuration settings on start up. |
@@ -251,7 +250,6 @@ Configuration
 
 Permissions
 -----------
-
  * `easyrider.admin` - Permission to administer the plugin (run `/easyrider reload`).
  * `easyrider.debug` - Players with this permission receive debug messages.
  * `easyrider.setlevel` - Permission to use `/horse-set-level`.
@@ -261,13 +259,13 @@ Permissions
  * `easyrider.bypass` - Permission to use `/horse-bypass`.
  * `easyrider.tame` - Permission to use `/horse-tame`.
  * `easyrider.free` - Permission to use `/horse-free`.
- * `easyrider.levels` - Permission to use `/horse-levels`.
+ * `easyrider.info` - Permission to use `/horse-info`.
  * `easyrider.upgrades` - Permission to use `/horse-upgrades`.
  * `easyrider.top` - Permission to use `/horse-top`.
  * `easyrider.speedlimit` - Permission to use `/horse-speed-limit`.
  * `easyrider.gps` - Permission to use `/horse-gps`.
  * `easyrider.gps-player` - Permission to specify a player name when using `/horse-gps`.
  * `easyrider.access` - Permission to use `/horse-access`.
- * `easyrider.owned` - Permission to use `/horse-owned`.
- * `easyrider.owned-player` - Permission to specify a player name other than one's own when using `/horse-owned`.
+ * `easyrider.list` - Permission to use `/horse-list`.
+ * `easyrider.list-player` - Permission to specify a player name other than one's own when using `/horse-list`.
  
