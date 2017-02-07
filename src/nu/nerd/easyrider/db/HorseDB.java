@@ -203,6 +203,7 @@ public class HorseDB {
         }
         savedHorse.clearPermittedPlayers();
         if (abstractHorse != null) {
+            abstractHorse.setCustomName(null);
             observe(savedHorse, abstractHorse);
         } else {
             removeOwnedHorse(savedHorse.getOwnerUuid(), savedHorse);
