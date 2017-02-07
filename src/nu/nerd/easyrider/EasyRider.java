@@ -273,7 +273,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             DB.observe(savedHorse, abstractHorse);
 
             owner.playSound(owner.getLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1f, 1f);
-            owner.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " has been locked.");
+            owner.sendMessage(ChatColor.GOLD + "This " + Util.entityTypeName(abstractHorse) + " has been locked.");
             getLogger().info(owner.getName() + " tamed " + Util.entityTypeName(abstractHorse) +
                              entity.getUniqueId().toString());
         }
@@ -485,8 +485,9 @@ public class EasyRider extends JavaPlugin implements Listener {
                 }
             } else if (abstractHorse instanceof Llama) {
                 // Allow anyone to feed hay blocks to locked llamas.
-                if ((item == null || item.getType() != Material.HAY_BLOCK) &&
-                    !isAccessible(savedHorse, abstractHorse, player, playerState)) {
+                boolean canAccess = (item != null && item.getType() == Material.HAY_BLOCK) ||
+                                    isAccessible(savedHorse, abstractHorse, player, playerState);
+                if (!canAccess) {
                     event.setCancelled(true);
                 }
             }
@@ -593,7 +594,6 @@ public class EasyRider extends JavaPlugin implements Listener {
             PlayerState playerState = getState(player);
             if (!isAccessible(savedHorse, abstractHorse, player, playerState)) {
                 event.setCancelled(true);
-                return;
             }
         }
     }
