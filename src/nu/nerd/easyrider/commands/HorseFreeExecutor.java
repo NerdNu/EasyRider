@@ -56,7 +56,9 @@ public class HorseFreeExecutor extends ExecutorBase {
                     AbstractHorse abstractHorse = (AbstractHorse) event.getRightClicked();
                     PlayerState playerState = EasyRider.PLUGIN.getState(player);
                     String entityTypeName = Util.entityTypeName(abstractHorse);
-                    if (player.equals(abstractHorse.getOwner()) || playerState.isBypassEnabled()) {
+                    if (abstractHorse.getOwner() == null) {
+                        sender.sendMessage(ChatColor.RED + "Nobody owns that " + entityTypeName + "!");
+                    } else if (player.equals(abstractHorse.getOwner()) || playerState.isBypassEnabled()) {
                         EasyRider.DB.freeHorse(savedHorse, abstractHorse);
                         sender.sendMessage(ChatColor.GOLD + "This " + entityTypeName + ", " +
                                            Util.limitString(savedHorse.getUuid().toString(), 20) +
