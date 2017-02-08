@@ -323,7 +323,7 @@ public class SavedHorse implements Cloneable {
                 return "This mule";
             } else if (getAppearance().equals("donkey")) {
                 return "This donkey";
-            } else if (getAppearance().equals("llama")) {
+            } else if (getAppearance().contains("llama")) {
                 return "This llama";
             }
         }
