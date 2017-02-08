@@ -263,6 +263,17 @@ public class Util {
 
     // ------------------------------------------------------------------------
     /**
+     * Change the first letter of a string to upper case.
+     *
+     * @param s the string.
+     * @return the string, with the first letter changed to upper case.
+     */
+    public static String capitalise(String s) {
+        return s.isEmpty() ? s : s.charAt(0) + s.substring(1);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Format a location as "(x, y, z) world", with integer coordinates.
      *
      * @param loc the location.

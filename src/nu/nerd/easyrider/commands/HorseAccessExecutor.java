@@ -61,9 +61,9 @@ public class HorseAccessExecutor extends ExecutorBase {
             .filter(h -> h.getUuid().toString().toLowerCase().startsWith(args[0]))
             .collect(Collectors.toList());
             if (found.size() == 0) {
-                sender.sendMessage(ChatColor.RED + "The partial UUID " + args[0] + " does not match any horses that you own.");
+                sender.sendMessage(ChatColor.RED + "The partial UUID " + args[0] + " does not match any animals that you own.");
             } else if (found.size() > 1) {
-                sender.sendMessage(ChatColor.RED + "The partial UUID " + args[0] + " matches multiple horses that you own.");
+                sender.sendMessage(ChatColor.RED + "The partial UUID " + args[0] + " matches multiple animals that you own.");
             } else {
                 parseAccess(sendingPlayer, found.get(0), Arrays.copyOfRange(args, 1, args.length));
             }
@@ -106,7 +106,7 @@ public class HorseAccessExecutor extends ExecutorBase {
                     return;
                 } else if (player.equals(sendingPlayer)) {
                     sendingPlayer.sendMessage(ChatColor.RED +
-                                              "You can't alter your own permissions on a horse you own.\n" +
+                                              "You can't alter your own permissions on an animal that you own.\n" +
                                               "Use /horse-free to release a horse.");
                 } else if (!player.hasPlayedBefore()) {
                     sendingPlayer.sendMessage(ChatColor.RED + "Error: " + player.getName() + " has not yet played on this server.");
@@ -127,7 +127,7 @@ public class HorseAccessExecutor extends ExecutorBase {
         }
 
         if (savedHorse == null) {
-            sendingPlayer.sendMessage(ChatColor.GOLD + "Right click on a horse.");
+            sendingPlayer.sendMessage(ChatColor.GOLD + "Right click on a horse or llama that you own.");
             PlayerState state = EasyRider.PLUGIN.getState(sendingPlayer);
             state.setPendingInteraction(new IPendingInteraction() {
                 @Override
@@ -151,7 +151,7 @@ public class HorseAccessExecutor extends ExecutorBase {
      */
     protected void doAccess(Player sendingPlayer, SavedHorse savedHorse,
                             Set<OfflinePlayer> added, Set<OfflinePlayer> removed) {
-        sendingPlayer.sendMessage(ChatColor.GOLD + "Horse: " + ChatColor.WHITE + savedHorse.getUuid().toString());
+        sendingPlayer.sendMessage(ChatColor.GOLD + "Unique ID: " + ChatColor.WHITE + savedHorse.getUuid().toString());
         if (savedHorse.getDisplayName().length() != 0) {
             sendingPlayer.sendMessage(ChatColor.GOLD + "Name: " + ChatColor.YELLOW + savedHorse.getDisplayName());
         }
@@ -159,22 +159,27 @@ public class HorseAccessExecutor extends ExecutorBase {
         sendingPlayer.sendMessage(ChatColor.GOLD + "Owner: " + ChatColor.GRAY + (owner == null ? "<nobody>" : owner.getName()));
 
         PlayerState state = EasyRider.PLUGIN.getState(sendingPlayer);
-        boolean canAlterACL = savedHorse.getOwnerUuid().equals(sendingPlayer.getUniqueId()) ||
-                              state.isBypassEnabled();
-        if (canAlterACL) {
-            if (added.size() > 0) {
-                savedHorse.addPermittedPlayers(added);
-                sendingPlayer.sendMessage(ChatColor.GOLD + "Added: " +
-                                          ChatColor.GRAY + String.join(" ", added.stream().map(p -> p.getName()).collect(Collectors.toList())));
-            }
-            if (removed.size() > 0) {
-                savedHorse.removePermittedPlayers(removed);
-                sendingPlayer.sendMessage(ChatColor.GOLD + "Removed: " +
-                                          ChatColor.GRAY + String.join(" ", removed.stream().map(p -> p.getName()).collect(Collectors.toList())));
-            }
-        } else {
-            sendingPlayer.sendMessage(ChatColor.RED + "You cannot alter the access list of horses you don't own.");
+        if (savedHorse.getOwnerUuid() == null) {
+            sendingPlayer.sendMessage(ChatColor.RED + "Nobody owns that animal.");
             return;
+        }
+
+        boolean canAlterACL = sendingPlayer.getUniqueId().equals(savedHorse.getOwnerUuid()) ||
+                              state.isBypassEnabled();
+        if (!canAlterACL) {
+            sendingPlayer.sendMessage(ChatColor.RED + "You cannot alter the access list of animals you don't own.");
+            return;
+        }
+
+        if (added.size() > 0) {
+            savedHorse.addPermittedPlayers(added);
+            sendingPlayer.sendMessage(ChatColor.GOLD + "Added: " +
+                                      ChatColor.GRAY + String.join(" ", added.stream().map(p -> p.getName()).collect(Collectors.toList())));
+        }
+        if (removed.size() > 0) {
+            savedHorse.removePermittedPlayers(removed);
+            sendingPlayer.sendMessage(ChatColor.GOLD + "Removed: " +
+                                      ChatColor.GRAY + String.join(" ", removed.stream().map(p -> p.getName()).collect(Collectors.toList())));
         }
         sendingPlayer.sendMessage(ChatColor.GOLD + "Access List: " +
                                   ChatColor.GRAY + String.join(" ", savedHorse.getAccessList()));
