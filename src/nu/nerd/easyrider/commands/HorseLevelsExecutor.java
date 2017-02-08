@@ -71,8 +71,7 @@ public class HorseLevelsExecutor extends ExecutorBase {
      */
     protected void showLevels(Player player, AbstractHorse abstractHorse) {
         SavedHorse savedHorse = EasyRider.DB.findOrAddHorse(abstractHorse);
-        String type = Util.entityTypeName(abstractHorse);
-        type = Character.toUpperCase(type.charAt(0)) + type.substring(1);
+        String type = Util.capitalise(Util.entityTypeName(abstractHorse));
         player.sendMessage(ChatColor.GOLD + type + ": " + ChatColor.YELLOW + abstractHorse.getUniqueId());
         AnimalTamer owner = abstractHorse.getOwner();
         String ownerName = (owner != null) ? owner.getName() : "<no owner>";
