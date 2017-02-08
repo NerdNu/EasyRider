@@ -355,6 +355,10 @@ public class HorseDB {
      * Return a non-null reference to the mutable set of SavedHorses belonging
      * to the player with the specified UUID.
      *
+     * The Comparator of the TreeSet<> orders trainable horses before (less
+     * than) non-trainable horses. The effect is to put trained horses at the
+     * top of the /hlist list, where they will have low indices for /hgps.
+     *
      * @param ownerUuid the UUID of the owning player.
      * @return the corresponding set of owned SavedHorses, which may be empty
      *         but will never be null.
@@ -363,7 +367,13 @@ public class HorseDB {
     protected TreeSet<SavedHorse> getOwnedHorsesSet(UUID ownerUuid) {
         TreeSet<SavedHorse> horses = _ownedHorses.get(ownerUuid);
         if (horses == null) {
-            horses = new TreeSet<SavedHorse>((h1, h2) -> h1.getUuid().compareTo(h2.getUuid()));
+            horses = new TreeSet<SavedHorse>((h1, h2) -> {
+                if (h1.isTrainable() == h2.isTrainable()) {
+                    return h1.getUuid().compareTo(h2.getUuid());
+                } else {
+                    return h1.isTrainable() ? -1 : 1;
+                }
+            });
             _ownedHorses.put(ownerUuid, horses);
         }
         return horses;
