@@ -30,6 +30,11 @@ public class Configuration {
     public boolean DEBUG_SAVES;
 
     /**
+     * If true, log actions taken to purge old backups.
+     */
+    public boolean DEBUG_PURGES;
+
+    /**
      * If true, log the time taken to scan worlds for horses.
      */
     public boolean DEBUG_SCANS;
@@ -286,6 +291,7 @@ public class Configuration {
         DEBUG_CONFIG = config.getBoolean("debug.config");
         DEBUG_EVENTS = config.getBoolean("debug.events");
         DEBUG_SAVES = config.getBoolean("debug.saves");
+        DEBUG_PURGES = config.getBoolean("debug.purges");
         DEBUG_SCANS = config.getBoolean("debug.scans");
         DEBUG_FINDS = config.getBoolean("debug.finds");
 
@@ -313,6 +319,7 @@ public class Configuration {
             logger.info("Configuration:");
             logger.info("DEBUG_EVENTS: " + DEBUG_EVENTS);
             logger.info("DEBUG_SAVES: " + DEBUG_SAVES);
+            logger.info("DEBUG_PURGES: " + DEBUG_PURGES);
             logger.info("DEBUG_SCANS: " + DEBUG_SCANS);
             logger.info("DEBUG_FINDS: " + DEBUG_FINDS);
             logger.info("DATABASE_IMPLEMENTATION: " + DATABASE_IMPLEMENTATION);

@@ -2,6 +2,7 @@ debug:
   config: true
   events: true
   saves: true
+  purges: false
   scans: false
   finds: false
 

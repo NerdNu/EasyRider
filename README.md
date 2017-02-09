@@ -230,6 +230,7 @@ Configuration
 | `debug.config` | If true, log configuration settings on start up. |
 | `debug.events` | If true, show extra debug messages in event handlers. |
 | `debug.saves` | If true, enable debug logging in database saves. |
+| `debug.purges` | If true, log actions taken to purge old backups. |
 | `debug.scans` | If true, log the time taken to scan worlds for horses. |
 | `debug.finds` | If true, log the time taken to find horses.
 | `database.implementation` | The database implementation type to choose. Currently only "yaml" is supported. |
