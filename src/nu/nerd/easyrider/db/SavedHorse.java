@@ -785,6 +785,11 @@ public class SavedHorse implements Cloneable {
 
             Player rider = (Player) horse.getPassenger();
             if (isDehydrated()) {
+                // Extra debug information of dehydrated horses.
+                if (isDebug()) {
+                    EasyRider.PLUGIN.debug(horse, " dehydrated (" + getHydration() + ") over dist " + dist);
+                }
+
                 if (_messageRateLimiter.run(() -> {
                     rider.sendMessage(ChatColor.RED + getMessageName() +
                                       " is too dehydrated to benefit from training. Give it a drink of water.");

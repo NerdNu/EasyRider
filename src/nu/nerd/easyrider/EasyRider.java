@@ -638,17 +638,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                 return;
             }
 
-            if (Util.isTrainable(abstractHorse)) {
-                // Rehydrate if remounting in water.
-                if (findDrinkableBlock(abstractHorse.getLocation())) {
-                    savedHorse.setHydration(1.0);
-                    EasyRider.CONFIG.SPEED.updateAttribute(savedHorse, abstractHorse);
-                    player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() +
-                                       " drinks until it is no longer thirsty!");
-                    Location loc = abstractHorse.getLocation();
-                    loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
-                }
-            }
+            handleDrinking(abstractHorse, savedHorse, player);
 
             if (abstractHorse.getOwner() != null && !player.equals(abstractHorse.getOwner())) {
                 player.sendMessage(ChatColor.GOLD + "You are now riding " + abstractHorse.getOwner().getName() + "'s " +
@@ -680,6 +670,8 @@ public class EasyRider extends JavaPlugin implements Listener {
                 // been limited by a player-specific maximum speed.
                 EasyRider.CONFIG.SPEED.updateAttribute(savedHorse, abstractHorse);
             }
+
+            handleDrinking(abstractHorse, savedHorse, player);
 
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
                 debug(abstractHorse, "Vehicle exit: " + player.getName());
@@ -835,7 +827,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 2.0f, 1.0f);
     }
 
-    // --------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
     /**
      * Return true if a given AbstractHorse is accessible by a player.
      *
@@ -863,7 +855,29 @@ public class EasyRider extends JavaPlugin implements Listener {
         }
     }
 
-    // --------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
+    /**
+     * Let the horse drink if it is not fully hydrated.
+     * 
+     * @param abstractHorse the horse.
+     * @param savedHorse the database state of the horse.
+     * @param player the player messaged about the horse's drinking.
+     */
+    protected void handleDrinking(AbstractHorse abstractHorse, SavedHorse savedHorse, Player player) {
+        if (Util.isTrainable(abstractHorse)) {
+            // Don't drink if the horse is already *nearly* full hydration.
+            if (!savedHorse.isFullyHydrated() && findDrinkableBlock(abstractHorse.getLocation())) {
+                savedHorse.setHydration(1.0);
+                EasyRider.CONFIG.SPEED.updateAttribute(savedHorse, abstractHorse);
+                player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() +
+                                   " drinks until it is no longer thirsty!");
+                Location loc = abstractHorse.getLocation();
+                loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
     /**
      * Handle feeding and watering of trainable horses.
      *
