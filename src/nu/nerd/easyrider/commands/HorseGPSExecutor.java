@@ -152,15 +152,22 @@ public class HorseGPSExecutor extends ExecutorBase {
             playerLoc.getWorld().playSound(playerLoc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
             String id = (savedHorse.getDisplayName().length() > 0) ? savedHorse.getDisplayName()
                                                                    : Util.limitString(savedHorse.getUuid().toString(), 20);
-            int distance = (int) playerLoc.distance(horseLoc);
-            player.sendMessage(ChatColor.GOLD + id +
-                               ChatColor.GRAY + " at " +
-                               ChatColor.YELLOW + Util.formatLocation(horseLoc) +
-                               ChatColor.WHITE + " (" + distance + " m)");
-
             if (horseLoc.getWorld().equals(playerLoc.getWorld())) {
-                playerLoc.setDirection(horseLoc.clone().subtract(playerLoc).toVector());
-                player.teleport(playerLoc);
+                // Don't teleport players in vehicles.
+                if (player.getVehicle() == null) {
+                    playerLoc.setDirection(horseLoc.clone().subtract(playerLoc).toVector());
+                    player.teleport(playerLoc);
+                }
+
+                int distance = (int) playerLoc.distance(horseLoc);
+                player.sendMessage(ChatColor.GOLD + id +
+                                   ChatColor.GRAY + " at " +
+                                   ChatColor.YELLOW + Util.formatLocation(horseLoc) +
+                                   ChatColor.WHITE + " (" + distance + " m)");
+            } else {
+                player.sendMessage(ChatColor.GOLD + id +
+                                   ChatColor.GRAY + " at " +
+                                   ChatColor.YELLOW + Util.formatLocation(horseLoc));
             }
         }
     } // pointTo
