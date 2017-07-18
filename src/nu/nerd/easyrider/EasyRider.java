@@ -55,6 +55,7 @@ import nu.nerd.easyrider.commands.HorseDebugExecutor;
 import nu.nerd.easyrider.commands.HorseFreeExecutor;
 import nu.nerd.easyrider.commands.HorseGPSExecutor;
 import nu.nerd.easyrider.commands.HorseLevelsExecutor;
+import nu.nerd.easyrider.commands.HorseNextExecutor;
 import nu.nerd.easyrider.commands.HorseOwnedExecutor;
 import nu.nerd.easyrider.commands.HorseSetLevelExecutor;
 import nu.nerd.easyrider.commands.HorseSpeedLimitExecutor;
@@ -148,6 +149,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseGPSExecutor());
         addCommandExecutor(new HorseAccessExecutor());
         addCommandExecutor(new HorseOwnedExecutor());
+        addCommandExecutor(new HorseNextExecutor());
 
         getServer().getPluginManager().registerEvents(this, this);
 

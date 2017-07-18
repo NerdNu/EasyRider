@@ -400,6 +400,15 @@ public abstract class Ability {
 
     // ------------------------------------------------------------------------
     /**
+     * Format training effort as a string.
+     *
+     * @param effort the effort.
+     * @return the formatted effort.
+     */
+    public abstract String formatEffort(double effort);
+
+    // ------------------------------------------------------------------------
+    /**
      * Return the formatted display value corresponding to this ability on a
      * SavedHorse.
      * 
@@ -418,7 +427,9 @@ public abstract class Ability {
      * @param savedHorse the database state of the horse.
      * @return effort for this ability expended on the specified horse.
      */
-    public abstract String getFormattedEffort(SavedHorse savedHorse);
+    public String getFormattedEffort(SavedHorse savedHorse) {
+        return formatEffort(getEffort(savedHorse));
+    }
 
     // ------------------------------------------------------------------------
     /**

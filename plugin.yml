@@ -83,6 +83,10 @@ permissions:
     description: Permission to use /horse-list <player>.
     default: op
 
+  easyrider.next:
+    description: Permission to use /horse-next.
+    default: true
+
 commands:
   easyrider:
     description: ${project.name} administrative command.
@@ -228,3 +232,13 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command> §f[§e<player>§f] [§e<page>§f] - List information about all horses owned by you or a specified player.
+
+  horse-next:
+    description: Show the training effort required to achieve the next level of each ability.
+    permission: easyrider.next
+    aliases: ['hnext']
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command>§f - Show the training effort required to achieve the next level of each ability.
+ 

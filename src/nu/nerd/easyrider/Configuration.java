@@ -122,6 +122,11 @@ public class Configuration {
         }
 
         @Override
+        public String formatEffort(double effort) {
+            return String.format("%.2f%s", effort, getEffortUnits());
+        }
+
+        @Override
         public void setLevel(SavedHorse savedHorse, int level) {
             savedHorse.setSpeedLevel(level);
         }
@@ -139,11 +144,6 @@ public class Configuration {
         @Override
         public double getEffort(SavedHorse savedHorse) {
             return savedHorse.getDistanceTravelled();
-        }
-
-        @Override
-        public String getFormattedEffort(SavedHorse savedHorse) {
-            return String.format("%.2f%s", savedHorse.getDistanceTravelled(), getEffortUnits());
         }
 
         @Override
@@ -189,6 +189,11 @@ public class Configuration {
         }
 
         @Override
+        public String formatEffort(double effort) {
+            return String.format("%.2f%s", effort, getEffortUnits());
+        }
+
+        @Override
         public void setLevel(SavedHorse savedHorse, int level) {
             savedHorse.setJumpLevel(level);
         }
@@ -206,11 +211,6 @@ public class Configuration {
         @Override
         public double getEffort(SavedHorse savedHorse) {
             return savedHorse.getDistanceJumped();
-        }
-
-        @Override
-        public String getFormattedEffort(SavedHorse savedHorse) {
-            return String.format("%.2f%s", savedHorse.getDistanceJumped(), getEffortUnits());
         }
 
         @Override
@@ -244,6 +244,11 @@ public class Configuration {
         }
 
         @Override
+        public String formatEffort(double effort) {
+            return String.format("%d %s", (int) effort, getEffortUnits());
+        }
+
+        @Override
         public void setLevel(SavedHorse savedHorse, int level) {
             savedHorse.setHealthLevel(level);
         }
@@ -261,11 +266,6 @@ public class Configuration {
         @Override
         public double getEffort(SavedHorse savedHorse) {
             return savedHorse.getNuggetsEaten();
-        }
-
-        @Override
-        public String getFormattedEffort(SavedHorse savedHorse) {
-            return String.format("%d %s", savedHorse.getNuggetsEaten(), getEffortUnits());
         }
 
         @Override
