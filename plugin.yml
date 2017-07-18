@@ -43,6 +43,10 @@ permissions:
     description: Permission to use /horse-free.
     default: true
 
+  easyrider.free-player:
+    description: Permission to use /horse-free <player> <uuid>.
+    default: op
+
   easyrider.info:
     description: Permission to use /horse-info.
     default: true
@@ -149,13 +153,14 @@ commands:
       §e/<command> <player>§f - Tame a horse to the specified player.
 
   horse-free:
-    description: Release a horse from your ownership.
+    description: Release a horse from your or a specified player's ownership.
     permission: easyrider.free
     aliases: ['hfree']
     usage: |
     
       §e/<command> help§f - Show usage help.
       §e/<command> [<uuid>]§f - Release a horse from your ownership. Either click on the horse, or specify it by its UUID.
+      §e/<command> <player> <uuid>§f - 'Admins-only variant: release a horse (specified by UUID) owned by the specified player.'
 
   horse-info:
     description: Show ability level information for a horse.
