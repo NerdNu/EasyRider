@@ -167,13 +167,11 @@ public class Configuration {
          */
         @Override
         public double toDisplayValue(double value) {
-            double yVelocity = value;
-            double jumpHeight = 0;
-            while (yVelocity > 0) {
-                jumpHeight += yVelocity;
-                yVelocity -= 0.08;
-                yVelocity *= 0.98;
-            }
+        public double toDisplayValue(double value) {
+            double jumpPower = 1.0D; //see AbstractHorse.setJumpPower()
+            double maxJumpStrength = horse.getHorseJumpStrength() * jumpPower;
+            double jumpHeight = (-0.1817584952 * Math.pow(maxJumpStrength, 3)) + (3.689713992 * Math.pow(maxJumpStrength, 2)) + (2.128599134 * maxJumpStrength) - 0.343930367;
+
             return jumpHeight;
         }
 
