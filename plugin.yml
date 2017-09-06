@@ -6,6 +6,10 @@ description: ${project.description}
 website: ${project.url}
 main: nu.nerd.easyrider.EasyRider
 
+# Prevent EasyRider from attempting to load horse locations before all worlds
+# are loaded.
+softdepend: [ Multiverse-Core ]
+
 permissions:
   easyrider.admin:
     description: Permission to administer the plugin.
