@@ -6,7 +6,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Horse;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
@@ -64,7 +64,7 @@ public class HorseSwapExecutor extends ExecutorBase {
                                 // attributes will be updated at that time.
                                 originalHorse.setOutdatedAttributes(true);
                                 newHorse.swapTrainingStats(originalHorse);
-                                newHorse.updateAllAttributes((Horse) event.getRightClicked());
+                                newHorse.updateAllAttributes((AbstractHorse) event.getRightClicked());
                                 sender.sendMessage(ChatColor.GOLD + "Horse " +
                                                    originalHorse.getUuid() + " has swapped stats with " +
                                                    newHorse.getUuid() + ".");
