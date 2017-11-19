@@ -4,6 +4,7 @@ author: totemo
 authors: [totemo]
 description: ${project.description}
 website: ${project.url}
+depend: [LibsDisguises]
 main: nu.nerd.easyrider.EasyRider
 
 # Prevent EasyRider from attempting to load horse locations before all worlds
@@ -89,6 +90,10 @@ permissions:
 
   easyrider.next:
     description: Permission to use /horse-next.
+    default: true
+
+  easyrider.disguise-self:
+    description: Permission to use /horse-disguise-self.
     default: true
 
 commands:
@@ -245,4 +250,13 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command>§f - Show the training effort required to achieve the next level of each ability.
+ 
+  horse-disguise-self:
+    description: Disguise a horse as a specified entity.
+    permission: easyrider.disguise-self
+    aliases: ['hdisguise-self']
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command>§f - Show or hide your horse's disguise to yourself (useful for screenshots). Disguised horses cannot move (the client doesn't understand); they can only turn on the spot.
  

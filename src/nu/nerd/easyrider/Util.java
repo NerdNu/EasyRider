@@ -1,17 +1,32 @@
 package nu.nerd.easyrider;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Llama;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.SkeletonHorse;
 import org.bukkit.entity.ZombieHorse;
+import org.bukkit.inventory.HorseInventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
+
+import me.libraryaddict.disguise.DisguiseAPI;
+import me.libraryaddict.disguise.disguisetypes.DisguiseType;
+import me.libraryaddict.disguise.disguisetypes.MobDisguise;
 
 // ----------------------------------------------------------------------------
 /**
@@ -232,6 +247,104 @@ public class Util {
 
     // ------------------------------------------------------------------------
     /**
+     * Re-apply disguises to all disguised steeds when a player joins.
+     */
+    public static void refreshSaddleDisguises() {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            if (onlinePlayer.getVehicle() instanceof AbstractHorse) {
+                AbstractHorse abstractHorse = (AbstractHorse) onlinePlayer.getVehicle();
+                EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
+                if (disguiseEntityType != null) {
+                    boolean showToRider = Util.isSaddleDisguiseVisibleToRider(abstractHorse);
+                    Util.applySaddleDisguise(abstractHorse, onlinePlayer, disguiseEntityType, showToRider);
+                }
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Disguise a horse as a specified EntityType and notify a player when it is
+     * still disguised.
+     * 
+     * @param abstractHorse the horse-like entity.
+     * @param rider the rider, to be notified if a disguise is applied.
+     * @param disguiseEntityType the EntityType of the disguise.
+     * @param showToRider if true, the disguise is visible to the rider.
+     */
+    public static void applySaddleDisguise(AbstractHorse abstractHorse, Player rider, EntityType disguiseEntityType, boolean showToRider) {
+        if (disguiseEntityType == null) {
+            return;
+        }
+
+        DisguiseType disguiseType = DisguiseType.getType(disguiseEntityType);
+        if (disguiseType != null) {
+            MobDisguise disguise = new MobDisguise(disguiseType);
+            Set<Player> players = new HashSet<>(Bukkit.getOnlinePlayers());
+            if (!showToRider) {
+                players.remove(rider);
+            }
+            DisguiseAPI.undisguiseToAll(abstractHorse);
+            DisguiseAPI.disguiseToPlayers(abstractHorse, disguise, players);
+            rider.sendMessage(ChatColor.GOLD + "Your steed is disguised as " + disguiseEntityType + "!");
+
+            abstractHorse.removeMetadata(SELF_DISGUISE_KEY, EasyRider.PLUGIN);
+            if (showToRider) {
+                abstractHorse.setMetadata(SELF_DISGUISE_KEY, new FixedMetadataValue(EasyRider.PLUGIN, null));
+            }
+        } else {
+            Logger logger = EasyRider.PLUGIN.getLogger();
+            logger.warning("Horse " + abstractHorse.getUniqueId() + " accessed by " + rider.getName() +
+                           " has a saddle with unsupported disguise " + disguiseEntityType + ".");
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    /**
+     * Return true if the saddle disguise of the specified horse is visible to
+     * the rider.
+     * 
+     * @param abstractHorse the horse-like entity.
+     * @return true if the saddle disguise of the specified horse is visible to
+     *         the rider.
+     */
+    public static boolean isSaddleDisguiseVisibleToRider(AbstractHorse abstractHorse) {
+        return !abstractHorse.getMetadata(SELF_DISGUISE_KEY).isEmpty();
+    }
+
+    // --------------------------------------------------------------------------
+    /**
+     * Return the EntityType of the disguise associated with a horse's saddle,
+     * or null if the saddle doesn't confer a disguise (or it's not a saddle).
+     * 
+     * @param abstractHorse the horse-like entity.
+     * @return the EntityType of the disguise, or null if no disguise should be
+     *         applied.
+     */
+    public static EntityType getSaddleDisguiseType(AbstractHorse abstractHorse) {
+        HorseInventory horseInventory = (HorseInventory) abstractHorse.getInventory();
+        ItemStack saddle = horseInventory.getSaddle();
+        if (saddle == null || saddle.getType() != Material.SADDLE) {
+            return null;
+        }
+
+        ItemMeta meta = saddle.getItemMeta();
+        if (meta != null && meta.hasLore()) {
+            for (String lore : meta.getLore()) {
+                if (lore.startsWith(EasyRider.DISGUISE_PREFIX)) {
+                    String entityTypeName = lore.substring(EasyRider.DISGUISE_PREFIX.length()).trim().toUpperCase();
+                    try {
+                        return EntityType.valueOf(entityTypeName);
+                    } catch (IllegalArgumentException ex) {
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Return the horizontal distance from a to b, ignoring Y coordinate
      * changes.
      *
@@ -317,5 +430,13 @@ public class Util {
      */
     private static final String[] STYLE_TO_APPEARANCE = {
         "", ", socks", ", whitefield", ", white dots", ", black dots" };
+
+    /**
+     * Metadata key for metadata signifying that a saddle disguise is visible to
+     * the rider.
+     * 
+     * If metadata with this key is absent, the rider cannot see the disguise.
+     */
+    private static final String SELF_DISGUISE_KEY = "EasyRider_self_disguise";
 
 } // class Util

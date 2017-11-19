@@ -20,6 +20,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -35,6 +36,7 @@ import org.bukkit.event.entity.EntityPortalEvent;
 import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.entity.HorseJumpEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -43,15 +45,18 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.inventory.HorseInventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import me.libraryaddict.disguise.DisguiseAPI;
 import nu.nerd.easyrider.commands.EasyRiderExecutor;
 import nu.nerd.easyrider.commands.ExecutorBase;
 import nu.nerd.easyrider.commands.HorseAccessExecutor;
 import nu.nerd.easyrider.commands.HorseBypassExecutor;
 import nu.nerd.easyrider.commands.HorseDebugExecutor;
+import nu.nerd.easyrider.commands.HorseDisguiseSelfExecutor;
 import nu.nerd.easyrider.commands.HorseFreeExecutor;
 import nu.nerd.easyrider.commands.HorseGPSExecutor;
 import nu.nerd.easyrider.commands.HorseLevelsExecutor;
@@ -150,6 +155,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         addCommandExecutor(new HorseAccessExecutor());
         addCommandExecutor(new HorseOwnedExecutor());
         addCommandExecutor(new HorseNextExecutor());
+        addCommandExecutor(new HorseDisguiseSelfExecutor());
 
         getServer().getPluginManager().registerEvents(this, this);
 
@@ -215,6 +221,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         _state.put(player.getName(), new PlayerState(player, _playerConfig));
+        Util.refreshSaddleDisguises();
     }
 
     // ------------------------------------------------------------------------
@@ -602,6 +609,45 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
+     * After an inventory click, check what the final result is and disguise the
+     * steed if it has a player riding it.
+     */
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        InventoryHolder holder = event.getInventory().getHolder();
+        if (!(holder instanceof AbstractHorse) ||
+            !(event.getInventory() instanceof HorseInventory) ||
+            !(event.getWhoClicked() instanceof Player)) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            // Require that the horse has a human passenger before applying a
+            // disguise. Note that the player doing the inventory editing is
+            // not necessarily the rider.
+            AbstractHorse abstractHorse = (AbstractHorse) holder;
+            Player rider = null;
+            for (Entity passenger : abstractHorse.getPassengers()) {
+                if (passenger instanceof Player) {
+                    rider = (Player) passenger;
+                    break;
+                }
+            }
+            if (rider == null) {
+                return;
+            }
+
+            EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
+            if (disguiseEntityType == null) {
+                DisguiseAPI.undisguiseToAll(abstractHorse);
+            } else {
+                Util.applySaddleDisguise(abstractHorse, rider, disguiseEntityType, false);
+            }
+        }, 1);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * When a player mounts a horse, clear the recorded location of the horse in
      * the previous tick.
      *
@@ -645,6 +691,11 @@ public class EasyRider extends JavaPlugin implements Listener {
                                    Util.entityTypeName(abstractHorse) + ".");
             }
 
+            EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
+            if (disguiseEntityType != null) {
+                Util.applySaddleDisguise(abstractHorse, player, disguiseEntityType, false);
+            }
+
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
                 debug(abstractHorse, "Vehicle enter: " + player.getName());
             }
@@ -654,7 +705,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     // ------------------------------------------------------------------------
     /**
      * Update observed horse state on vehicle exit.
-     *
+     * 
      * Include debug logging of vehicle exits.
      */
     @EventHandler(ignoreCancelled = true)
@@ -672,6 +723,12 @@ public class EasyRider extends JavaPlugin implements Listener {
             }
 
             handleDrinking(abstractHorse, savedHorse, player);
+
+            // Clear disguise on dismount.
+            EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
+            if (disguiseEntityType != null) {
+                DisguiseAPI.undisguiseToAll(abstractHorse);
+            }
 
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
                 debug(abstractHorse, "Vehicle exit: " + player.getName());
@@ -1049,6 +1106,12 @@ public class EasyRider extends JavaPlugin implements Listener {
      * Name of players file.
      */
     private static final String PLAYERS_FILE = "players.yml";
+
+    /**
+     * Start of lore string on saddles indicating that the saddle confers a
+     * disguise.
+     */
+    static final String DISGUISE_PREFIX = "Disguise:";
 
     /**
      * Configuration file for per-player settings.

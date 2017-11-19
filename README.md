@@ -62,6 +62,10 @@ Features
    block below).
  * The full dehydration distance and rehydration value of a water bucket are
    configurable.
+ * *Trainable Animals* can wear "disguise saddles" which disguise the steed
+   as some other type of entity. A disguise saddle has lore of the form:
+   "Disguise: EntityType" where EntityType is any Bukkit mob EntityType 
+   constant (case insensitive, surrounding spaces ignored).
  * Players who have problems with chunks loading slowly when riding fast horses
    can set a speed limit that applies to their motion while they are riding any
    horse, using `/horse-speed-limit`. The innate maximum speed of a horse is not
@@ -184,11 +188,18 @@ Player Facing Commands
    attribute values and training effort for a specified ability.
    * **Aliases:** `/hup`
 
- * `/horse-top health|jump|speed|help [<page>]` - List one page of 10 horses ranked in descending order by the specified ability. If no page number is specified, it defaults to page 1.
+ * `/horse-top health|jump|speed|help [<page>]` - List one page of 10 
+   horses ranked in descending order by the specified ability. If no page number
+   is specified, it defaults to page 1.
    * **Aliases:** `/htop`
 
  * `/horse-speed-limit [help|<number>]` - Set your personal speed limit to `<number>` (in m/s), if specified, or show your current speed limit if the number is omitted.
    * **Aliases:** `/hlimit`
+
+ * `/horse-disguise-self [help]` - Show or hide your horse's disguise to 
+   yourself (useful for screenshots). Disguised horses cannot move (the client
+   doesn't understand); they can only turn on the spot.
+   * **Aliases:** `/hdisguise-self`
 
 
 Admin Commands
@@ -269,4 +280,5 @@ Permissions
  * `easyrider.access` - Permission to use `/horse-access`.
  * `easyrider.list` - Permission to use `/horse-list`.
  * `easyrider.list-player` - Permission to specify a player name other than one's own when using `/horse-list`.
+ * `easyrider.disguise-self` - Permission to use `/horse-disguise-self`.
  
