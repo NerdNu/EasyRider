@@ -14,6 +14,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import nu.nerd.easyrider.EasyRider;
@@ -150,25 +151,42 @@ public class HorseGPSExecutor extends ExecutorBase {
             player.sendMessage(ChatColor.GOLD + "The specified animal could not be found.");
         } else {
             playerLoc.getWorld().playSound(playerLoc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+
+            // Send VoxelMap compatible coordinates.
+            // The mod uses lowercase name, x, y, z, no trailing space after
+            // colon. But it accepts capitals and spaces from /place. Use for
+            // readability. VoxelMap strips colours and sets the [...] as aqua.
             String id = (savedHorse.getDisplayName().length() > 0) ? savedHorse.getDisplayName()
                                                                    : Util.limitString(savedHorse.getUuid().toString(), 20);
-            if (horseLoc.getWorld().equals(playerLoc.getWorld())) {
-                // Don't teleport players in vehicles.
-                if (player.getVehicle() == null) {
-                    playerLoc.setDirection(horseLoc.clone().subtract(playerLoc).toVector());
-                    player.teleport(playerLoc);
-                }
+            player.sendMessage(ChatColor.GOLD + id + ChatColor.GRAY + " is at:");
+            StringBuilder message = new StringBuilder();
+            message.append(ChatColor.WHITE).append('[');
+            message.append(ChatColor.GOLD).append("Name: ").append(ChatColor.YELLOW).append("HGPS");
+            message.append(ChatColor.WHITE).append(", ");
+            message.append(ChatColor.GOLD).append("X: ").append(ChatColor.YELLOW).append(horseLoc.getBlockX());
+            message.append(ChatColor.WHITE).append(", ");
+            message.append(ChatColor.GOLD).append("Y: ").append(ChatColor.YELLOW).append(horseLoc.getBlockY());
+            message.append(ChatColor.WHITE).append(", ");
+            message.append(ChatColor.GOLD).append("Z: ").append(ChatColor.YELLOW).append(horseLoc.getBlockZ());
+            message.append(ChatColor.WHITE).append(", ");
+            message.append(ChatColor.GRAY).append("dim: ").append(ChatColor.GRAY).append(horseLoc.getWorld().getEnvironment().getId());
+            message.append(ChatColor.WHITE).append(']');
 
+            if (horseLoc.getWorld().equals(playerLoc.getWorld())) {
                 int distance = (int) playerLoc.distance(horseLoc);
-                player.sendMessage(ChatColor.GOLD + id +
-                                   ChatColor.GRAY + " at " +
-                                   ChatColor.YELLOW + Util.formatLocation(horseLoc) +
-                                   ChatColor.WHITE + " (" + distance + " m)");
+                message.append(" (").append(distance).append(" m)");
+
+                // Point player at horse if in the same world.
+                Entity vehicle = player.getVehicle();
+                playerLoc.setDirection(horseLoc.clone().subtract(playerLoc).toVector());
+                player.teleport(playerLoc);
+                if (vehicle != null) {
+                    vehicle.addPassenger(player);
+                }
             } else {
-                player.sendMessage(ChatColor.GOLD + id +
-                                   ChatColor.GRAY + " at " +
-                                   ChatColor.YELLOW + Util.formatLocation(horseLoc));
+                message.append(ChatColor.YELLOW).append(" ").append(horseLoc.getWorld().getName());
             }
+            player.sendMessage(message.toString());
         }
     } // pointTo
 } // class HorseGPSExecutor
