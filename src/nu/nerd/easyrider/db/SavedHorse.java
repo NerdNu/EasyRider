@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.persistence.Transient;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -1184,13 +1182,13 @@ public class SavedHorse implements Cloneable {
      * True if this bean has never been in the database, i.e. it will result in
      * a database insert.
      */
-    @Transient
+    // @Transient
     private boolean _new;
 
     /**
      * True if this bean has unsaved changes.
      */
-    @Transient
+    // @Transient
     private boolean _dirty;
 
     /**
@@ -1201,20 +1199,20 @@ public class SavedHorse implements Cloneable {
     /**
      * Limits the rate at which dehydration messages will be sent.
      */
-    @Transient
+    // @Transient
     private final RateLimiter _messageRateLimiter = new RateLimiter(0);
 
     /**
      * Limits the rate at which the player is warned about the horse being fed
      * past the maximum health level.
      */
-    @Transient
+    // @Transient
     private final RateLimiter _overfedRateLimiter = new RateLimiter(5000);
 
     /**
      * Limits the rate at horse breathing noises will be made.
      */
-    @Transient
+    // @Transient
     private final RateLimiter _breathRateLimiter = new RateLimiter(MAX_BREATH_PERIOD_MILLIS);
 
 } // class SavedHorse

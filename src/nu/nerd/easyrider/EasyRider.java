@@ -2,7 +2,6 @@ package nu.nerd.easyrider;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.bukkit.Bukkit;
@@ -841,28 +840,6 @@ public class EasyRider extends JavaPlugin implements Listener {
      */
     public PlayerState getState(Player player) {
         return _state.get(player.getName());
-    }
-
-    // ------------------------------------------------------------------------
-    /**
-     * Register classes that will be stored by Ebeans ORM.
-     * 
-     * @return the list of classes mapped to database rows.
-     */
-    @Override
-    public ArrayList<Class<?>> getDatabaseClasses() {
-        ArrayList<Class<?>> list = new ArrayList<Class<?>>();
-        list.add(SavedHorse.class);
-        return list;
-    }
-
-    // ------------------------------------------------------------------------
-    /**
-     * Expose database initialisation method.
-     */
-    @Override
-    public void installDDL() {
-        super.installDDL();
     }
 
     // ------------------------------------------------------------------------
