@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.ChestedHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
@@ -322,8 +323,7 @@ public class Util {
      *         applied.
      */
     public static EntityType getSaddleDisguiseType(AbstractHorse abstractHorse) {
-        HorseInventory horseInventory = (HorseInventory) abstractHorse.getInventory();
-        ItemStack saddle = horseInventory.getSaddle();
+        ItemStack saddle = getSaddleItemStack(abstractHorse);
         if (saddle == null || saddle.getType() != Material.SADDLE) {
             return null;
         }
@@ -341,6 +341,29 @@ public class Util {
             }
         }
         return null;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Get the ItemStack in the saddle slot of a horse, donkey or mule.
+     * 
+     * @param abstractHorse the horse-like entity (includes llamas).
+     * @return the ItemStack in the saddle slot, or null if there is no saddle
+     *         slot (as in the case of llamas).
+     */
+    public static ItemStack getSaddleItemStack(AbstractHorse abstractHorse) {
+        if (abstractHorse instanceof Llama) {
+            return null;
+        }
+
+        if (abstractHorse instanceof ChestedHorse) {
+            ChestedHorse chested = (ChestedHorse) abstractHorse;
+            // Apparently there is nothing in the 1.12 API for Mule/Donkey
+            // inventories. NOTE: ChestedHorse includes Llama.
+            return chested.getInventory().getItem(0);
+        }
+
+        return ((HorseInventory) abstractHorse.getInventory()).getSaddle();
     }
 
     // ------------------------------------------------------------------------

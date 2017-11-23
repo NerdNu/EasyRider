@@ -44,7 +44,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.inventory.HorseInventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -615,12 +614,18 @@ public class EasyRider extends JavaPlugin implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         InventoryHolder holder = event.getInventory().getHolder();
         if (!(holder instanceof AbstractHorse) ||
-            !(event.getInventory() instanceof HorseInventory) ||
             !(event.getWhoClicked() instanceof Player)) {
             return;
         }
 
-        Bukkit.getScheduler().runTaskLater(this, () -> {
+        // Exclude unsupported AbstractHorse subtypes.
+        if (holder instanceof Llama) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskLater(this, () ->
+
+        {
             // Require that the horse has a human passenger before applying a
             // disguise. Note that the player doing the inventory editing is
             // not necessarily the rider.
