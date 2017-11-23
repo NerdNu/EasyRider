@@ -781,7 +781,13 @@ public class SavedHorse implements Cloneable {
     public void onRidden(int relativeTick, AbstractHorse horse) {
         if (getLocation() != null && Util.isTrainable(horse)) {
             double dist = Util.getHorizontalDistance(location, horse.getLocation());
-            setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
+
+            // Suppress dehydration of max speed horses.
+            if (getSpeedLevel() >= EasyRider.CONFIG.SPEED.getMaxLevel()) {
+                setHydration(1.0);
+            } else {
+                setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
+            }
 
             Player rider = (Player) horse.getPassenger();
             if (isDehydrated()) {
@@ -810,14 +816,16 @@ public class SavedHorse implements Cloneable {
                                                  EasyRider.CONFIG.SPEED.getValue(getSpeedLevel())));
 
             // Reduce time between breaths to shortest when dehydrated.
-            long breathCoolDown = (long) Util.linterp(MIN_BREATH_PERIOD_MILLIS,
-                                                      MAX_BREATH_PERIOD_MILLIS,
-                                                      Math.max(0, getHydration()));
-            _breathRateLimiter.setCoolDownMillis(breathCoolDown);
-            _breathRateLimiter.run(() -> {
-                Location loc = horse.getLocation();
-                loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_BREATHE, 1.0f, 1.0f);
-            });
+            if (!isFullyHydrated()) {
+                long breathCoolDown = (long) Util.linterp(MIN_BREATH_PERIOD_MILLIS,
+                                                          MAX_BREATH_PERIOD_MILLIS,
+                                                          Math.max(0, getHydration()));
+                _breathRateLimiter.setCoolDownMillis(breathCoolDown);
+                _breathRateLimiter.run(() -> {
+                    Location loc = horse.getLocation();
+                    loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_BREATHE, 1.0f, 1.0f);
+                });
+            }
         }
         setLastAccessed(System.currentTimeMillis());
     } // onRidden
