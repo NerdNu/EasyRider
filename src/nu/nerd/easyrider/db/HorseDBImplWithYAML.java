@@ -43,7 +43,12 @@ public class HorseDBImplWithYAML extends HorseDBImplWithFile {
         _config = YamlConfiguration.loadConfiguration(getDBFile().toFile());
         for (String uuid : _config.getKeys(false)) {
             SavedHorse savedHorse = new SavedHorse();
-            savedHorse.load(_config.getConfigurationSection(uuid));
+            try {
+                savedHorse.load(_config.getConfigurationSection(uuid));
+            } catch (Exception ex) {
+                // Should not happen. Mitigate the damage.
+                EasyRider.PLUGIN.getLogger().severe("Failed to load horse " + uuid + ": " + ex.getMessage());
+            }
             result.add(savedHorse);
         }
         return result;
@@ -56,7 +61,12 @@ public class HorseDBImplWithYAML extends HorseDBImplWithFile {
     @Override
     public void saveAll(Collection<SavedHorse> collection) {
         for (SavedHorse savedHorse : collection) {
-            savedHorse.save(_config);
+            try {
+                savedHorse.save(_config);
+            } catch (Exception ex) {
+                // Should not happen. Mitigate the damage.
+                EasyRider.PLUGIN.getLogger().severe("Failed to save horse " + savedHorse.getUuid() + ": " + ex.getMessage());
+            }
         }
         writeToDisk();
     }
