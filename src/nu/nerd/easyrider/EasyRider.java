@@ -624,10 +624,11 @@ public class EasyRider extends JavaPlugin implements Listener {
             return;
         }
 
+        ItemStack oldSaddle = event.getInventory().getItem(0);
         Bukkit.getScheduler().runTaskLater(this, () -> {
-            // Require that the horse has a human passenger before applying a
-            // disguise. Note that the player doing the inventory editing is
-            // not necessarily the rider.
+            // Require that the horse has a human passenger before applying
+            // a disguise. Note that the player doing the inventory editing
+            // is not necessarily the rider.
             AbstractHorse abstractHorse = (AbstractHorse) holder;
             Player rider = null;
             for (Entity passenger : abstractHorse.getPassengers()) {
@@ -640,11 +641,18 @@ public class EasyRider extends JavaPlugin implements Listener {
                 return;
             }
 
-            EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
-            if (disguiseEntityType == null) {
-                DisguiseAPI.undisguiseToAll(abstractHorse);
-            } else {
-                Util.applySaddleDisguise(abstractHorse, rider, disguiseEntityType, false);
+            // Check that the saddle item has changed to silence unnecessary
+            // disguise messages caused by players clicking in the inventory of
+            // a disguised horse.
+            ItemStack newSaddle = event.getInventory().getItem(0);
+            if ((oldSaddle == null && newSaddle != null) ||
+                !oldSaddle.equals(newSaddle)) {
+                EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
+                if (disguiseEntityType == null) {
+                    DisguiseAPI.undisguiseToAll(abstractHorse);
+                } else {
+                    Util.applySaddleDisguise(abstractHorse, rider, disguiseEntityType, false);
+                }
             }
         }, 1);
     }
