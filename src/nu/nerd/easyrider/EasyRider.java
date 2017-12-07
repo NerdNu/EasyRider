@@ -36,6 +36,7 @@ import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.entity.HorseJumpEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -623,9 +624,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             return;
         }
 
-        Bukkit.getScheduler().runTaskLater(this, () ->
-
-        {
+        Bukkit.getScheduler().runTaskLater(this, () -> {
             // Require that the horse has a human passenger before applying a
             // disguise. Note that the player doing the inventory editing is
             // not necessarily the rider.
@@ -648,6 +647,22 @@ public class EasyRider extends JavaPlugin implements Listener {
                 Util.applySaddleDisguise(abstractHorse, rider, disguiseEntityType, false);
             }
         }, 1);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * When a player closes a horse's inventory, snapshot the contents.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onInventoryClose(InventoryCloseEvent event) {
+        InventoryHolder holder = event.getInventory().getHolder();
+        if (!(holder instanceof AbstractHorse)) {
+            return;
+        }
+
+        AbstractHorse abstractHorse = (AbstractHorse) holder;
+        SavedHorse savedHorse = DB.findOrAddHorse(abstractHorse);
+        savedHorse.observeInventory(abstractHorse);
     }
 
     // ------------------------------------------------------------------------

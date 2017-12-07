@@ -1,6 +1,8 @@
 package nu.nerd.easyrider.db;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -17,6 +19,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 import nu.nerd.easyrider.EasyRider;
 import nu.nerd.easyrider.HorseEquipment;
@@ -45,15 +49,16 @@ public class SavedHorse implements Cloneable {
     /**
      * Constructor.
      *
-     * @param horse the AbstractHorse entity.
+     * @param abstractHorse the AbstractHorse entity.
      */
-    public SavedHorse(AbstractHorse horse) {
+    public SavedHorse(AbstractHorse abstractHorse) {
         setNew();
-        setUuid(horse.getUniqueId());
-        speedLevel = jumpLevel = healthLevel = (Util.isTrainable(horse) ? 1 : 0);
+        setUuid(abstractHorse.getUniqueId());
+        speedLevel = jumpLevel = healthLevel = (Util.isTrainable(abstractHorse) ? 1 : 0);
         setHydration(0.5);
         setLastAccessed(System.currentTimeMillis());
-        observe(horse);
+        observe(abstractHorse);
+        observeInventory(abstractHorse);
     }
 
     // ------------------------------------------------------------------------
@@ -728,6 +733,16 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
+     * Return the contents of the inventory when it was last observed.
+     * 
+     * @return the contents of the inventory when it was last observed.
+     */
+    public ArrayList<ItemStack> getObservedInventory() {
+        return observedInventory;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Update this SavedHorse to reflect the current state of the AbstractHorse
      * Entity as it is observed in the world.
      *
@@ -738,30 +753,43 @@ public class SavedHorse implements Cloneable {
      * Updated attributes include: last seen time, display name, appearance,
      * owner, equipment and location
      *
-     * @param horse the horse entity corresponding to this SavedHorse.
+     * @param abstractHorse the horse entity corresponding to this SavedHorse.
      */
-    public void observe(AbstractHorse horse) {
+    public void observe(AbstractHorse abstractHorse) {
         lastObserved = System.currentTimeMillis();
-        AnimalTamer owner = horse.getOwner();
+        AnimalTamer owner = abstractHorse.getOwner();
         setOwnerUuid((owner != null) ? owner.getUniqueId() : null);
-        setDisplayName(horse.getCustomName());
-        setAppearance(Util.getAppearance(horse));
-        setLocation(horse.getLocation());
-        updateEquipment(horse);
+        setDisplayName(abstractHorse.getCustomName());
+        setAppearance(Util.getAppearance(abstractHorse));
+        setLocation(abstractHorse.getLocation());
     }
 
     // ------------------------------------------------------------------------
     /**
      * Update the stored record of the AbstractHorse's equipment.
      *
-     * This is written to permit persistent custom equipment to be stored in
-     * unused bits later.
+     * As a minor optimisation, we avoid calling this method in every
+     * {@link SavedHorse#observe(AbstractHorse)} call. Strictly speaking, we
+     * should only need to check the observedInventory when it is closed by a
+     * player.
+     * 
+     * The equipment flags permit persistent custom equipment to be stored in
+     * unused bits later. However, we may drop that bits in favour of custom
+     * lore.
      *
      * @param abstractHorse the horse-like entity.
      */
-    public void updateEquipment(AbstractHorse abstractHorse) {
+    public void observeInventory(AbstractHorse abstractHorse) {
         int equip = (getEquipment() & ~HorseEquipment.ALL_REGULAR) | HorseEquipment.bits(abstractHorse);
         setEquipment(equip);
+        observedInventory.clear();
+        Inventory inv = abstractHorse.getInventory();
+        if (inv != null) {
+            for (ItemStack item : inv.getContents()) {
+                observedInventory.add((item == null) ? null : item.clone());
+            }
+        }
+        setDirty();
     }
 
     // ------------------------------------------------------------------------
@@ -883,6 +911,9 @@ public class SavedHorse implements Cloneable {
             }
         }
 
+        observedInventory.clear();
+        observedInventory.addAll((List<ItemStack>) section.getList("inventory", Collections.EMPTY_LIST));
+
         setClean();
     }
 
@@ -920,6 +951,8 @@ public class SavedHorse implements Cloneable {
 
         List<String> permittedUUIDs = permittedPlayers.stream().map(p -> p.getUniqueId().toString()).collect(Collectors.toList());
         section.set("permittedPlayers", permittedUUIDs);
+
+        section.set("inventory", getObservedInventory());
         setClean();
     }
 
@@ -1177,6 +1210,11 @@ public class SavedHorse implements Cloneable {
      * called.
      */
     private final HashSet<OfflinePlayer> permittedPlayers = new HashSet<OfflinePlayer>();
+
+    /**
+     * Complete inventory contents (deep copy) when last observed.
+     */
+    private final ArrayList<ItemStack> observedInventory = new ArrayList<>();
 
     /**
      * True if this bean has never been in the database, i.e. it will result in
