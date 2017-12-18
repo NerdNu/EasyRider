@@ -12,7 +12,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.AbstractHorse;
-import org.bukkit.entity.ChestedHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Horse;
@@ -20,7 +19,6 @@ import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.SkeletonHorse;
 import org.bukkit.entity.ZombieHorse;
-import org.bukkit.inventory.HorseInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -356,14 +354,10 @@ public class Util {
             return null;
         }
 
-        if (abstractHorse instanceof ChestedHorse) {
-            ChestedHorse chested = (ChestedHorse) abstractHorse;
-            // Apparently there is nothing in the 1.12 API for Mule/Donkey
-            // inventories. NOTE: ChestedHorse includes Llama.
-            return chested.getInventory().getItem(0);
-        }
-
-        return ((HorseInventory) abstractHorse.getInventory()).getSaddle();
+        // Mules, donkeys, zombie- and skeletal- horses do not have a
+        // HorseInventory. So get the saddle by ID rather than calling
+        // HorseInventory.getSaddle().
+        return abstractHorse.getInventory().getItem(0);
     }
 
     // ------------------------------------------------------------------------
