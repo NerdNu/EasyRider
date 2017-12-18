@@ -646,7 +646,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             // a disguised horse.
             ItemStack newSaddle = event.getInventory().getItem(0);
             if ((oldSaddle == null && newSaddle != null) ||
-                !oldSaddle.equals(newSaddle)) {
+                (oldSaddle != null && !oldSaddle.equals(newSaddle))) {
                 EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
                 if (disguiseEntityType == null) {
                     DisguiseAPI.undisguiseToAll(abstractHorse);
