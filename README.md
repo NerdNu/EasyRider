@@ -94,52 +94,12 @@ Features
 
 Training Algorithm
 ------------------
-The effort, `E`, that must be expended to train an ability to an integer level,
-`L`, is:
+The amount of effort to train a horse's ability (Speed, Jump or Health) increases exponentially with the current level of that ability. Low levels are easy, high levels take much more work.
 
-    E = K * (B ^ (L - 1) - 1)
+For the full mathematics of the training algorithm, see [Training Algorithm](https://github.com/NerdNu/EasyRider/wiki/Training-Algorithm).
 
-Where:
- * `K` = effort scale factor</li>
- * `B` = effort exponential base</li>
+For the visualisations of the training effort required to attain a specific level of Speed, Jump or Health, see [Plots](https://github.com/NerdNu/EasyRider/wiki/Plots).
 
-Note that the effort to increment the level increases exponentially as the
-level increases. However, as discussed below, the ability increases as a
-linear function of the level. So, training gives diminishing returns as the
-level increases.
-
-The effort scale factor is chosen arbitrarily. The effort base can be
-computed by substituting in the effort scale, `K`, the maximum effort, `E_max`,
-and the corresponding maximum level, `L_max`:
-
-    B = (1 + E_max / K) ^ (1 / (L_max - 1))
-
-where the maximum level and corresponding maximum effort are carefully
-selected.
-
-The current level can be expressed as a function `L(E)` of the effort expended
-in training, `E`, as:
-
-    L(E) = min(L_max, floor(1 + ln(1 + E / K) / ln(B)))
-
-All of these equations were in fact derived from the initial starting concept:
-
-    L = 1 + log_B(1 + E / K)
-
-where `log_B` signifies "logarithm to the base `B`". The logarithm of 1 is 0, so
-`log_B(1 + E/K)` will always be defined and greater than 0, increasing in
-proportion to effort scaled by `K`. The lowest level is 1, hence the leading
-"1 +" term.
-
-Note that the current level may be presented to the user as an integer, though
-the training effort leads to a notional real number for the level. Also the
-level cannot be trained past the maximum, though admins can create horses
-with ability levels above the maximum.
-
-Attributes such as speed, health (hearts) and jump strength are linearly
-interpolated according to the level, from 1 to the maximum level, and
-quantised to the value corresponding to `L(E)`, recalling that `L(E)` is always
-rounded down to an integer.
 
 Llimitations of Llamas
 ----------------------
@@ -234,51 +194,7 @@ Admin Commands
    * **Aliases:** `/htame`
 
 
-Configuration
--------------
-| Setting | Description |
-| :--- | :--- |
-| `debug.config` | If true, log configuration settings on start up. |
-| `debug.events` | If true, show extra debug messages in event handlers. |
-| `debug.saves` | If true, enable debug logging in database saves. |
-| `debug.purges` | If true, log actions taken to purge old backups. |
-| `debug.scans` | If true, log the time taken to scan worlds for horses. |
-| `debug.finds` | If true, log the time taken to find horses.
-| `database.implementation` | The database implementation type to choose. Currently only "yaml" is supported. |
-| `eject-on-logoff` | If true, eject the rider from the horse when he logs off. |
-| `allow-pvp` | If true, allow players to harm owned horses that are being ridden by a player. |
-| `speed-limit` | The ratio of distance travelled in one tick to the current speed of a horse for its level. Used mainly as a sanity check on computed distance in movement events. But it also controls a message to players if they attempt to piston a horse way above maximum speed. |
-| `dehydration-distance` | Distance a horse can travel horizontally before it is fully dehydrated. |
-| `bucket-hydration` | Amount of hydration from one water bucket; 1.0 is full hydration. |
-| `abandoned-days` | Number of consecutive days a horse must not be ridden or interacted with by its owner to be considered abandoned. |
-| `abilities.<ability>.max-level` | The integer maximum level attainable by training. |
-| `abilities.<ability>.max-effort` | The maximum amount of training effort that will be counted towards levelling up. The units of effort depend on the ability. For speed and jump, they are metres travelled horizontally on the ground or in the air, respectively. For health, the units are equivalent mass of gold nuggets consumed. |
-| `abilities.<ability>.effort-scale` | The scale factor that converts the effort base, raised to the level, into required effort. |
-| `abilities.<ability>.min-value` | The minimum ability value on the internal (Bukkit API) scale. |
-| `abilities.<ability>.max-value` | The maximum ability value on the internal (Bukkit API) scale. |
+Configuration and Permissions
+-----------------------------
+For details on how to set up EasyRider, see [Plugin Setup](https://github.com/NerdNu/EasyRider/wiki/Plugin-Setup).
 
- * In the above table, `<ability>` is each of `speed`, `jump` and `health`, in turn.
-
-
-Permissions
------------
- * `easyrider.admin` - Permission to administer the plugin (run `/easyrider reload`).
- * `easyrider.debug` - Players with this permission receive debug messages.
- * `easyrider.setlevel` - Permission to use `/horse-set-level`.
- * `easyrider.swap` - Permission to use `/horse-swap`.
- * `easyrider.tp` - Permission to use `/horse-tp`.
- * `easyrider.tphere` - Permission to use `/horse-tphere`.
- * `easyrider.bypass` - Permission to use `/horse-bypass`.
- * `easyrider.tame` - Permission to use `/horse-tame`.
- * `easyrider.free` - Permission to use `/horse-free`.
- * `easyrider.info` - Permission to use `/horse-info`.
- * `easyrider.upgrades` - Permission to use `/horse-upgrades`.
- * `easyrider.top` - Permission to use `/horse-top`.
- * `easyrider.speedlimit` - Permission to use `/horse-speed-limit`.
- * `easyrider.gps` - Permission to use `/horse-gps`.
- * `easyrider.gps-player` - Permission to specify a player name when using `/horse-gps`.
- * `easyrider.access` - Permission to use `/horse-access`.
- * `easyrider.list` - Permission to use `/horse-list`.
- * `easyrider.list-player` - Permission to specify a player name other than one's own when using `/horse-list`.
- * `easyrider.disguise-self` - Permission to use `/horse-disguise-self`.
- 
