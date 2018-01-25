@@ -98,7 +98,7 @@ The amount of effort to train a horse's ability (Speed, Jump or Health) increase
 
 For the full mathematics of the training algorithm, see [Training Algorithm](https://github.com/NerdNu/EasyRider/wiki/Training-Algorithm).
 
-For the visualisations of the training effort required to attain a specific level of Speed, Jump or Health, see [Plots](https://github.com/NerdNu/EasyRider/wiki/Plots).
+For visualisations of the training effort required to attain a specific level of Speed, Jump or Health, see [Plots](https://github.com/NerdNu/EasyRider/wiki/Plots).
 
 
 Llimitations of Llamas
