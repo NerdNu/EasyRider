@@ -654,7 +654,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                 if (disguiseEntityType == null) {
                     DisguiseAPI.undisguiseToAll(abstractHorse);
                 } else {
-                    Util.applySaddleDisguise(abstractHorse, rider, disguiseEntityType, false);
+                    Util.applySaddleDisguise(abstractHorse, rider, disguiseEntityType, false, true);
                 }
             }
         }, 1);
@@ -727,7 +727,7 @@ public class EasyRider extends JavaPlugin implements Listener {
 
             EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
             if (disguiseEntityType != null) {
-                Util.applySaddleDisguise(abstractHorse, player, disguiseEntityType, false);
+                Util.applySaddleDisguise(abstractHorse, player, disguiseEntityType, false, true);
             }
 
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {

@@ -255,7 +255,7 @@ public class Util {
                 EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
                 if (disguiseEntityType != null) {
                     boolean showToRider = Util.isSaddleDisguiseVisibleToRider(abstractHorse);
-                    Util.applySaddleDisguise(abstractHorse, onlinePlayer, disguiseEntityType, showToRider);
+                    Util.applySaddleDisguise(abstractHorse, onlinePlayer, disguiseEntityType, showToRider, false);
                 }
             }
         }
@@ -270,8 +270,10 @@ public class Util {
      * @param rider the rider, to be notified if a disguise is applied.
      * @param disguiseEntityType the EntityType of the disguise.
      * @param showToRider if true, the disguise is visible to the rider.
+     * @param tellRider if true, tell the rider what disguise is in use.
      */
-    public static void applySaddleDisguise(AbstractHorse abstractHorse, Player rider, EntityType disguiseEntityType, boolean showToRider) {
+    public static void applySaddleDisguise(AbstractHorse abstractHorse, Player rider, EntityType disguiseEntityType,
+                                           boolean showToRider, boolean tellRider) {
         if (disguiseEntityType == null) {
             return;
         }
@@ -285,7 +287,9 @@ public class Util {
             }
             DisguiseAPI.undisguiseToAll(abstractHorse);
             DisguiseAPI.disguiseToPlayers(abstractHorse, disguise, players);
-            rider.sendMessage(ChatColor.GOLD + "Your steed is disguised as " + disguiseEntityType + "!");
+            if (tellRider) {
+                rider.sendMessage(ChatColor.GOLD + "Your steed is disguised as " + disguiseEntityType + "!");
+            }
 
             abstractHorse.removeMetadata(SELF_DISGUISE_KEY, EasyRider.PLUGIN);
             if (showToRider) {

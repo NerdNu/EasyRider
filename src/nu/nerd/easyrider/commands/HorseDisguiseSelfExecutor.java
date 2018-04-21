@@ -62,7 +62,7 @@ public class HorseDisguiseSelfExecutor extends ExecutorBase {
                 sender.sendMessage(ChatColor.GOLD + "You can no longer see your steed's disguise.");
             }
             DisguiseAPI.undisguiseToAll(abstractHorse);
-            Util.applySaddleDisguise(abstractHorse, player, disguiseEntityType, showToRider);
+            Util.applySaddleDisguise(abstractHorse, player, disguiseEntityType, showToRider, true);
 
         } else {
             sender.sendMessage(ChatColor.RED + "You must be riding a horse with a disguise saddle to see the disguise!");
