@@ -2,6 +2,7 @@ package nu.nerd.easyrider;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 
 import org.bukkit.Bukkit;
@@ -552,7 +553,9 @@ public class EasyRider extends JavaPlugin implements Listener {
                 // empirically.
                 double maxSpeed = CONFIG.SPEED.getValue(savedHorse.getSpeedLevel() + 1);
                 if (tickDistance > CONFIG.SPEED_LIMIT * maxSpeed) {
-                    getLogger().warning(abstractHorse.getOwner().getName() + "'s horse " + abstractHorse.getUniqueId() +
+                    String ownerClause = (abstractHorse.getOwner() != null ? abstractHorse.getOwner().getName() + "'s"
+                                                                           : "Unowned");
+                    getLogger().warning(ownerClause + " horse " + abstractHorse.getUniqueId() +
                                         " moved impossibly fast for its level; ratio: " + (tickDistance / maxSpeed));
                 } else {
                     Ability ability = (abstractHorse.isOnGround()) ? CONFIG.SPEED : CONFIG.JUMP;
@@ -709,6 +712,10 @@ public class EasyRider extends JavaPlugin implements Listener {
             if (!isAccessible(savedHorse, abstractHorse, player, playerState)) {
                 event.setCancelled(true);
                 return;
+            }
+
+            if (Util.isTrainable(abstractHorse)) {
+                EasyRider.CONFIG.SPEED.updateAttribute(savedHorse, abstractHorse);
             }
 
             handleDrinking(abstractHorse, savedHorse, player);
@@ -928,14 +935,54 @@ public class EasyRider extends JavaPlugin implements Listener {
     protected void handleDrinking(AbstractHorse abstractHorse, SavedHorse savedHorse, Player player) {
         if (Util.isTrainable(abstractHorse)) {
             // Don't drink if the horse is already *nearly* full hydration.
-            if (!savedHorse.isFullyHydrated() && findDrinkableBlock(abstractHorse.getLocation())) {
+            // Don't drink due to teleport triggered by command.
+            if (!savedHorse.isFullyHydrated() && findDrinkableBlock(abstractHorse.getLocation()) &&
+                !isCommandExecuting()) {
                 savedHorse.setHydration(1.0);
-                EasyRider.CONFIG.SPEED.updateAttribute(savedHorse, abstractHorse);
-                player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() +
-                                   " drinks until it is no longer thirsty!");
+                player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " drinks until it is no longer thirsty!");
                 Location loc = abstractHorse.getLocation();
                 loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
             }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Check whether a command is currently executing.
+     *
+     * Some commands teleport the player in order to set the player's look
+     * angle, and require that the player be re-mounted in his vehicle,
+     * triggering a vehicle entry or exit event. To avoid player exploitation of
+     * this behaviour to bypass horse dehydration mechanics, we check whether a
+     * command is executing.
+     * 
+     * For efficiency, we reflectively check the CraftServer.playerCommandState
+     * field, taking on average ~0.01 ms, rather than walking the stack trace
+     * (~0.2 ms). This will most likely break if we ever switch to a
+     * non-CraftBukkit-derived server.
+     * 
+     * @return true if a command is currently executing.
+     */
+    protected boolean isCommandExecuting() {
+        // long start = System.nanoTime();
+        // boolean inCommand = false;
+        // for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
+        // if (e.getMethodName().equals("handleCommand")) {
+        // inCommand = true;
+        // break;
+        // }
+        // }
+        // long now = System.nanoTime();
+        // double elapsedMillis = (now - start) * 1e-6;
+        // getLogger().info("handleCommand: " + inCommand + " elapsed ms: " +
+        // elapsedMillis);
+
+        try {
+            Field playerCommandState = Bukkit.getServer().getClass().getField("playerCommandState");
+            return playerCommandState.getBoolean(Bukkit.getServer());
+        } catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ex) {
+            getLogger().severe("This plugin needs to be updated for the current server (EasyRider.isCommandExecuting()).");
+            return false;
         }
     }
 
@@ -1041,16 +1088,17 @@ public class EasyRider extends JavaPlugin implements Listener {
     // ------------------------------------------------------------------------
     /**
      * Return true if there is a potable water block in the 7 x 7 square centred
-     * on the horse, either level with the horse's lower half or at ground level
-     * (one block below).
+     * on the horse, either level with the horse's lower half, or upper half or
+     * at ground level (one block below).
      *
      * @param loc the horse's location
-     * @return true if the horse can drink a block at feet level or ground level
-     *         within 3 blocks of its location.
+     * @return true if the horse can drink a block at feet level, head level or
+     *         ground level within 3 blocks of its location.
      */
     protected boolean findDrinkableBlock(Location loc) {
         return findDrinkableSquare(loc) ||
-               findDrinkableSquare(loc.clone().add(0, -1, 0));
+               findDrinkableSquare(loc.clone().add(0, -1, 0)) ||
+               findDrinkableSquare(loc.clone().add(0, +1, 0));
     }
 
     // ------------------------------------------------------------------------
