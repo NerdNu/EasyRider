@@ -822,11 +822,13 @@ public class SavedHorse implements Cloneable {
                     EasyRider.PLUGIN.debug(horse, " dehydrated (" + getHydration() + ") over dist " + dist);
                 }
 
-                if (_messageRateLimiter.run(() -> {
-                    rider.sendMessage(ChatColor.RED + getMessageName() +
-                                      " is too dehydrated to benefit from training. Give it a drink of water.");
-                    rider.playSound(rider.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
-                })) {
+                // Suppress dehydration messages once interval exceeds maximum.
+                if (_messageRateLimiter.getCoolDownMillis() < MAX_MESSAGE_COOLDOWN_MILLIS &&
+                    _messageRateLimiter.run(() -> {
+                        rider.sendMessage(ChatColor.RED + getMessageName() +
+                                          " is too dehydrated to benefit from training. Give it a drink of water.");
+                        rider.playSound(rider.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                    })) {
                     long newMessageCoolDown = Math.min(Math.max(MIN_MESSAGE_COOLDOWN_MILLIS,
                                                                 _messageRateLimiter.getCoolDownMillis() * 2),
                                                        MAX_MESSAGE_COOLDOWN_MILLIS);
@@ -834,6 +836,7 @@ public class SavedHorse implements Cloneable {
                 }
             } else {
                 _messageRateLimiter.setCoolDownMillis(MIN_MESSAGE_COOLDOWN_MILLIS);
+
             }
 
             PlayerState playerState = EasyRider.PLUGIN.getState(rider);
@@ -1086,12 +1089,13 @@ public class SavedHorse implements Cloneable {
     /**
      * Minimum dehydration message cooldown in milliseconds.
      */
-    private static final long MIN_MESSAGE_COOLDOWN_MILLIS = 15 * 1000;
+    private static final long MIN_MESSAGE_COOLDOWN_MILLIS = 2 * 60 * 1000;
 
     /**
-     * Maximum dehydration message cooldown in milliseconds.
+     * Maximum dehydration message cooldown in milliseconds. When the message
+     * period exceeds this, messages are suppressed.
      */
-    private static final long MAX_MESSAGE_COOLDOWN_MILLIS = 4 * 60 * 1000;
+    private static final long MAX_MESSAGE_COOLDOWN_MILLIS = 5 * 60 * 1000;
 
     /**
      * Minimum period between horse breath sounds, when the horse is dehydrated.
