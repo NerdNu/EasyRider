@@ -161,6 +161,7 @@ Player Facing Commands
    doesn't understand); they can only turn on the spot.
    * **Aliases:** `/hdisguise-self`
 
+ * `/horse-neglect [help]` - Toggle horse dehydration notification messages and sounds.
 
 Admin Commands
 --------------
