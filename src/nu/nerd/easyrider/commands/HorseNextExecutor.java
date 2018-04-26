@@ -82,6 +82,7 @@ public class HorseNextExecutor extends ExecutorBase {
             showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
             showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);
             showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
+            HorseInfoExecutor.showHydration(player, savedHorse);
         } else {
             player.sendMessage(ChatColor.RED + "That " + Util.entityTypeName(abstractHorse) + " cannot be trained.");
         }

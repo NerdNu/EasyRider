@@ -21,12 +21,12 @@ import nu.nerd.easyrider.db.SavedHorse;
 /**
  * CommandExecutor implementation for the /horse-info command.
  */
-public class HorseLevelsExecutor extends ExecutorBase {
+public class HorseInfoExecutor extends ExecutorBase {
     // ------------------------------------------------------------------------
     /**
      * Default constructor.
      */
-    public HorseLevelsExecutor() {
+    public HorseInfoExecutor() {
         super("horse-info", "help");
     }
 
@@ -63,6 +63,18 @@ public class HorseLevelsExecutor extends ExecutorBase {
 
     // ------------------------------------------------------------------------
     /**
+     * Show the horse's hydration level to the player.
+     * 
+     * @param player the player.
+     * @param savedHorse the horse.
+     */
+    public static void showHydration(Player player, SavedHorse savedHorse) {
+        int hydration = (int) Math.round(100 * savedHorse.getHydration());
+        player.sendMessage(ChatColor.GOLD + "Hydration: " + (hydration < 5 ? ChatColor.RED : ChatColor.YELLOW) + hydration);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Send the player information about the current levels of the specified
      * horse or the attributes of a llama.
      *
@@ -83,6 +95,7 @@ public class HorseLevelsExecutor extends ExecutorBase {
             showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
             showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);
             showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
+            showHydration(player, savedHorse);
         } else if (abstractHorse instanceof Llama) {
             Llama llama = (Llama) abstractHorse;
             showAttribute(player, EasyRider.CONFIG.SPEED, abstractHorse);
@@ -130,4 +143,4 @@ public class HorseLevelsExecutor extends ExecutorBase {
         String formattedValue = ability.formatValue(displayValue);
         player.sendMessage(ChatColor.GOLD + ability.getDisplayName() + ": " + ChatColor.GRAY + formattedValue);
     }
-} // class HorseLevelsExecutor
+} // class HorseInfoExecutor
