@@ -173,7 +173,7 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command> [<uuid>]§f - Release a horse from your ownership. Either click on the horse, or specify it by its UUID.
-      §e/<command> <player> <uuid>§f - 'Admins-only variant: release a horse (specified by UUID) owned by the specified player.'
+      §e/<command> <player> <uuid>§f - Admins-only variant: release a horse (specified by UUID) owned by the specified player.
 
   horse-info:
     description: Show ability level information for a horse.
@@ -182,7 +182,8 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command>§f - Show level information about the horse currently ridden or right-clicked.
+      §e/<command>§f - Show level information about the horse
+       currently ridden or right-clicked.
 
   horse-upgrades:
     description: List all levels, corresponding attribute values and training effort for a specified ability.
@@ -209,7 +210,9 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command> §f[§e<number>§f] - Set your personal speed limit to <number> (in m/s), if specified, or show your current speed limit.
+      §e/<command> §f[§e<number>§f] - Set your personal speed limit
+      to <number> (in m/s), if specified, or show your current speed
+      limit.
 
   horse-gps:
     description: Points you towards the last known location of a horse.
@@ -218,7 +221,12 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command> §f[§e<player>§f] §e<number>§f|§e<name>§f|§e<uuid>§f - Point towards a horse owned by you or the specified player. The horse can be specified as a number in /horse-owned output, a match on the start of its name (if named with a name tag), or a match on the start of its UUID. The name can include spaces.
+      §e/<command> §f[§e<player>§f] §e<number>§f|§e<name>§f|§e<uuid>§f - Point towards
+      a horse owned by you or the specified player. The horse
+      can be specified as a number in /horse-owned output, a
+      match on the start of its name (if named with a name
+      tag), or a match on the start of its UUID. The name can
+      include spaces.
 
   horse-access:
     description: View or modify a horse's access list.
@@ -227,11 +235,17 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command> §f[§e<partial-uuid>§f] (§e+§f|§e-§f)§e<player>§f... - View or modify a horse's access list. Either click on the horse or specify it by the start of its UUID. Players are added with '+' and removed with '-'. Multiple players can be added or removed in a single command.
+      §e/<command> §f[§e<partial-uuid>§f] (§e+§f|§e-§f)§e<player>§f... - View or
+      modify a horse's access list. Either click on the horse or
+      specify it by the start of its UUID. Players are added with '+'
+      and removed with '-'. Multiple players can be added or
+      removed in a single command.
       
       §6Example:
-          §e/<command> 12abe4 -Alice +Bob§f - Give Bob access and revoke Alice's access to the horse whose UUID begins with 12abe4.   
-          §e/<command> +Charles +Don§f - Give Charles and Don access to the next horse the owner right clicks on.   
+          §e/<command> 12abe4 -Alice +Bob§f - Give Bob access
+          and revoke Alice's access to the horse whose UUID begins with 12abe4.
+          §e/<command> +Charles +Don§f - Give Charles and Don
+          access to the next horse the owner right clicks on.
 
   horse-list:
     description: List information about all horses owned by you or a specified player.
@@ -249,7 +263,8 @@ commands:
     usage: |
     
       §e/<command> help§f - Show usage help.
-      §e/<command>§f - Show the training effort required to achieve the next level of each ability.
+      §e/<command>§f - Show the training effort required to achieve
+      the next level of each ability.
  
   horse-disguise-self:
     description: Disguise a horse as a specified entity.
