@@ -95,6 +95,26 @@ public class PlayerState {
 
     // --------------------------------------------------------------------------
     /**
+     * Specify whether the player ignores horse dehydration.
+     * 
+     * @param neglectful if true, the player ignores horse dehydration.
+     */
+    public void setNeglectful(boolean neglectful) {
+        _neglectful = neglectful;
+    }
+
+    // --------------------------------------------------------------------------
+    /**
+     * Return true if the player ignores horse dehydration.
+     * 
+     * @return true if the player ignores horse dehydration.
+     */
+    public boolean isNeglectful() {
+        return _neglectful;
+    }
+
+    // --------------------------------------------------------------------------
+    /**
      * Invalidate the stored last location of the ridden horse, clearing the
      * distance ridden in the last tick to zero.
      */
@@ -175,6 +195,7 @@ public class PlayerState {
         ConfigurationSection section = config.getConfigurationSection(_player.getUniqueId().toString());
         section.set("name", _player.getName());
         section.set("max-speed", getMaxSpeed());
+        section.set("neglectful", isNeglectful());
     }
 
     // ------------------------------------------------------------------------
@@ -188,7 +209,9 @@ public class PlayerState {
         if (section == null) {
             section = config.createSection(_player.getUniqueId().toString());
         }
+
         setMaxSpeed(section.getDouble("max-speed", 4 * EasyRider.CONFIG.SPEED.getMaxValue()));
+        setNeglectful(section.getBoolean("neglectful"));
     }
 
     // ------------------------------------------------------------------------
@@ -227,4 +250,9 @@ public class PlayerState {
      * If true, the player can bypass horse access permission checks.
      */
     protected boolean _bypass;
+
+    /**
+     * If true, the player ignores horse dehydration.
+     */
+    protected boolean _neglectful;
 } // class PlayerState

@@ -259,4 +259,11 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command>§f - Show or hide your horse's disguise to yourself (useful for screenshots). Disguised horses cannot move (the client doesn't understand); they can only turn on the spot.
+      
+  horse-neglect:
+    description: Toggle horse dehydration notification messages and sounds.
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command>§f - Toggle horse dehydration notification messages and sounds.
  

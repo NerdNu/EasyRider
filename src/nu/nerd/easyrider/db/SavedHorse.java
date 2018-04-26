@@ -822,8 +822,11 @@ public class SavedHorse implements Cloneable {
                     EasyRider.PLUGIN.debug(horse, " dehydrated (" + getHydration() + ") over dist " + dist);
                 }
 
+                PlayerState playerState = EasyRider.PLUGIN.getState(rider);
+
                 // Suppress dehydration messages once interval exceeds maximum.
-                if (_messageRateLimiter.getCoolDownMillis() < MAX_MESSAGE_COOLDOWN_MILLIS &&
+                if (!playerState.isNeglectful() &&
+                    _messageRateLimiter.getCoolDownMillis() < MAX_MESSAGE_COOLDOWN_MILLIS &&
                     _messageRateLimiter.run(() -> {
                         rider.sendMessage(ChatColor.RED + getMessageName() +
                                           " is too dehydrated to benefit from training. Give it a drink of water.");
