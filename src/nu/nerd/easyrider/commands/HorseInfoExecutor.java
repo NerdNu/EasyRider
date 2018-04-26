@@ -70,7 +70,7 @@ public class HorseInfoExecutor extends ExecutorBase {
      */
     public static void showHydration(Player player, SavedHorse savedHorse) {
         int hydration = (int) Math.round(100 * savedHorse.getHydration());
-        player.sendMessage(ChatColor.GOLD + "Hydration: " + (hydration < 5 ? ChatColor.RED : ChatColor.YELLOW) + hydration);
+        player.sendMessage(ChatColor.GOLD + "Hydration: " + (hydration < 5 ? ChatColor.RED : ChatColor.YELLOW) + hydration + "%");
     }
 
     // ------------------------------------------------------------------------
