@@ -843,18 +843,6 @@ public class SavedHorse implements Cloneable {
             AttributeInstance horseAttribute = horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
             horseAttribute.setBaseValue(Math.min(playerState.getMaxSpeed(),
                                                  EasyRider.CONFIG.SPEED.getValue(getSpeedLevel())));
-
-            // Reduce time between breaths to shortest when dehydrated.
-            if (!isFullyHydrated()) {
-                long breathCoolDown = (long) Util.linterp(MIN_BREATH_PERIOD_MILLIS,
-                                                          MAX_BREATH_PERIOD_MILLIS,
-                                                          Math.max(0, getHydration()));
-                _breathRateLimiter.setCoolDownMillis(breathCoolDown);
-                _breathRateLimiter.run(() -> {
-                    Location loc = horse.getLocation();
-                    loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_BREATHE, 1.0f, 1.0f);
-                });
-            }
         }
         setLastAccessed(System.currentTimeMillis());
     } // onRidden
@@ -1098,17 +1086,6 @@ public class SavedHorse implements Cloneable {
     private static final long MAX_MESSAGE_COOLDOWN_MILLIS = 5 * 60 * 1000;
 
     /**
-     * Minimum period between horse breath sounds, when the horse is dehydrated.
-     */
-    private static final long MIN_BREATH_PERIOD_MILLIS = 4 * 1000;
-
-    /**
-     * Maximum period between horse breath sounds, when the horse is fully
-     * hydrated.
-     */
-    private static final long MAX_BREATH_PERIOD_MILLIS = 60 * 1000;
-
-    /**
      * The unique ID of the horse, used as the primary key.
      */
     private UUID uuid;
@@ -1250,11 +1227,5 @@ public class SavedHorse implements Cloneable {
      */
     // @Transient
     private final RateLimiter _overfedRateLimiter = new RateLimiter(5000);
-
-    /**
-     * Limits the rate at horse breathing noises will be made.
-     */
-    // @Transient
-    private final RateLimiter _breathRateLimiter = new RateLimiter(MAX_BREATH_PERIOD_MILLIS);
 
 } // class SavedHorse
