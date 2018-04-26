@@ -408,6 +408,7 @@ public class HorseDB {
         }
 
         getOwnedHorsesSet(ownerUuid).remove(savedHorse);
+        savedHorse.clearPermittedPlayers();
     }
 
     // ------------------------------------------------------------------------
