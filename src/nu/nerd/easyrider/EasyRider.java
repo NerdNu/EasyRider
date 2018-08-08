@@ -393,6 +393,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                         horseDescription.append(" (");
                         horseDescription.append(Util.limitString(abstractHorse.getUniqueId().toString(), 12));
                         horseDescription.append(") ");
+
                         ((Player) owner).sendMessage(ChatColor.RED + horseDescription.toString() + " has died due to " + deathCause +
                                                      (passenger.isEmpty() ? "." : " while being ridden by " + passenger + "."));
                     }
@@ -416,6 +417,9 @@ public class EasyRider extends JavaPlugin implements Listener {
                     message.append(". Health: ").append(CONFIG.HEALTH.toDisplayValue(CONFIG.HEALTH.getAttribute(abstractHorse)));
                     message.append(". Jump: ").append(CONFIG.JUMP.toDisplayValue(CONFIG.JUMP.getAttribute(abstractHorse)));
                 }
+                message.append(". Cause: ").append(deathCause);
+                message.append(". Passenger: ").append(passenger.isEmpty() ? "<none>" : passenger);
+                message.append(". Location: ").append(Util.formatLocation(event.getEntity().getLocation()));
                 message.append(".");
 
                 getLogger().info(message.toString());
