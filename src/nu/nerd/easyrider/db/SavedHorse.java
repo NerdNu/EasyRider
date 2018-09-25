@@ -815,7 +815,7 @@ public class SavedHorse implements Cloneable {
                 setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
             }
 
-            Player rider = (Player) horse.getPassenger();
+            Player rider = (Player) Util.getPassenger(horse);
             if (isDehydrated()) {
                 // Extra debug information of dehydrated horses.
                 if (isDebug()) {

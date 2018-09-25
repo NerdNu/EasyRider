@@ -14,6 +14,8 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
@@ -308,7 +310,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         Entity entity = event.getEntity();
         if (Util.isTrackable(entity)) {
             AbstractHorse abstractHorse = (AbstractHorse) entity;
-            if (abstractHorse.getOwner() != null && !(abstractHorse.getPassenger() instanceof Player)) {
+            if (abstractHorse.getOwner() != null && !(Util.getPassenger(abstractHorse) instanceof Player)) {
                 SavedHorse savedHorse = DB.findOrAddHorse(abstractHorse);
                 DB.observe(savedHorse, abstractHorse);
                 if (savedHorse.isAbandoned()) {
@@ -345,7 +347,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (Util.isTrackable(event.getEntity()) && !CONFIG.ALLOW_PVP) {
             AbstractHorse abstractHorse = (AbstractHorse) event.getEntity();
-            if (abstractHorse.getOwner() != null && abstractHorse.getPassenger() instanceof Player) {
+            if (abstractHorse.getOwner() != null && Util.getPassenger(abstractHorse) instanceof Player) {
                 Entity damager = event.getDamager();
                 if (damager instanceof Player) {
                     event.setCancelled(true);
@@ -372,10 +374,11 @@ public class EasyRider extends JavaPlugin implements Listener {
             if (savedHorse != null) {
                 DB.removeHorse(savedHorse);
 
-                String passenger = "";
-                if (abstractHorse.getPassenger() != null) {
-                    passenger = abstractHorse.getPassenger() instanceof Player ? ((Player) abstractHorse.getPassenger()).getName()
-                                                                               : abstractHorse.getPassenger().toString();
+                String passengerName = "";
+                Entity passenger = Util.getPassenger(abstractHorse);
+                if (passenger != null) {
+                    passengerName = passenger instanceof Player ? ((Player) passenger).getName()
+                                                                : passenger.toString();
                 }
                 String deathCause = (abstractHorse.getKiller() == null ? "the environment" : abstractHorse.getKiller().getName());
 
@@ -389,7 +392,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                     message.append("Owner: ").append(owner.getName());
 
                     // Tell the owner if someone else was riding.
-                    if (!owner.equals(abstractHorse.getPassenger())) {
+                    if (!owner.equals(passenger)) {
                         StringBuilder horseDescription = new StringBuilder("Your ");
                         horseDescription.append(abstractHorse.getCustomName() != null ? abstractHorse.getCustomName()
                                                                                       : Util.entityTypeName(abstractHorse));
@@ -398,7 +401,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                         horseDescription.append(") ");
 
                         ((Player) owner).sendMessage(ChatColor.RED + horseDescription.toString() + " has died due to " + deathCause +
-                                                     (passenger.isEmpty() ? "." : " while being ridden by " + passenger + "."));
+                                                     (passengerName.isEmpty() ? "." : " while being ridden by " + passengerName + "."));
                     }
                 } else {
                     message.append("No owner");
@@ -421,7 +424,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                     message.append(". Jump: ").append(CONFIG.JUMP.toDisplayValue(CONFIG.JUMP.getAttribute(abstractHorse)));
                 }
                 message.append(". Cause: ").append(deathCause);
-                message.append(". Passenger: ").append(passenger.isEmpty() ? "<none>" : passenger);
+                message.append(". Passenger: ").append(passengerName.isEmpty() ? "<none>" : passengerName);
                 message.append(". Location: ").append(Util.formatLocation(event.getEntity().getLocation()));
                 message.append(".");
 
@@ -786,7 +789,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onHorseJump(HorseJumpEvent event) {
         AbstractHorse abstractHorse = event.getEntity();
-        Entity passenger = abstractHorse.getPassenger();
+        Entity passenger = Util.getPassenger(abstractHorse);
         if (!(passenger instanceof Player)) {
             return;
         }
@@ -825,8 +828,9 @@ public class EasyRider extends JavaPlugin implements Listener {
     public void onEntityTeleport(EntityTeleportEvent event) {
         if (Util.isTrackable(event.getEntity())) {
             AbstractHorse abstractHorse = (AbstractHorse) event.getEntity();
-            if (abstractHorse.getPassenger() instanceof Player) {
-                Player player = (Player) abstractHorse.getPassenger();
+            Entity passenger = Util.getPassenger(abstractHorse);
+            if (passenger instanceof Player) {
+                Player player = (Player) passenger;
                 getState(player).clearHorseDistance();
             }
         }
@@ -841,7 +845,8 @@ public class EasyRider extends JavaPlugin implements Listener {
     public void onEntityPortal(EntityPortalEvent event) {
         if (Util.isTrackable(event.getEntity())) {
             AbstractHorse abstractHorse = (AbstractHorse) event.getEntity();
-            if (!(abstractHorse.getPassenger() instanceof Player)) {
+            Entity passenger = Util.getPassenger(abstractHorse);
+            if (!(passenger instanceof Player)) {
                 AnimalTamer owner = abstractHorse.getOwner();
                 if (owner instanceof Player && event.getFrom().getWorld().getEnvironment() == Environment.THE_END) {
                     Location bedSpawnLoc = ((Player) owner).getBedSpawnLocation();
@@ -1021,7 +1026,8 @@ public class EasyRider extends JavaPlugin implements Listener {
                 // And let's simulate healing with golden food too.
                 // Golden apples (both types) heal (10); carrots heal 4.
                 int foodValue = (foodItem.getType() == Material.GOLDEN_APPLE) ? 10 : 4;
-                abstractHorse.setHealth(Math.min(abstractHorse.getMaxHealth(), abstractHorse.getHealth() + foodValue));
+                AttributeInstance maxHealth = abstractHorse.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                abstractHorse.setHealth(Math.min(maxHealth.getValue(), abstractHorse.getHealth() + foodValue));
 
             } else {
                 // For other types of horses, detect whether the food
@@ -1061,7 +1067,9 @@ public class EasyRider extends JavaPlugin implements Listener {
         } else if (food.getType() == Material.GOLDEN_CARROT) {
             return 8;
         } else if (food.getType() == Material.GOLDEN_APPLE) {
-            return (food.getDurability() == 0) ? 8 * 9 : 8 * 9 * 9;
+            return 8 * 9;
+        } else if (food.getType() == Material.ENCHANTED_GOLDEN_APPLE) {
+            return 8 * 9 * 9;
         } else {
             return 0;
         }

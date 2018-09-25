@@ -1,6 +1,7 @@
 package nu.nerd.easyrider;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -32,6 +33,18 @@ import me.libraryaddict.disguise.disguisetypes.MobDisguise;
  * Utility functions that don't necessarily belong in a specific class.
  */
 public class Util {
+    // ------------------------------------------------------------------------
+    /**
+     * Return the first passenger of an Entity, or null if there are none.
+     * 
+     * @param steed the ridden entity.
+     * @return the first passenger of an Entity, or null if there are none.
+     */
+    public static Entity getPassenger(Entity steed) {
+        List<Entity> passengers = steed.getPassengers();
+        return passengers.isEmpty() ? null : passengers.get(0);
+    }
+
     // ------------------------------------------------------------------------
     /**
      * Return true if the specified entity is trackable.

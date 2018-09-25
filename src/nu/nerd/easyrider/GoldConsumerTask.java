@@ -64,13 +64,11 @@ public final class GoldConsumerTask implements Runnable {
                 ||
                 (afterFoodItem != null &&
                  afterFoodItem.getType() == _beforeFoodItem.getType() &&
-                 afterFoodItem.getDurability() == _beforeFoodItem.getDurability() &&
                  afterFoodItem.getAmount() == _beforeFoodItem.getAmount() - 1)) {
                 EasyRider.PLUGIN.consumeGoldenFood(savedHorse, _horse, _nuggetValue, _player);
 
             } else if (afterFoodItem != null &&
                        afterFoodItem.getType() == _beforeFoodItem.getType() &&
-                       afterFoodItem.getDurability() == _beforeFoodItem.getDurability() &&
                        afterFoodItem.getAmount() == _beforeFoodItem.getAmount()) {
                 // Nothing was consumed, but simulate consumption.
                 afterFoodItem.setAmount(afterFoodItem.getAmount() - 1);
