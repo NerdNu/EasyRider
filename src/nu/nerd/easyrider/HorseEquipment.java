@@ -1,5 +1,7 @@
 package nu.nerd.easyrider;
 
+import java.util.HashMap;
+
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.entity.AbstractHorse;
@@ -29,22 +31,22 @@ public class HorseEquipment {
     public static final int SADDLE = 0x01;
 
     /**
-     * Bit set to indicate presence of iron barding.
+     * Bit set to indicate presence of iron armour.
      */
-    public static final int IRON_BARDING = 0x02;
+    public static final int IRON_HORSE_ARMOUR = 0x02;
 
     /**
-     * Bit set to indicate presence of gold barding.
+     * Bit set to indicate presence of gold armour.
      */
-    public static final int GOLD_BARDING = 0x04;
+    public static final int GOLDEN_HORSE_ARMOUR = 0x04;
 
     /**
-     * Bit set to indicate presence of diamond barding.
+     * Bit set to indicate presence of diamond armour.
      */
-    public static final int DIAMOND_BARDING = 0x08;
+    public static final int DIAMOND_HORSE_ARMOUR = 0x08;
 
     /**
-     * Bit set to indicate presence of chest barding.
+     * Bit set to indicate presence of chest.
      */
     public static final int CHEST = 0x10;
 
@@ -68,8 +70,8 @@ public class HorseEquipment {
     /**
      * Bit set corresponding to all regular, vanilla equipment.
      */
-    public static final int ALL_REGULAR = (SADDLE | IRON_BARDING | GOLD_BARDING | DIAMOND_BARDING | CHEST |
-                                           PACK | PACK_COLOUR);
+    public static final int ALL_REGULAR = (SADDLE | IRON_HORSE_ARMOUR | GOLDEN_HORSE_ARMOUR | DIAMOND_HORSE_ARMOUR |
+                                           CHEST | PACK | PACK_COLOUR);
 
     // ------------------------------------------------------------------------
     /**
@@ -94,12 +96,12 @@ public class HorseEquipment {
                 equip |= HorseEquipment.SADDLE;
             }
             if (inv.getArmor() != null) {
-                if (inv.getArmor().getType() == Material.IRON_BARDING) {
-                    equip |= HorseEquipment.IRON_BARDING;
-                } else if (inv.getArmor().getType() == Material.GOLD_BARDING) {
-                    equip |= HorseEquipment.GOLD_BARDING;
-                } else if (inv.getArmor().getType() == Material.DIAMOND_BARDING) {
-                    equip |= HorseEquipment.DIAMOND_BARDING;
+                if (inv.getArmor().getType() == Material.IRON_HORSE_ARMOR) {
+                    equip |= HorseEquipment.IRON_HORSE_ARMOUR;
+                } else if (inv.getArmor().getType() == Material.GOLDEN_HORSE_ARMOR) {
+                    equip |= HorseEquipment.GOLDEN_HORSE_ARMOUR;
+                } else if (inv.getArmor().getType() == Material.DIAMOND_HORSE_ARMOR) {
+                    equip |= HorseEquipment.DIAMOND_HORSE_ARMOUR;
                 }
             }
         } else if (abstractHorse instanceof Donkey ||
@@ -119,10 +121,12 @@ public class HorseEquipment {
             Llama llama = (Llama) abstractHorse;
             LlamaInventory inv = llama.getInventory();
             ItemStack item = inv.getDecor();
-            if (item != null && item.getType() == Material.CARPET) {
-                equip |= HorseEquipment.PACK | ((item.getDurability() & 0xF) << PACK_SHIFT);
+            if (item != null) {
+                DyeColor colour = CARPET_COLOURS.get(item.getType());
+                if (colour != null) {
+                    equip |= HorseEquipment.PACK | ((colour.ordinal() & 0xF) << PACK_SHIFT);
+                }
             }
-
         }
         return equip;
     }
@@ -141,16 +145,16 @@ public class HorseEquipment {
             s.append("saddle");
             sep = ", ";
         }
-        if ((bits & IRON_BARDING) != 0) {
-            s.append(sep).append("iron barding");
+        if ((bits & IRON_HORSE_ARMOUR) != 0) {
+            s.append(sep).append("iron armour");
             sep = ", ";
         }
-        if ((bits & GOLD_BARDING) != 0) {
-            s.append(sep).append("gold barding");
+        if ((bits & GOLDEN_HORSE_ARMOUR) != 0) {
+            s.append(sep).append("gold armour");
             sep = ", ";
         }
-        if ((bits & DIAMOND_BARDING) != 0) {
-            s.append(sep).append("diamond barding");
+        if ((bits & DIAMOND_HORSE_ARMOUR) != 0) {
+            s.append(sep).append("diamond armour");
             sep = ", ";
         }
         if ((bits & CHEST) != 0) {
@@ -159,11 +163,21 @@ public class HorseEquipment {
         }
         if ((bits & PACK) != 0) {
             int colourBits = (bits & PACK_COLOUR) >> PACK_SHIFT;
-            @SuppressWarnings("deprecation")
-            DyeColor colour = DyeColor.getByWoolData((byte) colourBits);
+            DyeColor colour = DyeColor.values()[colourBits];
             s.append(sep).append(colour.name().replace('_', ' ').toLowerCase()).append(" pack");
             sep = ", ";
         }
         return s.toString();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Map from 16 carpet materials to DyeColor enum.
+     */
+    private static final HashMap<Material, DyeColor> CARPET_COLOURS = new HashMap<>();
+    static {
+        for (DyeColor colour : DyeColor.values()) {
+            CARPET_COLOURS.put(Material.valueOf(colour.name() + "_CARPET"), colour);
+        }
     }
 } // class HorseEquipment
