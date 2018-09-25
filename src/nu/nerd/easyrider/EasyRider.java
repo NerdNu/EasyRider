@@ -15,6 +15,9 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.AbstractHorse;
@@ -1141,11 +1144,12 @@ public class EasyRider extends JavaPlugin implements Listener {
      * @param block the block, which must not be null.
      * @return true if a horse can drink the block.
      */
-    @SuppressWarnings("deprecation")
     protected boolean isDrinkable(Block block) {
-        return (block.getType() == Material.CAULDRON && block.getData() != 0) ||
-               block.getType() == Material.WATER ||
-               block.getType() == Material.STATIONARY_WATER;
+        BlockData data = block.getBlockData();
+        Waterlogged waterlogged = (data instanceof Waterlogged) ? (Waterlogged) data : null;
+        return (waterlogged != null && waterlogged.isWaterlogged()) ||
+               (block.getType() == Material.CAULDRON && ((Levelled) data).getLevel() != 0) ||
+               block.getType() == Material.WATER;
     }
 
     // ------------------------------------------------------------------------
