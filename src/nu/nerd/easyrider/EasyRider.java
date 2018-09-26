@@ -53,9 +53,9 @@ import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import me.libraryaddict.disguise.DisguiseAPI;
 import nu.nerd.easyrider.commands.EasyRiderExecutor;
 import nu.nerd.easyrider.commands.ExecutorBase;
 import nu.nerd.easyrider.commands.HorseAccessExecutor;
@@ -128,6 +128,16 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
+     * Return the provider of the disguise facility, or null if not supported.
+     * 
+     * @return the provider of the disguise facility, or null if not supported.
+     */
+    public DisguiseProvider getDisguiseProvider() {
+        return _disguiseProvider;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * @see org.bukkit.plugin.java.JavaPlugin#onEnable()
      */
     @Override
@@ -197,6 +207,13 @@ public class EasyRider extends JavaPlugin implements Listener {
             }
 
         }, 20 * CONFIG.SCAN_PERIOD_SECONDS);
+
+        Plugin libsDisguises = Bukkit.getPluginManager().getPlugin("LibsDisguises");
+        if (libsDisguises != null && libsDisguises.isEnabled()) {
+            _disguiseProvider = new LibsDisguiseProvider();
+        } else {
+            getLogger().info("Note: LibsDisguises is missing or disabled.");
+        }
     } // onEnable
 
     // ------------------------------------------------------------------------
@@ -628,6 +645,10 @@ public class EasyRider extends JavaPlugin implements Listener {
      */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
+        if (getDisguiseProvider() == null) {
+            return;
+        }
+
         InventoryHolder holder = event.getInventory().getHolder();
         if (!(holder instanceof AbstractHorse) ||
             !(event.getWhoClicked() instanceof Player)) {
@@ -664,7 +685,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                 (oldSaddle != null && !oldSaddle.equals(newSaddle))) {
                 EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
                 if (disguiseEntityType == null) {
-                    DisguiseAPI.undisguiseToAll(abstractHorse);
+                    getDisguiseProvider().removeDisguise(abstractHorse);
                 } else {
                     Util.applySaddleDisguise(abstractHorse, rider, disguiseEntityType, false, true);
                 }
@@ -771,9 +792,11 @@ public class EasyRider extends JavaPlugin implements Listener {
             handleDrinking(abstractHorse, savedHorse, player);
 
             // Clear disguise on dismount.
-            EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
-            if (disguiseEntityType != null) {
-                DisguiseAPI.undisguiseToAll(abstractHorse);
+            if (getDisguiseProvider() != null) {
+                EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
+                if (disguiseEntityType != null) {
+                    getDisguiseProvider().removeDisguise(abstractHorse);
+                }
             }
 
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
@@ -1176,13 +1199,13 @@ public class EasyRider extends JavaPlugin implements Listener {
     /**
      * Name of players file.
      */
-    private static final String PLAYERS_FILE = "players.yml";
+    protected static final String PLAYERS_FILE = "players.yml";
 
     /**
      * Start of lore string on saddles indicating that the saddle confers a
      * disguise.
      */
-    static final String DISGUISE_PREFIX = "Disguise:";
+    protected static final String DISGUISE_PREFIX = "Disguise:";
 
     /**
      * Configuration file for per-player settings.
@@ -1199,6 +1222,11 @@ public class EasyRider extends JavaPlugin implements Listener {
     /**
      * Counter updated monotonically every tick.
      */
-    int _tickCounter;
+    protected int _tickCounter;
+
+    /**
+     * Provides the disguise facility, or null if disguises are not supported.
+     */
+    protected DisguiseProvider _disguiseProvider;
 
 } // class EasyRider

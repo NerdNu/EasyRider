@@ -7,7 +7,7 @@ import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
-import me.libraryaddict.disguise.DisguiseAPI;
+import nu.nerd.easyrider.EasyRider;
 import nu.nerd.easyrider.Util;
 
 // ----------------------------------------------------------------------------
@@ -43,6 +43,11 @@ public class HorseDisguiseSelfExecutor extends ExecutorBase {
             return true;
         }
 
+        if (EasyRider.PLUGIN.getDisguiseProvider() == null) {
+            sender.sendMessage(ChatColor.RED + "Disguise saddles are not enabled!");
+            return true;
+        }
+
         Player player = (Player) sender;
         if (player.getVehicle() instanceof AbstractHorse) {
             AbstractHorse abstractHorse = (AbstractHorse) player.getVehicle();
@@ -61,7 +66,7 @@ public class HorseDisguiseSelfExecutor extends ExecutorBase {
             } else {
                 sender.sendMessage(ChatColor.GOLD + "You can no longer see your steed's disguise.");
             }
-            DisguiseAPI.undisguiseToAll(abstractHorse);
+            EasyRider.PLUGIN.getDisguiseProvider().removeDisguise(abstractHorse);
             Util.applySaddleDisguise(abstractHorse, player, disguiseEntityType, showToRider, true);
 
         } else {

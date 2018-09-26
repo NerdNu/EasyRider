@@ -24,10 +24,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 
-import me.libraryaddict.disguise.DisguiseAPI;
-import me.libraryaddict.disguise.disguisetypes.DisguiseType;
-import me.libraryaddict.disguise.disguisetypes.MobDisguise;
-
 // ----------------------------------------------------------------------------
 /**
  * Utility functions that don't necessarily belong in a specific class.
@@ -287,19 +283,16 @@ public class Util {
      */
     public static void applySaddleDisguise(AbstractHorse abstractHorse, Player rider, EntityType disguiseEntityType,
                                            boolean showToRider, boolean tellRider) {
-        if (disguiseEntityType == null) {
+        if (disguiseEntityType == null || EasyRider.PLUGIN.getDisguiseProvider() == null) {
             return;
         }
 
-        DisguiseType disguiseType = DisguiseType.getType(disguiseEntityType);
-        if (disguiseType != null) {
-            MobDisguise disguise = new MobDisguise(disguiseType);
-            Set<Player> players = new HashSet<>(Bukkit.getOnlinePlayers());
-            if (!showToRider) {
-                players.remove(rider);
-            }
-            DisguiseAPI.undisguiseToAll(abstractHorse);
-            DisguiseAPI.disguiseToPlayers(abstractHorse, disguise, players);
+        Set<Player> players = new HashSet<>(Bukkit.getOnlinePlayers());
+        if (!showToRider) {
+            players.remove(rider);
+        }
+        boolean validDisguise = EasyRider.PLUGIN.getDisguiseProvider().applyDisguise(abstractHorse, disguiseEntityType, players);
+        if (validDisguise) {
             if (tellRider) {
                 rider.sendMessage(ChatColor.GOLD + "Your steed is disguised as " + disguiseEntityType + "!");
             }
