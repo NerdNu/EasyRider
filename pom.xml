@@ -4,7 +4,7 @@
 	<groupId>nu.nerd</groupId>
 	<name>EasyRider</name>
 	<artifactId>${project.name}</artifactId>
-	<version>1.15.0</version>
+	<version>1.16.0</version>
 	<packaging>jar</packaging>
 	<description>Horse capability levelling plugin.</description>
 	<url>https://github.com/NerdNu/${project.name}</url>
@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot</artifactId>
-			<version>1.12-R0.1-SNAPSHOT</version>
+			<version>1.13-R0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>LibsDisguises</groupId>

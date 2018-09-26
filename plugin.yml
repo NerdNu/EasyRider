@@ -6,6 +6,7 @@ description: ${project.description}
 website: ${project.url}
 depend: [LibsDisguises]
 main: nu.nerd.easyrider.EasyRider
+api-version: 1.13
 
 # Prevent EasyRider from attempting to load horse locations before all worlds
 # are loaded.
