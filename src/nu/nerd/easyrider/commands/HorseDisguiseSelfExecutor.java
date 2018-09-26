@@ -8,7 +8,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import nu.nerd.easyrider.EasyRider;
-import nu.nerd.easyrider.Util;
+import nu.nerd.easyrider.SpecialSaddles;
 
 // ----------------------------------------------------------------------------
 /**
@@ -52,13 +52,13 @@ public class HorseDisguiseSelfExecutor extends ExecutorBase {
         if (player.getVehicle() instanceof AbstractHorse) {
             AbstractHorse abstractHorse = (AbstractHorse) player.getVehicle();
             // Toggle disguise.
-            EntityType disguiseEntityType = Util.getSaddleDisguiseType(abstractHorse);
+            EntityType disguiseEntityType = SpecialSaddles.getSaddleDisguiseType(abstractHorse);
             if (disguiseEntityType == null) {
                 sender.sendMessage(ChatColor.RED + "You must be riding a horse with a disguise saddle to see the disguise!");
                 return true;
             }
 
-            boolean showToRider = !Util.isSaddleDisguiseVisibleToRider(abstractHorse);
+            boolean showToRider = !SpecialSaddles.isSaddleDisguiseVisibleToRider(abstractHorse);
             if (showToRider) {
                 sender.sendMessage(ChatColor.GOLD + "You will now be able to see your steed's disguise.");
                 sender.sendMessage(ChatColor.GOLD + "Due to limitations in the Minecraft client, you can't move.");
@@ -67,7 +67,7 @@ public class HorseDisguiseSelfExecutor extends ExecutorBase {
                 sender.sendMessage(ChatColor.GOLD + "You can no longer see your steed's disguise.");
             }
             EasyRider.PLUGIN.getDisguiseProvider().removeDisguise(abstractHorse);
-            Util.applySaddleDisguise(abstractHorse, player, disguiseEntityType, showToRider, true);
+            SpecialSaddles.applySaddleDisguise(abstractHorse, player, disguiseEntityType, showToRider, true);
 
         } else {
             sender.sendMessage(ChatColor.RED + "You must be riding a horse with a disguise saddle to see the disguise!");
