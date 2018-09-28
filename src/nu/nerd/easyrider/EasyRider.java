@@ -587,7 +587,11 @@ public class EasyRider extends JavaPlugin implements Listener {
                     getLogger().warning(ownerClause + " horse " + abstractHorse.getUniqueId() +
                                         " moved impossibly fast for its level; ratio: " + (tickDistance / maxSpeed));
                 } else {
-                    Ability ability = (abstractHorse.isOnGround()) ? CONFIG.SPEED : CONFIG.JUMP;
+                    // Underwater training (of skeleton horses) counts as
+                    // speed rather than jump training.
+                    boolean underWater = Util.isWaterlogged(abstractHorse.getLocation().getBlock());
+                    Ability ability = (abstractHorse.isOnGround() || underWater) ? CONFIG.SPEED
+                                                                                 : CONFIG.JUMP;
                     ability.setEffort(savedHorse, ability.getEffort(savedHorse) + tickDistance);
                     if (ability.hasLevelIncreased(savedHorse, abstractHorse)) {
                         notifyLevelUp(player, savedHorse, abstractHorse, ability);
