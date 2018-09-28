@@ -47,7 +47,7 @@ public class HorseTameExecutor extends ExecutorBase {
         OfflinePlayer newOwner = Bukkit.getOfflinePlayer(args[0]);
         if (newOwner == null) {
             sender.sendMessage(ChatColor.RED + args[0] + " is not a valid player name.");
-        } else if (!newOwner.hasPlayedBefore()) {
+        } else if (!newOwner.isOnline() && !newOwner.hasPlayedBefore()) {
             sender.sendMessage(ChatColor.RED + args[0] + " has never played on this server.");
         } else {
             sender.sendMessage(ChatColor.GOLD + "Right click on the horse to tame to " + newOwner.getName());

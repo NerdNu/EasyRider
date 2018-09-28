@@ -108,7 +108,7 @@ public class HorseAccessExecutor extends ExecutorBase {
                     sendingPlayer.sendMessage(ChatColor.RED +
                                               "You can't alter your own permissions on an animal that you own.\n" +
                                               "Use /horse-free to release a horse.");
-                } else if (!player.hasPlayedBefore()) {
+                } else if (!player.isOnline() && !player.hasPlayedBefore()) {
                     sendingPlayer.sendMessage(ChatColor.RED + "Error: " + player.getName() + " has not yet played on this server.");
                     return;
                 } else {
