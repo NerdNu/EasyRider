@@ -6,7 +6,11 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
@@ -313,6 +317,26 @@ public class Util {
      */
     public static double linterp(double min, double max, double frac) {
         return min + frac * (max - min);
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return true if the specified block is water, or is a waterlogged block.
+     * 
+     * @param block the block; if null, the result is false.
+     * @return true if the specified block is water, or is a waterlogged block.
+     */
+    public static boolean isWaterlogged(Block block) {
+        if (block == null) {
+            return false;
+        }
+
+        if (block.getType() == Material.WATER) {
+            return true;
+        }
+
+        BlockData blockData = block.getBlockData();
+        return blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged();
     }
 
     // ------------------------------------------------------------------------

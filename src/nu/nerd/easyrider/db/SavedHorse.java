@@ -806,40 +806,44 @@ public class SavedHorse implements Cloneable {
      */
     public void onRidden(int relativeTick, AbstractHorse horse) {
         if (getLocation() != null && Util.isTrainable(horse)) {
-            double dist = Util.getHorizontalDistance(location, horse.getLocation());
-
-            // Suppress dehydration of max speed horses.
-            if (getSpeedLevel() >= EasyRider.CONFIG.SPEED.getMaxLevel()) {
-                setHydration(1.0);
-            } else {
-                setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
-            }
-
+            Location newLocation = horse.getLocation();
+            double dist = Util.getHorizontalDistance(location, newLocation);
             Player rider = (Player) Util.getPassenger(horse);
-            if (isDehydrated()) {
-                // Extra debug information of dehydrated horses.
-                if (isDebug()) {
-                    EasyRider.PLUGIN.debug(horse, " dehydrated (" + getHydration() + ") over dist " + dist);
+
+            // Horses moving through water don't get dehydrated.
+            if (!Util.isWaterlogged(newLocation.getBlock())) {
+                // Suppress dehydration of max speed horses.
+                if (getSpeedLevel() >= EasyRider.CONFIG.SPEED.getMaxLevel()) {
+                    setHydration(1.0);
+                } else {
+                    setHydration(getHydration() - (dist / EasyRider.CONFIG.DEHYDRATION_DISTANCE));
                 }
 
-                PlayerState playerState = EasyRider.PLUGIN.getState(rider);
+                if (isDehydrated()) {
+                    // Extra debug information of dehydrated horses.
+                    if (isDebug()) {
+                        EasyRider.PLUGIN.debug(horse, " dehydrated (" + getHydration() + ") over dist " + dist);
+                    }
 
-                // Suppress dehydration messages once interval exceeds maximum.
-                if (!playerState.isNeglectful() &&
-                    _messageRateLimiter.getCoolDownMillis() < MAX_MESSAGE_COOLDOWN_MILLIS &&
-                    _messageRateLimiter.run(() -> {
-                        rider.sendMessage(ChatColor.RED + getMessageName() +
-                                          " is too dehydrated to benefit from training. Give it a drink of water.");
-                        rider.playSound(rider.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
-                    })) {
-                    long newMessageCoolDown = Math.min(Math.max(MIN_MESSAGE_COOLDOWN_MILLIS,
-                                                                _messageRateLimiter.getCoolDownMillis() * 2),
-                                                       MAX_MESSAGE_COOLDOWN_MILLIS);
-                    _messageRateLimiter.setCoolDownMillis(newMessageCoolDown);
+                    PlayerState playerState = EasyRider.PLUGIN.getState(rider);
+
+                    // Suppress dehydration messages once interval exceeds
+                    // maximum.
+                    if (!playerState.isNeglectful() &&
+                        _messageRateLimiter.getCoolDownMillis() < MAX_MESSAGE_COOLDOWN_MILLIS &&
+                        _messageRateLimiter.run(() -> {
+                            rider.sendMessage(ChatColor.RED + getMessageName() +
+                                              " is too dehydrated to benefit from training. Give it a drink of water.");
+                            rider.playSound(rider.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                        })) {
+                        long newMessageCoolDown = Math.min(Math.max(MIN_MESSAGE_COOLDOWN_MILLIS,
+                                                                    _messageRateLimiter.getCoolDownMillis() * 2),
+                                                           MAX_MESSAGE_COOLDOWN_MILLIS);
+                        _messageRateLimiter.setCoolDownMillis(newMessageCoolDown);
+                    }
+                } else {
+                    _messageRateLimiter.setCoolDownMillis(MIN_MESSAGE_COOLDOWN_MILLIS);
                 }
-            } else {
-                _messageRateLimiter.setCoolDownMillis(MIN_MESSAGE_COOLDOWN_MILLIS);
-
             }
 
             PlayerState playerState = EasyRider.PLUGIN.getState(rider);
