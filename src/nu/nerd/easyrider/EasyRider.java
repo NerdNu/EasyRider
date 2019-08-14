@@ -25,7 +25,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -687,11 +686,11 @@ public class EasyRider extends JavaPlugin implements Listener {
             ItemStack newSaddle = event.getInventory().getItem(0);
             if ((oldSaddle == null && newSaddle != null) ||
                 (oldSaddle != null && !oldSaddle.equals(newSaddle))) {
-                EntityType disguiseEntityType = SpecialSaddles.getSaddleDisguiseType(abstractHorse);
-                if (disguiseEntityType == null) {
+                String encodedDisguise = SpecialSaddles.getSaddleEncodedDisguise(abstractHorse);
+                if (encodedDisguise == null) {
                     getDisguiseProvider().removeDisguise(abstractHorse);
                 } else {
-                    SpecialSaddles.applySaddleDisguise(abstractHorse, rider, disguiseEntityType, false, true);
+                    SpecialSaddles.applySaddleDisguise(abstractHorse, rider, encodedDisguise, false, true);
                 }
             }
         }, 1);
@@ -762,9 +761,9 @@ public class EasyRider extends JavaPlugin implements Listener {
                                    Util.entityTypeName(abstractHorse) + ".");
             }
 
-            EntityType disguiseEntityType = SpecialSaddles.getSaddleDisguiseType(abstractHorse);
-            if (disguiseEntityType != null) {
-                SpecialSaddles.applySaddleDisguise(abstractHorse, player, disguiseEntityType, false, true);
+            String encodedDisguise = SpecialSaddles.getSaddleEncodedDisguise(abstractHorse);
+            if (encodedDisguise != null) {
+                SpecialSaddles.applySaddleDisguise(abstractHorse, player, encodedDisguise, false, true);
             }
 
             if (CONFIG.DEBUG_EVENTS && savedHorse.isDebug()) {
@@ -797,8 +796,8 @@ public class EasyRider extends JavaPlugin implements Listener {
 
             // Clear disguise on dismount.
             if (getDisguiseProvider() != null) {
-                EntityType disguiseEntityType = SpecialSaddles.getSaddleDisguiseType(abstractHorse);
-                if (disguiseEntityType != null) {
+                String encodedDisguise = SpecialSaddles.getSaddleEncodedDisguise(abstractHorse);
+                if (encodedDisguise != null) {
                     getDisguiseProvider().removeDisguise(abstractHorse);
                 }
             }

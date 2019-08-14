@@ -4,7 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractHorse;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import nu.nerd.easyrider.EasyRider;
@@ -52,8 +51,8 @@ public class HorseDisguiseSelfExecutor extends ExecutorBase {
         if (player.getVehicle() instanceof AbstractHorse) {
             AbstractHorse abstractHorse = (AbstractHorse) player.getVehicle();
             // Toggle disguise.
-            EntityType disguiseEntityType = SpecialSaddles.getSaddleDisguiseType(abstractHorse);
-            if (disguiseEntityType == null) {
+            String encodedDisguise = SpecialSaddles.getSaddleEncodedDisguise(abstractHorse);
+            if (encodedDisguise == null) {
                 sender.sendMessage(ChatColor.RED + "You must be riding a horse with a disguise saddle to see the disguise!");
                 return true;
             }
@@ -67,7 +66,7 @@ public class HorseDisguiseSelfExecutor extends ExecutorBase {
                 sender.sendMessage(ChatColor.GOLD + "You can no longer see your steed's disguise.");
             }
             EasyRider.PLUGIN.getDisguiseProvider().removeDisguise(abstractHorse);
-            SpecialSaddles.applySaddleDisguise(abstractHorse, player, disguiseEntityType, showToRider, true);
+            SpecialSaddles.applySaddleDisguise(abstractHorse, player, encodedDisguise, showToRider, true);
 
         } else {
             sender.sendMessage(ChatColor.RED + "You must be riding a horse with a disguise saddle to see the disguise!");

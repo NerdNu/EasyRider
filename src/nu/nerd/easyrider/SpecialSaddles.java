@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.AbstractHorse;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -47,10 +46,10 @@ public class SpecialSaddles {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             if (onlinePlayer.getVehicle() instanceof AbstractHorse) {
                 AbstractHorse abstractHorse = (AbstractHorse) onlinePlayer.getVehicle();
-                EntityType disguiseEntityType = SpecialSaddles.getSaddleDisguiseType(abstractHorse);
-                if (disguiseEntityType != null) {
+                String encodedDisguise = SpecialSaddles.getSaddleEncodedDisguise(abstractHorse);
+                if (encodedDisguise != null) {
                     boolean showToRider = SpecialSaddles.isSaddleDisguiseVisibleToRider(abstractHorse);
-                    SpecialSaddles.applySaddleDisguise(abstractHorse, onlinePlayer, disguiseEntityType, showToRider, false);
+                    SpecialSaddles.applySaddleDisguise(abstractHorse, onlinePlayer, encodedDisguise, showToRider, false);
                 }
             }
         }
@@ -58,18 +57,17 @@ public class SpecialSaddles {
 
     // ------------------------------------------------------------------------
     /**
-     * Disguise a horse as a specified EntityType and notify a player when it is
-     * still disguised.
+     * Disguise a horse and notify a player when it is still disguised.
      * 
      * @param abstractHorse the horse-like entity.
      * @param rider the rider, to be notified if a disguise is applied.
-     * @param disguiseEntityType the EntityType of the disguise.
+     * @param encodedDisguise the string-encoded disguise.
      * @param showToRider if true, the disguise is visible to the rider.
      * @param tellRider if true, tell the rider what disguise is in use.
      */
-    public static void applySaddleDisguise(AbstractHorse abstractHorse, Player rider, EntityType disguiseEntityType,
+    public static void applySaddleDisguise(AbstractHorse abstractHorse, Player rider, String encodedDisguise,
                                            boolean showToRider, boolean tellRider) {
-        if (disguiseEntityType == null || EasyRider.PLUGIN.getDisguiseProvider() == null) {
+        if (encodedDisguise == null || EasyRider.PLUGIN.getDisguiseProvider() == null) {
             return;
         }
 
@@ -77,10 +75,10 @@ public class SpecialSaddles {
         if (!showToRider) {
             players.remove(rider);
         }
-        boolean validDisguise = EasyRider.PLUGIN.getDisguiseProvider().applyDisguise(abstractHorse, disguiseEntityType, players);
+        boolean validDisguise = EasyRider.PLUGIN.getDisguiseProvider().applyDisguise(abstractHorse, encodedDisguise, players);
         if (validDisguise) {
             if (tellRider) {
-                rider.sendMessage(ChatColor.GOLD + "Your steed is disguised as " + disguiseEntityType + "!");
+                rider.sendMessage(ChatColor.GOLD + "Your steed is disguised as \"" + encodedDisguise + "\"!");
             }
 
             abstractHorse.removeMetadata(SpecialSaddles.SELF_DISGUISE_KEY, EasyRider.PLUGIN);
@@ -90,7 +88,7 @@ public class SpecialSaddles {
         } else {
             Logger logger = EasyRider.PLUGIN.getLogger();
             logger.warning("Horse " + abstractHorse.getUniqueId() + " accessed by " + rider.getName() +
-                           " has a saddle with unsupported disguise " + disguiseEntityType + ".");
+                           " has a saddle with unsupported disguise, " + encodedDisguise + ".");
         }
     }
 
@@ -109,14 +107,13 @@ public class SpecialSaddles {
 
     // ------------------------------------------------------------------------
     /**
-     * Return the EntityType of the disguise associated with a horse's saddle,
-     * or null if the saddle doesn't confer a disguise (or it's not a saddle).
+     * Return the Disguise associated with a horse's saddle, or null if the
+     * saddle doesn't confer a disguise (or it's not a saddle).
      * 
      * @param abstractHorse the horse-like entity.
-     * @return the EntityType of the disguise, or null if no disguise should be
-     *         applied.
+     * @return the Disguise, or null if no disguise should be applied.
      */
-    public static EntityType getSaddleDisguiseType(AbstractHorse abstractHorse) {
+    public static String getSaddleEncodedDisguise(AbstractHorse abstractHorse) {
         ItemStack saddle = SpecialSaddles.getSaddleItemStack(abstractHorse);
         if (saddle == null || saddle.getType() != Material.SADDLE) {
             return null;
@@ -126,11 +123,7 @@ public class SpecialSaddles {
         if (meta != null && meta.hasLore()) {
             for (String lore : meta.getLore()) {
                 if (lore.startsWith(EasyRider.DISGUISE_PREFIX)) {
-                    String entityTypeName = lore.substring(EasyRider.DISGUISE_PREFIX.length()).trim().toUpperCase();
-                    try {
-                        return EntityType.valueOf(entityTypeName);
-                    } catch (IllegalArgumentException ex) {
-                    }
+                    return lore.substring(EasyRider.DISGUISE_PREFIX.length()).trim();
                 }
             }
         }

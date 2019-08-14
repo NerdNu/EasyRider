@@ -2,13 +2,13 @@ package nu.nerd.easyrider;
 
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import me.libraryaddict.disguise.DisguiseAPI;
-import me.libraryaddict.disguise.disguisetypes.DisguiseType;
-import me.libraryaddict.disguise.disguisetypes.MobDisguise;
+import me.libraryaddict.disguise.disguisetypes.Disguise;
+import me.libraryaddict.disguise.utilities.parser.DisguiseParser;
 
 // ----------------------------------------------------------------------------
 /**
@@ -21,18 +21,27 @@ public class LibsDisguiseProvider implements DisguiseProvider {
     // --------------------------------------------------------------------------
     /**
      * @see nu.nerd.easyrider.DisguiseProvider#applyDisguise(org.bukkit.entity.Entity,
-     *      org.bukkit.entity.EntityType, java.util.Set)
+     *      java.lang.String, java.util.Set)
      */
     @Override
-    public boolean applyDisguise(Entity target, EntityType disguiseEntityType, Set<Player> players) {
-        DisguiseType disguiseType = DisguiseType.getType(disguiseEntityType);
-        boolean validType = (disguiseType != null);
-        if (validType) {
-            MobDisguise disguise = new MobDisguise(disguiseType);
-            DisguiseAPI.undisguiseToAll(target);
-            DisguiseAPI.disguiseToPlayers(target, disguise, players);
+    public boolean applyDisguise(Entity target, String encodedDisguise, Set<Player> players) {
+        Disguise disguise = null;
+        try {
+            disguise = DisguiseParser.parseDisguise(Bukkit.getConsoleSender(), target, encodedDisguise);
+        } catch (Exception ex) {
+            Throwable cause = ex.getCause();
+            EasyRider.PLUGIN.getLogger().severe("Error applying disguise \"" + encodedDisguise +
+                                                "\" to " + target.getUniqueId().toString() + ": " +
+                                                (cause != null ? cause.getMessage() : ex.getMessage()));
         }
-        return validType;
+
+        if (disguise == null) {
+            return false;
+        }
+
+        DisguiseAPI.undisguiseToAll(target);
+        DisguiseAPI.disguiseToPlayers(target, disguise, players);
+        return true;
     }
 
     // ------------------------------------------------------------------------

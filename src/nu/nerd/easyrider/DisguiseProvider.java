@@ -3,7 +3,6 @@ package nu.nerd.easyrider;
 import java.util.Set;
 
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 // ----------------------------------------------------------------------------
@@ -20,11 +19,11 @@ public interface DisguiseProvider {
      * Apply the specified disguise to the target entity.
      * 
      * @param target the target that becomes disguised.
-     * @param disguiseEntityType the EntityType of the disguise.
+     * @param encodedDisguise the string-encoded disguise.
      * @param players the set of Players that will see the disguise.
      * @return true if the disguise type is supported.
      */
-    public boolean applyDisguise(Entity target, EntityType disguiseEntityType, Set<Player> players);
+    public boolean applyDisguise(Entity target, String encodedDisguise, Set<Player> players);
 
     // ------------------------------------------------------------------------
     /**
