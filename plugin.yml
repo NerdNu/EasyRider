@@ -1,7 +1,7 @@
 name: ${project.name}
 version: ${project.version}
 author: totemo
-authors: [totemo]
+authors: []
 description: ${project.description}
 website: ${project.url}
 main: nu.nerd.easyrider.EasyRider
@@ -24,6 +24,10 @@ permissions:
     description: Permission to use /horse-set-level.
     default: op
 
+  easyrider.setname:
+    description: Permission to use /horse-set-name.
+    default: op
+ 
   easyrider.swap:
     description: Permission to use /horse-swap.
     default: op
@@ -120,6 +124,14 @@ commands:
     
       §e/<command> help§f - Show usage help.
       §e/<command> §ehealth§f|§ejump§f|§espeed <number>§f - Set the level of the specified ability on the right-clicked horse.
+
+  horse-set-name:
+    description: Show the name of a horse.
+    permission: easyrider.setname
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> [<name>]§f - Set or clear the name of the next right-clicked horse. Formatting codes are supported.
 
   horse-swap:
     description: Swap the stats of a specific horse with those of a clicked horse.

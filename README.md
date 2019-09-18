@@ -177,6 +177,9 @@ Admin Commands
  * `/horse-set-level health|jump|speed|help` - Set the level of the specified
    ability on the right-clicked horse.
 
+ * `/horse-set-name help|[<name>]` - Set or clear the name of the next right-clicked
+   horse. Formatting codes are supported.
+
  * `/horse-swap <partial-uuid>` - Swap the stats of the horse with the specified
    UUID with those of a clicked-on horse.
 
