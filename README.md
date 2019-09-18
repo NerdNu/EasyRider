@@ -173,6 +173,9 @@ Admin Commands
  
  * `/horse-debug on|off` - Turn debug logging on or off for the horse that was
    right-clicked.
+
+ * `/horse-set-appearance help|<colour> [<style>]` - Set the colour of a llama,
+   or if the style is specified, set the colour and style of a horse.
    
  * `/horse-set-level health|jump|speed|help` - Set the level of the specified
    ability on the right-clicked horse.

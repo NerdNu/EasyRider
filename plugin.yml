@@ -20,6 +20,10 @@ permissions:
     description: Players with this permission receive debug messages.
     default: op
 
+  easyrider.setappearance:
+    description: Permission to use /horse-set-appearance.
+    default: op
+
   easyrider.setlevel:
     description: Permission to use /horse-set-level.
     default: op
@@ -116,6 +120,14 @@ commands:
     usage: |
     
       §e/<command> §eon§f|§eoff§f - Turn debug logging on or off for the horse that was right-clicked.
+
+  horse-set-appearance:
+    description: Show the appearance of a horse or llama.
+    permission: easyrider.setappearance
+    usage: |
+    
+      §e/<command> help§f - Show usage help.
+      §e/<command> <colour> [<style>]§f - Set the colour of a llama, or if the <style> is specified, set the colour and style of a horse.
 
   horse-set-level:
     description: Show ability level information for a horse.
