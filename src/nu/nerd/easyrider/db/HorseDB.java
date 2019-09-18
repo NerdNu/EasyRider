@@ -151,6 +151,10 @@ public class HorseDB {
      * Return a non-null ArrayList<> of the horses owned by the player with the
      * specified UUID.
      *
+     * The horses are ordered firstly by trainability (all trainable horses
+     * before llamas), then by tamed time stamp (longest tamed first) and
+     * finally, all else being equal (unlikely) by UUID.
+     *
      * @param ownerUuid the owning player's UUID.
      * @return the horses owned by the player with the specified UUID.
      */
@@ -164,7 +168,16 @@ public class HorseDB {
             }
         }
 
-        return new ArrayList<SavedHorse>(horses);
+        ArrayList<SavedHorse> sorted = new ArrayList<SavedHorse>(horses);
+        sorted.sort((h1, h2) -> {
+            if (h1.isTrainable() == h2.isTrainable()) {
+                int tamedComparison = Long.compare(h1.getLastTamed(), h2.getLastTamed());
+                return (tamedComparison == 0) ? h1.getUuid().compareTo(h2.getUuid()) : tamedComparison;
+            } else {
+                return h1.isTrainable() ? -1 : 1;
+            }
+        });
+        return sorted;
     }
 
     // ------------------------------------------------------------------------
@@ -354,26 +367,18 @@ public class HorseDB {
     /**
      * Return a non-null reference to the mutable set of SavedHorses belonging
      * to the player with the specified UUID.
-     *
-     * The Comparator of the TreeSet<> orders trainable horses before (less
-     * than) non-trainable horses. The effect is to put trained horses at the
-     * top of the /hlist list, where they will have low indices for /hgps.
-     *
+     * 
+     * We can't enforce ordering based on tamed time stamp here because that
+     * mutates and would necessitate periodically reindexing the tree.
+     * 
      * @param ownerUuid the UUID of the owning player.
      * @return the corresponding set of owned SavedHorses, which may be empty
      *         but will never be null.
      */
-
     protected TreeSet<SavedHorse> getOwnedHorsesSet(UUID ownerUuid) {
         TreeSet<SavedHorse> horses = _ownedHorses.get(ownerUuid);
         if (horses == null) {
-            horses = new TreeSet<SavedHorse>((h1, h2) -> {
-                if (h1.isTrainable() == h2.isTrainable()) {
-                    return h1.getUuid().compareTo(h2.getUuid());
-                } else {
-                    return h1.isTrainable() ? -1 : 1;
-                }
-            });
+            horses = new TreeSet<SavedHorse>((h1, h2) -> h1.getUuid().compareTo(h2.getUuid()));
             _ownedHorses.put(ownerUuid, horses);
         }
         return horses;

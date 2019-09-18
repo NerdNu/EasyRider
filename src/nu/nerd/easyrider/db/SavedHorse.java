@@ -211,6 +211,9 @@ public class SavedHorse implements Cloneable {
     // ------------------------------------------------------------------------
     /**
      * Set the UUID of the owner of this horse.
+     * 
+     * Also update the lastTamed timestamp to now, on change of ownership, or 0
+     * if untamed.
      *
      * @param ownerUuid the owning player's UUID, or null if not owned.
      */
@@ -218,10 +221,25 @@ public class SavedHorse implements Cloneable {
         // Minimise setDirty() calls.
         if (this.ownerUuid == null) {
             if (ownerUuid == null) {
+                // Not tamed; owner unchanged.
                 return;
+            } else {
+                lastTamed = System.currentTimeMillis();
             }
-        } else if (this.ownerUuid.equals(ownerUuid)) {
-            return;
+        } else {
+            // this.ownerUuid != null
+            if (this.ownerUuid.equals(ownerUuid)) {
+                // Tamed; owner unchanged.
+                return;
+            } else {
+                if (ownerUuid == null) {
+                    // Untamed.
+                    lastTamed = 0;
+                } else {
+                    // Change of ownership.
+                    lastTamed = System.currentTimeMillis();
+                }
+            }
         }
 
         this.ownerUuid = ownerUuid;
@@ -610,6 +628,16 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
+     * Return the last tamed time stamp of this horse.
+     *
+     * @return the last tamed time stamp of this horse.
+     */
+    public long getLastTamed() {
+        return lastTamed;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Return true if this horse is abandoned.
      *
      * For a horse to be abandoned, currently it must meet the following
@@ -756,9 +784,11 @@ public class SavedHorse implements Cloneable {
      * @param abstractHorse the horse entity corresponding to this SavedHorse.
      */
     public void observe(AbstractHorse abstractHorse) {
-        lastObserved = System.currentTimeMillis();
-        AnimalTamer owner = abstractHorse.getOwner();
-        setOwnerUuid((owner != null) ? owner.getUniqueId() : null);
+        long now = System.currentTimeMillis();
+        setLastObserved(now);
+
+        AnimalTamer newOwner = abstractHorse.getOwner();
+        setOwnerUuid((newOwner != null) ? newOwner.getUniqueId() : null);
         setDisplayName(abstractHorse.getCustomName());
         setAppearance(Util.getAppearance(abstractHorse));
         setLocation(abstractHorse.getLocation());
@@ -879,7 +909,7 @@ public class SavedHorse implements Cloneable {
      */
     public void load(ConfigurationSection section) {
         setUuid(UUID.fromString(section.getName()));
-        setOwnerUuid((section.isSet("ownerUuid")) ? UUID.fromString(section.getString("ownerUuid")) : null);
+        ownerUuid = section.isSet("ownerUuid") ? UUID.fromString(section.getString("ownerUuid")) : null;
         setName(section.getString("name"));
         setDisplayName(section.getString("displayName"));
         setAppearance(section.getString("appearance"));
@@ -894,6 +924,9 @@ public class SavedHorse implements Cloneable {
         setHydration(section.getDouble("hydration", 1.0));
         setLastAccessed(section.getLong("lastAccessed", System.currentTimeMillis()));
         setLastObserved(section.getLong("lastObserved", 0));
+
+        // Default lastTamed to last access time (if owned). More useful than 0.
+        lastTamed = section.getLong("lastTamed", getOwnerUuid() == null ? 0 : getLastAccessed());
 
         clearPermittedPlayers();
         for (String uuid : section.getStringList("permittedPlayers")) {
@@ -946,6 +979,7 @@ public class SavedHorse implements Cloneable {
         section.set("hydration", getHydration());
         section.set("lastAccessed", getLastAccessed());
         section.set("lastObserved", getLastObserved());
+        section.set("lastTamed", getLastTamed());
 
         List<String> permittedUUIDs = permittedPlayers.stream().map(p -> p.getUniqueId().toString()).collect(Collectors.toList());
         section.set("permittedPlayers", permittedUUIDs);
@@ -976,6 +1010,7 @@ public class SavedHorse implements Cloneable {
         result = prime * result + jumpLevel;
         result = prime * result + (int) (lastAccessed ^ (lastAccessed >>> 32));
         result = prime * result + (int) (lastObserved ^ (lastObserved >>> 32));
+        result = prime * result + (int) (lastTamed ^ (lastTamed >>> 32));
         result = prime * result + ((location == null) ? 0 : location.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + nuggetsEaten;
@@ -994,9 +1029,6 @@ public class SavedHorse implements Cloneable {
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
-        }
-        if (obj == null) {
-            return false;
         }
         if (!(obj instanceof SavedHorse)) {
             return false;
@@ -1038,6 +1070,9 @@ public class SavedHorse implements Cloneable {
             return false;
         }
         if (lastObserved != other.lastObserved) {
+            return false;
+        }
+        if (lastTamed != other.lastTamed) {
             return false;
         }
         if (location == null) {
@@ -1178,6 +1213,12 @@ public class SavedHorse implements Cloneable {
      * System.currentTimeMillis().
      */
     private long lastObserved;
+
+    /**
+     * Time stamp when the horse was most recently tamed. 0 when there is no
+     * owner.
+     */
+    private long lastTamed;
 
     /**
      * If true, the corresponding AbstractHorse entity needs all its attributes

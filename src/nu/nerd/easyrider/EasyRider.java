@@ -310,8 +310,7 @@ public class EasyRider extends JavaPlugin implements Listener {
 
             owner.playSound(owner.getLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1f, 1f);
             owner.sendMessage(ChatColor.GOLD + "This " + Util.entityTypeName(abstractHorse) + " has been locked.");
-            getLogger().info(owner.getName() + " tamed " + Util.entityTypeName(abstractHorse) +
-                             entity.getUniqueId().toString());
+            getLogger().info(owner.getName() + " tamed " + Util.entityTypeName(abstractHorse) + " " + entity.getUniqueId().toString());
         }
     }
 
