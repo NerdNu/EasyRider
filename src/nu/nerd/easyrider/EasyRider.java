@@ -956,8 +956,8 @@ public class EasyRider extends JavaPlugin implements Listener {
      */
     protected boolean isAccessible(SavedHorse savedHorse, AbstractHorse abstractHorse, Player player, PlayerState playerState) {
         if (abstractHorse.getOwner() != null && !savedHorse.canBeAccessedBy(player) && !playerState.isBypassEnabled()) {
-            player.sendMessage(ChatColor.GOLD + "You don't have access to this " +
-                               Util.entityTypeName(abstractHorse) + ".");
+            player.sendMessage(ChatColor.GOLD + "You don't have access to this " + Util.entityTypeName(abstractHorse) + ".");
+            player.sendMessage(ChatColor.GOLD + "It belongs to " + ChatColor.YELLOW + abstractHorse.getOwner().getName() + ChatColor.GOLD + ".");
             if (player.hasPermission("easyrider.bypass")) {
                 player.sendMessage(ChatColor.GOLD + "Run " + ChatColor.YELLOW + "/horse-bypass" +
                                    ChatColor.GOLD + " to toggle the access bypass.");
