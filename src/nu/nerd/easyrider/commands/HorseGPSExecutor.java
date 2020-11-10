@@ -89,10 +89,10 @@ public class HorseGPSExecutor extends ExecutorBase {
      * Return a list of SavedHorses owned by the specified player that match the
      * specified identifier.
      * 
-     * @param owner the owning player.
+     * @param owner      the owning player.
      * @param identifier identifies the horse, either with the horse's
-     *        /horse-owned index, an AbstractHorse Entity UUID or the name of
-     *        the horse.
+     *                   /horse-owned index, an AbstractHorse Entity UUID or the
+     *                   name of the horse.
      * @return a non-null list of SavedHorses; this will be empty if no match is
      *         found.
      */
@@ -109,15 +109,15 @@ public class HorseGPSExecutor extends ExecutorBase {
         }
 
         List<SavedHorse> found = horses.stream()
-        .filter(h -> h.getDisplayName().toLowerCase().startsWith(lowerIdent))
-        .collect(Collectors.toList());
+            .filter(h -> h.getDisplayName().toLowerCase().startsWith(lowerIdent))
+            .collect(Collectors.toList());
         if (found.size() > 0) {
             return found;
         }
 
         found = horses.stream()
-        .filter(h -> h.getUuid().toString().toLowerCase().startsWith(lowerIdent))
-        .collect(Collectors.toList());
+            .filter(h -> h.getUuid().toString().toLowerCase().startsWith(lowerIdent))
+            .collect(Collectors.toList());
         if (found.size() > 0) {
             return found;
         }
@@ -130,7 +130,7 @@ public class HorseGPSExecutor extends ExecutorBase {
      * Point the player to the horse if it's Location can be ascertained and
      * they are in the same world.
      * 
-     * @param player the player whose look direction is set.
+     * @param player     the player whose look direction is set.
      * @param savedHorse the sought horse.
      */
     protected void pointTo(Player player, SavedHorse savedHorse) {
@@ -156,8 +156,9 @@ public class HorseGPSExecutor extends ExecutorBase {
             // The mod uses lowercase name, x, y, z, no trailing space after
             // colon. But it accepts capitals and spaces from /place. Use for
             // readability. VoxelMap strips colours and sets the [...] as aqua.
-            String id = (savedHorse.getDisplayName().length() > 0) ? savedHorse.getDisplayName()
-                                                                   : Util.limitString(savedHorse.getUuid().toString(), 20);
+            String id = (savedHorse.getDisplayName().length() > 0)
+                ? savedHorse.getDisplayName()
+                : Util.limitString(savedHorse.getUuid().toString(), 20);
             player.sendMessage(ChatColor.GOLD + id + ChatColor.GRAY + " is at:");
             StringBuilder message = new StringBuilder();
             message.append(ChatColor.WHITE).append('[');
@@ -178,10 +179,16 @@ public class HorseGPSExecutor extends ExecutorBase {
 
                 // Point player at horse if in the same world.
                 Entity vehicle = player.getVehicle();
-                playerLoc.setDirection(horseLoc.clone().subtract(playerLoc).toVector());
-                player.teleport(playerLoc);
-                if (vehicle != null) {
-                    vehicle.addPassenger(player);
+                if (EasyRider.CONFIG.LOOK_ANGLE_WORKAROUND && player.isInsideVehicle()) {
+                    player.sendMessage(ChatColor.YELLOW
+                                       + "Due to a Mojang client bug, we can't point you in the right direction"
+                                       + " when you're in a vehicle (SPIGOT-6187, SPIGOT-5891).");
+                } else {
+                    playerLoc.setDirection(horseLoc.clone().subtract(playerLoc).toVector());
+                    player.teleport(playerLoc);
+                    if (vehicle != null) {
+                        vehicle.addPassenger(player);
+                    }
                 }
             } else {
                 message.append(ChatColor.YELLOW).append(" ").append(horseLoc.getWorld().getName());

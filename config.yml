@@ -12,6 +12,7 @@ database:
 
 eject-on-logoff: false
 allow-pvp: false
+look-angle-workaround: false
 
 speed-limit: 5.0
 
