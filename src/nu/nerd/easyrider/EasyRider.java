@@ -246,8 +246,7 @@ public class EasyRider extends JavaPlugin implements Listener {
      */
     @EventHandler(ignoreCancelled = true)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        _state.put(player.getName(), new PlayerState(player, _playerConfig));
+        addState(event.getPlayer());
         SpecialSaddles.refreshSaddleDisguises();
     }
 
@@ -737,10 +736,17 @@ public class EasyRider extends JavaPlugin implements Listener {
         if (!Util.isTrackable(event.getVehicle())) {
             return;
         }
+
         AbstractHorse abstractHorse = (AbstractHorse) event.getVehicle();
         Entity passenger = event.getEntered();
         if (passenger instanceof Player) {
             Player player = (Player) passenger;
+
+            // During the Minecraft 1.15.2 era, Spigot reversed the ordering of
+            // VehicleEnterEvent relative to PlayerJoinEvent so that the
+            // former preceded the latter (players now enter their vehicles
+            // before joining the server) if they logged out in a vehicle.
+            addState(player);
 
             SavedHorse savedHorse = DB.findOrAddHorse(abstractHorse);
             DB.observe(savedHorse, abstractHorse);
@@ -922,13 +928,25 @@ public class EasyRider extends JavaPlugin implements Listener {
 
     // ------------------------------------------------------------------------
     /**
+     * Add PlayerState for the specified player.
+     * 
+     * @param player the Player.
+     */
+    protected void addState(Player player) {
+        if (!_state.containsKey(player.getName())) {
+            _state.put(player.getName(), new PlayerState(player, _playerConfig));
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    /**
      * Notify the player that the specified horse has changed its level, and
      * play the corresponding sound and particle effects.
      *
-     * @param player the player.
+     * @param player     the player.
      * @param savedHorse the database state of the horse.
-     * @param horse the AbstractHorse entity.
-     * @param ability the affected ability.
+     * @param horse      the AbstractHorse entity.
+     * @param ability    the affected ability.
      */
     protected void notifyLevelUp(Player player, SavedHorse savedHorse, AbstractHorse horse, Ability ability) {
         player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() +
@@ -947,10 +965,10 @@ public class EasyRider extends JavaPlugin implements Listener {
      * player is on the access list for the horse, or the player is in bypass
      * mode.
      *
-     * @param savedHorse the database state of the AbstractHorse.
+     * @param savedHorse    the database state of the AbstractHorse.
      * @param abstractHorse the horse-like entity.
-     * @param player the player.
-     * @param playerState the player's transient state.
+     * @param player        the player.
+     * @param playerState   the player's transient state.
      * @return true if a given AbstractHorse is accessible by a player.
      */
     protected boolean isAccessible(SavedHorse savedHorse, AbstractHorse abstractHorse, Player player, PlayerState playerState) {
@@ -972,8 +990,8 @@ public class EasyRider extends JavaPlugin implements Listener {
      * Let the horse drink if it is not fully hydrated.
      * 
      * @param abstractHorse the horse.
-     * @param savedHorse the database state of the horse.
-     * @param player the player messaged about the horse's drinking.
+     * @param savedHorse    the database state of the horse.
+     * @param player        the player messaged about the horse's drinking.
      */
     protected void handleDrinking(AbstractHorse abstractHorse, SavedHorse savedHorse, Player player) {
         if (Util.isTrainable(abstractHorse)) {
@@ -1034,8 +1052,8 @@ public class EasyRider extends JavaPlugin implements Listener {
      * Handle feeding and watering of trainable horses.
      *
      * @param abstractHorse the fed horse.
-     * @param savedHorse the database state of the horse.
-     * @param player the player feeding the horse.
+     * @param savedHorse    the database state of the horse.
+     * @param player        the player feeding the horse.
      */
     protected void handleFeeding(AbstractHorse abstractHorse, SavedHorse savedHorse, Player player) {
         // Handle health training only if the event was not cancelled.
@@ -1087,7 +1105,7 @@ public class EasyRider extends JavaPlugin implements Listener {
      * of gold nuggets.
      *
      * @param food an ItemStack containing the food; only one item is counted,
-     *        if there are multiple items in the stack.
+     *             if there are multiple items in the stack.
      * @return the gold mass of a single food item in gold nuggets.
      */
     protected int getNuggetValue(ItemStack food) {
@@ -1115,7 +1133,7 @@ public class EasyRider extends JavaPlugin implements Listener {
      * horse is already at its maximum health level and is being over-trained.
      *
      * @param savedHorse the database state of the horse.
-     * @param horse the AbstractHorse entity.
+     * @param horse      the AbstractHorse entity.
      */
     protected void consumeGoldenFood(SavedHorse savedHorse, AbstractHorse horse, int nuggetValue, Player player) {
         CONFIG.HEALTH.setEffort(savedHorse, CONFIG.HEALTH.getEffort(savedHorse) + nuggetValue);
