@@ -161,7 +161,7 @@ public class HorseGPSExecutor extends ExecutorBase {
                 : Util.limitString(savedHorse.getUuid().toString(), 20);
             player.sendMessage(ChatColor.GOLD + id + ChatColor.GRAY + " is at:");
             StringBuilder message = new StringBuilder();
-            message.append(ChatColor.WHITE).append('(');
+            message.append(ChatColor.WHITE).append('[');
             message.append(ChatColor.GOLD).append("Name: ").append(ChatColor.YELLOW).append("HGPS");
             message.append(ChatColor.WHITE).append(", ");
             message.append(ChatColor.GOLD).append("X: ").append(ChatColor.YELLOW).append(horseLoc.getBlockX());
@@ -170,8 +170,8 @@ public class HorseGPSExecutor extends ExecutorBase {
             message.append(ChatColor.WHITE).append(", ");
             message.append(ChatColor.GOLD).append("Z: ").append(ChatColor.YELLOW).append(horseLoc.getBlockZ());
             message.append(ChatColor.WHITE).append(", ");
-            message.append(ChatColor.GRAY).append("dim: ").append(ChatColor.GRAY).append(horseLoc.getWorld().getEnvironment().getId());
-            message.append(ChatColor.WHITE).append(')');
+            message.append(ChatColor.GRAY).append("d: ").append(ChatColor.GRAY).append(horseLoc.getWorld().getEnvironment().getId());
+            message.append(ChatColor.WHITE).append(']');
 
             if (horseLoc.getWorld().equals(playerLoc.getWorld())) {
                 int distance = (int) playerLoc.distance(horseLoc);
