@@ -2,8 +2,10 @@ package nu.nerd.easyrider.commands;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -61,6 +63,7 @@ public class HorseGPSExecutor extends ExecutorBase {
             if (sender.hasPermission("easyrider.gps-player")) {
                 horses = findHorses(sendingPlayer, identifier);
                 if (horses.size() == 0) {
+                    @SuppressWarnings("deprecation")
                     OfflinePlayer owner = Bukkit.getOfflinePlayer(args[0]);
                     if (owner != null) {
                         identifier = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
@@ -88,7 +91,7 @@ public class HorseGPSExecutor extends ExecutorBase {
     /**
      * Return a list of SavedHorses owned by the specified player that match the
      * specified identifier.
-     * 
+     *
      * @param owner      the owning player.
      * @param identifier identifies the horse, either with the horse's
      *                   /horse-owned index, an AbstractHorse Entity UUID or the
@@ -129,7 +132,7 @@ public class HorseGPSExecutor extends ExecutorBase {
     /**
      * Point the player to the horse if it's Location can be ascertained and
      * they are in the same world.
-     * 
+     *
      * @param player     the player whose look direction is set.
      * @param savedHorse the sought horse.
      */
@@ -156,10 +159,23 @@ public class HorseGPSExecutor extends ExecutorBase {
             // The mod uses lowercase name, x, y, z, no trailing space after
             // colon. But it accepts capitals and spaces from /place. Use for
             // readability. VoxelMap strips colours and sets the [...] as aqua.
-            String id = (savedHorse.getDisplayName().length() > 0)
-                ? savedHorse.getDisplayName()
-                : Util.limitString(savedHorse.getUuid().toString(), 20);
-            player.sendMessage(ChatColor.GOLD + id + ChatColor.GRAY + " is at:");
+            // VoxelMap also accepts: "World: name" and "dim: " followed by one
+            // of minecraft:overworld, minecraft:the_nether or
+            // minecraft:the_end. VoxelMap is still happy if the "minecraft:"
+            // namespace is dropped. VoxelMap's "Edit Waypoint" dialog populates
+            // the world checkboxes based on the "dim: " value. If EasyRider
+            // sends a "world: " value, that presumably relies on players
+            // setting their "multiworld" world names the same as the server's
+            // idea of world names. But the world name is useful information,
+            // since "dim:" does not disambiguate e.g. overworld and mapworld.
+            // VoxelMap does add a checkbox to the "Edit Waypoint" GUI when a
+            // different dimension from the default 3 is used, but when
+            // VoxelMap encounters such a waypoint in chat, it hides it from the
+            // chat. VoxelMap's handling of dimensions and non-vanilla worlds
+            // still seems to be a very unsatisfactory user experience.
+            // Note that VoxelMap will always create a new waypoint in the
+            // player's current world, regardless of what or how another
+            // world/dimension is indicated.
             StringBuilder message = new StringBuilder();
             message.append(ChatColor.WHITE).append('[');
             message.append(ChatColor.GOLD).append("Name: ").append(ChatColor.YELLOW).append("HGPS");
@@ -169,8 +185,28 @@ public class HorseGPSExecutor extends ExecutorBase {
             message.append(ChatColor.GOLD).append("Y: ").append(ChatColor.YELLOW).append(horseLoc.getBlockY());
             message.append(ChatColor.WHITE).append(", ");
             message.append(ChatColor.GOLD).append("Z: ").append(ChatColor.YELLOW).append(horseLoc.getBlockZ());
-            message.append(ChatColor.WHITE).append(", ");
-            message.append(ChatColor.GRAY).append("dim: ").append(ChatColor.GRAY).append(horseLoc.getWorld().getEnvironment().getId());
+
+            String dimension;
+            switch (horseLoc.getWorld().getEnvironment()) {
+            default:
+            case NORMAL:
+                dimension = "overworld";
+                break;
+            case NETHER:
+                dimension = "the_nether";
+                break;
+            case THE_END:
+                dimension = "the_end";
+                break;
+            }
+            String worldName = horseLoc.getWorld().getName();
+            if (DEFAULT_WORLD_NAMES.contains(worldName)) {
+                message.append(ChatColor.WHITE).append(", ");
+                message.append(ChatColor.GOLD).append("Dim: ").append(ChatColor.YELLOW).append(dimension);
+            } else {
+                message.append(ChatColor.WHITE).append(", ");
+                message.append(ChatColor.GOLD).append("World: ").append(ChatColor.YELLOW).append(worldName);
+            }
             message.append(ChatColor.WHITE).append(']');
 
             if (horseLoc.getWorld().equals(playerLoc.getWorld())) {
@@ -190,10 +226,18 @@ public class HorseGPSExecutor extends ExecutorBase {
                         vehicle.addPassenger(player);
                     }
                 }
-            } else {
-                message.append(ChatColor.YELLOW).append(" ").append(horseLoc.getWorld().getName());
             }
             player.sendMessage(message.toString());
         }
     } // pointTo
+
+    // ------------------------------------------------------------------------
+    /**
+     * Set of default (vanilla Minecraft) worlds.
+     *
+     * This is used to suppress the world name in /hgps waypoints in chat when
+     * it is implied by the dimension.
+     */
+    protected Set<String> DEFAULT_WORLD_NAMES = new HashSet(Arrays.asList("world", "world_nether", "world_the_end"));
+
 } // class HorseGPSExecutor
