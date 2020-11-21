@@ -13,6 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.configuration.ConfigurationSection;
@@ -864,7 +865,7 @@ public class SavedHorse implements Cloneable {
                         _messageRateLimiter.run(() -> {
                             rider.sendMessage(ChatColor.RED + getMessageName() +
                                               " is too dehydrated to benefit from training. Give it a drink of water.");
-                            rider.playSound(rider.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                            rider.playSound(rider.getLocation(), Sound.ENTITY_ITEM_BREAK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                         })) {
                         long newMessageCoolDown = Math.min(Math.max(MIN_MESSAGE_COOLDOWN_MILLIS,
                                                                     _messageRateLimiter.getCoolDownMillis() * 2),
@@ -897,7 +898,7 @@ public class SavedHorse implements Cloneable {
             player.sendMessage(ChatColor.RED + getMessageName()
                                + " has exceeded the maximum possible health. Feeding it more gold will not increase its health.");
             Location loc = horse.getLocation();
-            loc.getWorld().playSound(loc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+            loc.getWorld().playSound(loc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.NEUTRAL, 1.0f, 1.0f);
         });
     }
 
