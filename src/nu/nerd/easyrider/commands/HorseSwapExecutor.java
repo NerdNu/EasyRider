@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractHorse;
@@ -68,10 +69,10 @@ public class HorseSwapExecutor extends ExecutorBase {
                                 sender.sendMessage(ChatColor.GOLD + "Horse " +
                                                    originalHorse.getUuid() + " has swapped stats with " +
                                                    newHorse.getUuid() + ".");
-                                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                             } else {
                                 player.sendMessage(ChatColor.RED + "That animal is not trainable.");
-                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                             }
                         }
                     });
