@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractHorse;
@@ -72,9 +73,9 @@ public class HorseFreeExecutor extends ExecutorBase {
                         sender.sendMessage(ChatColor.GOLD + "This " + entityTypeName + ", " +
                                            Util.limitString(savedHorse.getUuid().toString(), 20) +
                                            ", has been freed.");
-                        sendingPlayer.playSound(sendingPlayer.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                        sendingPlayer.playSound(sendingPlayer.getLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                     } else {
-                        sendingPlayer.playSound(sendingPlayer.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                        sendingPlayer.playSound(sendingPlayer.getLocation(), Sound.ENTITY_ITEM_BREAK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                         sender.sendMessage(ChatColor.RED + "You don't own that " + entityTypeName + "!");
                         if (sender.hasPermission("easyrider.bypass")) {
                             sender.sendMessage(ChatColor.RED + "Use /horse-bypass to bypass access checks.");
@@ -90,7 +91,7 @@ public class HorseFreeExecutor extends ExecutorBase {
                 owningPlayer = Bukkit.getOfflinePlayer(args[0]);
                 if (owningPlayer == null) {
                     sender.sendMessage(ChatColor.RED + "There is no known player named " + args[0] + ".");
-                    sendingPlayer.playSound(sendingPlayer.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                    sendingPlayer.playSound(sendingPlayer.getLocation(), Sound.ENTITY_ITEM_BREAK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                     return true;
                 }
 
@@ -117,7 +118,7 @@ public class HorseFreeExecutor extends ExecutorBase {
                 sender.sendMessage(ChatColor.GOLD + "The " + entityTypeName + ", " +
                                    Util.limitString(savedHorse.getUuid().toString(), 20) +
                                    ", has been freed.");
-                sendingPlayer.playSound(sendingPlayer.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                sendingPlayer.playSound(sendingPlayer.getLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
             }
         }
 

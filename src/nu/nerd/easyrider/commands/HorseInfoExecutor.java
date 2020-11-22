@@ -2,6 +2,7 @@ package nu.nerd.easyrider.commands;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractHorse;
@@ -103,7 +104,7 @@ public class HorseInfoExecutor extends ExecutorBase {
             showAttribute(player, EasyRider.CONFIG.JUMP, abstractHorse);
             player.sendMessage(ChatColor.GOLD + "Strength: " + ChatColor.GRAY + llama.getStrength());
         }
-        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
     }
 
     // ------------------------------------------------------------------------

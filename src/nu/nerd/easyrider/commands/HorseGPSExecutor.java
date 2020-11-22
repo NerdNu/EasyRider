@@ -13,6 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractHorse;
@@ -150,10 +151,10 @@ public class HorseGPSExecutor extends ExecutorBase {
         Location playerLoc = player.getLocation();
         Location horseLoc = savedHorse.getLocation();
         if (horseLoc == null) {
-            playerLoc.getWorld().playSound(playerLoc, Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+            playerLoc.getWorld().playSound(playerLoc, Sound.ENTITY_ITEM_BREAK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
             player.sendMessage(ChatColor.GOLD + "The specified animal could not be found.");
         } else {
-            playerLoc.getWorld().playSound(playerLoc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+            playerLoc.getWorld().playSound(playerLoc, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.NEUTRAL, 1.0f, 1.0f);
 
             // Send VoxelMap compatible coordinates.
             // The mod uses lowercase name, x, y, z, no trailing space after

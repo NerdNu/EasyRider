@@ -2,6 +2,7 @@ package nu.nerd.easyrider.commands;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractHorse;
@@ -81,10 +82,10 @@ public class HorseSetLevelExecutor extends ExecutorBase {
                             ability.setEffort(savedHorse, ability.getEffortForLevel(newLevel));
                             ability.updateAttribute(savedHorse, abstractHorse);
                             showLevel(player, "New ", ability, savedHorse);
-                            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                         } else {
                             player.sendMessage(ChatColor.RED + "That " + Util.entityTypeName(abstractHorse) + " cannot be trained.");
-                            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                         }
                     }
                 });

@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AbstractHorse;
@@ -63,7 +64,7 @@ public class HorseTameExecutor extends ExecutorBase {
                                        "The " + Util.entityTypeName(abstractHorse) + ", " +
                                        Util.limitString(savedHorse.getUuid().toString(), 20) +
                                        ", now belongs to " + newOwner.getName() + ".");
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
                 }
             });
         }

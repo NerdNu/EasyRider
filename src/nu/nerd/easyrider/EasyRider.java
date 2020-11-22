@@ -12,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.attribute.Attribute;
@@ -307,7 +308,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             SavedHorse savedHorse = DB.findOrAddHorse(abstractHorse);
             DB.observe(savedHorse, abstractHorse);
 
-            owner.playSound(owner.getLocation(), Sound.BLOCK_DISPENSER_DISPENSE, 1f, 1f);
+            owner.playSound(owner.getLocation(), Sound.BLOCK_DISPENSER_DISPENSE, SoundCategory.NEUTRAL, 1f, 1f);
             owner.sendMessage(ChatColor.GOLD + "This " + Util.entityTypeName(abstractHorse) + " has been locked.");
             getLogger().info(owner.getName() + " tamed " + Util.entityTypeName(abstractHorse) + " " + entity.getUniqueId().toString());
         }
@@ -954,7 +955,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                            " in " + ability.getDisplayName() + ".");
         Location loc = horse.getLocation().add(0, 1, 0);
         loc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc, 100, 2.0f, 1.0f, 2.0f);
-        loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, 2.0f, 1.0f);
+        loc.getWorld().playSound(loc, Sound.ENTITY_PLAYER_LEVELUP, SoundCategory.NEUTRAL, 2.0f, 1.0f);
     }
 
     // ------------------------------------------------------------------------
@@ -1002,7 +1003,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                 savedHorse.setHydration(1.0);
                 player.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " drinks until it is no longer thirsty!");
                 Location loc = abstractHorse.getLocation();
-                loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
+                loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, SoundCategory.NEUTRAL, 2.0f, 1.0f);
             }
         }
     }
@@ -1088,7 +1089,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                 player.getEquipment().setItemInMainHand(new ItemStack(Material.BUCKET, 1));
                 savedHorse.setHydration(savedHorse.getHydration() + EasyRider.CONFIG.BUCKET_HYDRATION);
                 Location loc = abstractHorse.getLocation();
-                loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, 2.0f, 1.0f);
+                loc.getWorld().playSound(loc, Sound.ENTITY_GENERIC_DRINK, SoundCategory.NEUTRAL, 2.0f, 1.0f);
             }
 
             if (savedHorse.isFullyHydrated()) {
@@ -1142,7 +1143,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         }
 
         Location loc = horse.getLocation();
-        loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_EAT, 2.0f, 1.0f);
+        loc.getWorld().playSound(loc, Sound.ENTITY_HORSE_EAT, SoundCategory.NEUTRAL, 2.0f, 1.0f);
 
         if (CONFIG.HEALTH.getFractionalLevel(savedHorse) > CONFIG.HEALTH.getMaxLevel()) {
             savedHorse.onOverfed(player, horse);
