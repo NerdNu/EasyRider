@@ -908,6 +908,7 @@ public class SavedHorse implements Cloneable {
      *
      * @param section the ConfigurationSection.
      */
+    @SuppressWarnings("unchecked")
     public void load(ConfigurationSection section) {
         setUuid(UUID.fromString(section.getName()));
         ownerUuid = section.isSet("ownerUuid") ? UUID.fromString(section.getString("ownerUuid")) : null;

@@ -5,7 +5,7 @@ authors: []
 description: ${project.description}
 website: ${project.url}
 main: nu.nerd.easyrider.EasyRider
-api-version: 1.13
+api-version: 1.18
 
 # Prevent EasyRider from attempting to load horse locations before all worlds
 # are loaded.

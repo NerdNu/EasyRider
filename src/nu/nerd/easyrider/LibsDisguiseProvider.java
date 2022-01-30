@@ -28,7 +28,7 @@ public class LibsDisguiseProvider implements DisguiseProvider {
         Disguise disguise = null;
         try {
             disguise = DisguiseParser.parseDisguise(Bukkit.getConsoleSender(), target, encodedDisguise);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             Throwable cause = ex.getCause();
             EasyRider.PLUGIN.getLogger().severe("Error applying disguise \"" + encodedDisguise +
                                                 "\" to " + target.getUniqueId().toString() + ": " +

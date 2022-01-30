@@ -239,6 +239,6 @@ public class HorseGPSExecutor extends ExecutorBase {
      * This is used to suppress the world name in /hgps waypoints in chat when
      * it is implied by the dimension.
      */
-    protected Set<String> DEFAULT_WORLD_NAMES = new HashSet(Arrays.asList("world", "world_nether", "world_the_end"));
+    protected Set<String> DEFAULT_WORLD_NAMES = new HashSet<String>(Arrays.asList("world", "world_nether", "world_the_end"));
 
 } // class HorseGPSExecutor

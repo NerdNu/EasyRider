@@ -482,6 +482,12 @@ public class EasyRider extends JavaPlugin implements Listener {
             }
         }
 
+        // Trap trigger horse: non-tame skeleton horse with domestication 0.
+        // Domestication 0 seems to prevent taming.
+        if (!abstractHorse.isTamed() && abstractHorse.getDomestication() == 0) {
+            abstractHorse.setDomestication(1);
+        }
+
         // Normalisation of trap horses: if they spawned tame, untame.
         if (abstractHorse.getOwner() == null && abstractHorse.isTamed()) {
             abstractHorse.setTamed(false);
@@ -1204,7 +1210,7 @@ public class EasyRider extends JavaPlugin implements Listener {
         BlockData data = block.getBlockData();
         Waterlogged waterlogged = (data instanceof Waterlogged) ? (Waterlogged) data : null;
         return (waterlogged != null && waterlogged.isWaterlogged()) ||
-               (block.getType() == Material.CAULDRON && ((Levelled) data).getLevel() != 0) ||
+               (block.getType() == Material.WATER_CAULDRON && ((Levelled)data).getLevel() != 0) ||
                block.getType() == Material.WATER;
     }
 
