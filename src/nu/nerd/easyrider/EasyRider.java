@@ -490,6 +490,11 @@ public class EasyRider extends JavaPlugin implements Listener {
 
         // Normalisation of trap horses: if they spawned tame, untame.
         if (abstractHorse.getOwner() == null && abstractHorse.isTamed()) {
+            // Camels are tame by default and will not untame.
+            // If it's a camel with no owner, set the owner.
+            if (Util.entityTypeName(abstractHorse).equals("camel")) {
+                abstractHorse.setOwner(event.getPlayer());
+            }
             abstractHorse.setTamed(false);
             abstractHorse.setDomestication(1);
         }
