@@ -92,18 +92,22 @@ public class HorseInfoExecutor extends ExecutorBase {
         player.sendMessage(ChatColor.GOLD + "Appearance: " +
                            ChatColor.WHITE + Util.getAppearance(abstractHorse) + " " +
                            ChatColor.YELLOW + HorseEquipment.description(HorseEquipment.bits(abstractHorse)));
-        if (Util.isTrainable(abstractHorse)) {
+        if (Util.isTrainable(abstractHorse) && !EasyRider.CONFIG.VANILLA_STATS) {
             showLevel(player, EasyRider.CONFIG.SPEED, savedHorse);
             showLevel(player, EasyRider.CONFIG.HEALTH, savedHorse);
             showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
             showHydration(player, savedHorse);
-        } else if (abstractHorse instanceof Llama) {
-            Llama llama = (Llama) abstractHorse;
+        } else {
+player.sendMessage("Showing Attributes");
             showAttribute(player, EasyRider.CONFIG.SPEED, abstractHorse);
             showAttribute(player, EasyRider.CONFIG.HEALTH, abstractHorse);
             showAttribute(player, EasyRider.CONFIG.JUMP, abstractHorse);
+        }
+        if (abstractHorse instanceof Llama) {
+            Llama llama = (Llama) abstractHorse;
             player.sendMessage(ChatColor.GOLD + "Strength: " + ChatColor.GRAY + llama.getStrength());
         }
+
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, SoundCategory.NEUTRAL, 1.0f, 1.0f);
     }
 

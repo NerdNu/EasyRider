@@ -69,6 +69,13 @@ public class Configuration {
     public boolean LOOK_ANGLE_WORKAROUND;
 
     /**
+     * If true, do not modify stats of newly spawned horses either natural or
+     * as a result of breeding, and do not level horse stats from from player
+     * actions.
+     */
+    public boolean VANILLA_STATS;
+
+    /**
      * Ratio of distance travelled in one tick to the current speed of a horse
      * for its level.
      *
@@ -307,6 +314,7 @@ public class Configuration {
         EJECT_ON_LOGOFF = config.getBoolean("eject-on-logoff");
         ALLOW_PVP = config.getBoolean("allow-pvp");
         LOOK_ANGLE_WORKAROUND = config.getBoolean("look-angle-workaround");
+        VANILLA_STATS = config.getBoolean("vanilla-stats");
         SPEED_LIMIT = config.getDouble("speed-limit");
         DEHYDRATION_DISTANCE = config.getDouble("dehydration-distance");
         BUCKET_HYDRATION = config.getDouble("bucket-hydration");
@@ -335,6 +343,7 @@ public class Configuration {
             logger.info("EJECT_ON_LOGOFF: " + EJECT_ON_LOGOFF);
             logger.info("ALLOW_PVP: " + ALLOW_PVP);
             logger.info("LOOK_ANGLE_WORKAROUND: " + LOOK_ANGLE_WORKAROUND);
+            logger.info("VANILLA_STATS: " + VANILLA_STATS);
             logger.info("SPEED_LIMIT: " + SPEED_LIMIT);
             logger.info("DEHYDRATION_DISTANCE: " + DEHYDRATION_DISTANCE);
             logger.info("BUCKET_HYDRATION: " + BUCKET_HYDRATION);

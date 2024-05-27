@@ -700,9 +700,11 @@ public class SavedHorse implements Cloneable {
      * @param horse the AbstractHorse entity.
      */
     public void updateAllAttributes(AbstractHorse horse) {
-        EasyRider.CONFIG.SPEED.updateAttribute(this, horse);
-        EasyRider.CONFIG.JUMP.updateAttribute(this, horse);
-        EasyRider.CONFIG.HEALTH.updateAttribute(this, horse);
+        if (!EasyRider.CONFIG.VANILLA_STATS) {
+            EasyRider.CONFIG.SPEED.updateAttribute(this, horse);
+            EasyRider.CONFIG.JUMP.updateAttribute(this, horse);
+            EasyRider.CONFIG.HEALTH.updateAttribute(this, horse);
+        }
         setOutdatedAttributes(false);
     }
 
@@ -879,8 +881,10 @@ public class SavedHorse implements Cloneable {
 
             PlayerState playerState = EasyRider.PLUGIN.getState(rider);
             AttributeInstance horseAttribute = horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
-            horseAttribute.setBaseValue(Math.min(playerState.getMaxSpeed(),
+            if (!EasyRider.CONFIG.VANILLA_STATS) {
+                horseAttribute.setBaseValue(Math.min(playerState.getMaxSpeed(),
                                                  EasyRider.CONFIG.SPEED.getValue(getSpeedLevel())));
+            }
         }
         setLastAccessed(System.currentTimeMillis());
     } // onRidden

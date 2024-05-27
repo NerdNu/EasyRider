@@ -326,7 +326,9 @@ public abstract class Ability {
     public void setAttribute(AbstractHorse horse, int level) {
         if (Util.isTrainable(horse)) {
             AttributeInstance horseAttribute = horse.getAttribute(getAttribute());
-            horseAttribute.setBaseValue(getValue(level));
+            if (!EasyRider.CONFIG.VANILLA_STATS) {
+                horseAttribute.setBaseValue(getValue(level));
+            }
         } else {
             EasyRider.PLUGIN.debug(horse, "trying to set attribute on untrainable entity");
         }

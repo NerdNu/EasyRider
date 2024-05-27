@@ -519,11 +519,15 @@ public class EasyRider extends JavaPlugin implements Listener {
                 // work due to vanilla limitations.
                 if (!Util.isUndeadHorse(abstractHorse) &&
                     item != null && item.getType() == Material.GOLDEN_CARROT) {
-                    handleFeeding(abstractHorse, savedHorse, player);
+                    if (!CONFIG.VANILLA_STATS) {
+                        handleFeeding(abstractHorse, savedHorse, player);
+                    }
                 } else {
                     // Prevent riding, leashing etc. of owned, locked horses.
                     if (isAccessible(savedHorse, abstractHorse, player, playerState)) {
-                        handleFeeding(abstractHorse, savedHorse, player);
+                        if (!CONFIG.VANILLA_STATS) {
+                            handleFeeding(abstractHorse, savedHorse, player);
+                        }
                     } else {
                         event.setCancelled(true);
                     }
@@ -557,7 +561,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     // ------------------------------------------------------------------------
     /**
      * When a horse moves, train up speed if it is on the ground, and jump if it
-     * is moving horizontally through the air.
+     * is moving horizontally through the air unless VANILLA_STATS is true.
      *
      * Horses *are* Vehicles, but they don't fire a VehicleMoveEvent. Detect
      * player movement when riding a horse using PlayerMoveEvent.
@@ -570,7 +574,7 @@ public class EasyRider extends JavaPlugin implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         Entity vehicle = player.getVehicle();
-        if (!Util.isTrackable(vehicle)) {
+        if (!Util.isTrackable(vehicle) || CONFIG.VANILLA_STATS) {
             return;
         }
 
@@ -771,7 +775,7 @@ public class EasyRider extends JavaPlugin implements Listener {
                 return;
             }
 
-            if (Util.isTrainable(abstractHorse)) {
+            if (Util.isTrainable(abstractHorse) && !CONFIG.VANILLA_STATS) {
                 EasyRider.CONFIG.SPEED.updateAttribute(savedHorse, abstractHorse);
             }
 
@@ -807,7 +811,7 @@ public class EasyRider extends JavaPlugin implements Listener {
             SavedHorse savedHorse = DB.findOrAddHorse(abstractHorse);
             DB.observe(savedHorse, abstractHorse);
 
-            if (Util.isTrainable(abstractHorse)) {
+            if (Util.isTrainable(abstractHorse) && !CONFIG.VANILLA_STATS) {
                 // Reset horse speed to that dictated by its level. It may have
                 // been limited by a player-specific maximum speed.
                 EasyRider.CONFIG.SPEED.updateAttribute(savedHorse, abstractHorse);
@@ -835,6 +839,10 @@ public class EasyRider extends JavaPlugin implements Listener {
      */
     @EventHandler(ignoreCancelled = true)
     public void onHorseJump(HorseJumpEvent event) {
+        if (CONFIG.VANILLA_STATS) {
+            return;
+        }
+
         AbstractHorse abstractHorse = event.getEntity();
         Entity passenger = Util.getPassenger(abstractHorse);
         if (!(passenger instanceof Player)) {
