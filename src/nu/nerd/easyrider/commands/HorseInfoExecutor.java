@@ -98,7 +98,6 @@ public class HorseInfoExecutor extends ExecutorBase {
             showLevel(player, EasyRider.CONFIG.JUMP, savedHorse);
             showHydration(player, savedHorse);
         } else {
-player.sendMessage("Showing Attributes");
             showAttribute(player, EasyRider.CONFIG.SPEED, abstractHorse);
             showAttribute(player, EasyRider.CONFIG.HEALTH, abstractHorse);
             showAttribute(player, EasyRider.CONFIG.JUMP, abstractHorse);

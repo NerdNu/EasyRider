@@ -39,6 +39,10 @@ public class HorseTopExecutor extends ExecutorBase {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String alias, String[] args) {
+        if (EasyRider.CONFIG.VANILLA_STATS) {
+		sender.sendMessage(ChatColor.RED + "Horse stats are not tracked with vanilla breeding enabled.");
+		return true;
+	}
         String abilityName;
         int page;
 

@@ -161,7 +161,7 @@ public class HorseOwnedExecutor extends ExecutorBase {
                 String formattedLoc = (loc == null) ? "" : Util.formatLocation(loc);
                 sender.sendMessage(ChatColor.GOLD + "    Location: " +
                                    ChatColor.WHITE + formattedLoc);
-                if (savedHorse.isTrainable()) {
+                if (savedHorse.isTrainable() && !EasyRider.CONFIG.VANILLA_STATS) {
                     sender.sendMessage(ChatColor.GOLD + "    Sp: " +
                                        formattedAbility(EasyRider.CONFIG.SPEED, savedHorse) +
                                        ChatColor.GOLD + " He: " +

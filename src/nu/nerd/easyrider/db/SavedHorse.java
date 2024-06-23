@@ -345,9 +345,12 @@ public class SavedHorse implements Cloneable {
                 return "This mule";
             } else if (getAppearance().equals("donkey")) {
                 return "This donkey";
+            } else if (getAppearance().equals("camel")) {
+                return "This camel";
             } else if (getAppearance().contains("llama")) {
                 return "This llama";
             }
+
         }
         return "This horse";
     }
@@ -608,6 +611,28 @@ public class SavedHorse implements Cloneable {
 
     // ------------------------------------------------------------------------
     /**
+     * Set the publicHorse boolean.
+     *
+     * @param publicHorse a flag allowing public access to the horse.
+     */
+    public void setPublicHorse(boolean publicHorse) {
+        this.publicHorse = publicHorse;
+        setDirty();
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return the publicHorse boolean of this horse.
+     *
+     * @return publicHorse a flag allowing public access to the horse.
+     */
+    public boolean getPublicHorse() {
+        return publicHorse;
+    }
+
+
+    // ------------------------------------------------------------------------
+    /**
      * Set the last observed time stamp.
      *
      * @param lastObserved a time stamp from System.currentTimeMillis().
@@ -718,7 +743,7 @@ public class SavedHorse implements Cloneable {
      * @return true if the specified player can access this horse.
      */
     public boolean canBeAccessedBy(OfflinePlayer player) {
-        return player.getUniqueId().equals(getOwnerUuid()) || permittedPlayers.contains(player);
+        return player.getUniqueId().equals(getOwnerUuid()) || permittedPlayers.contains(player) || getPublicHorse();
     }
 
     // ------------------------------------------------------------------------
@@ -930,6 +955,7 @@ public class SavedHorse implements Cloneable {
         setHydration(section.getDouble("hydration", 1.0));
         setLastAccessed(section.getLong("lastAccessed", System.currentTimeMillis()));
         setLastObserved(section.getLong("lastObserved", 0));
+        setPublicHorse(section.getBoolean("public",false));
 
         // Default lastTamed to last access time (if owned). More useful than 0.
         lastTamed = section.getLong("lastTamed", getOwnerUuid() == null ? 0 : getLastAccessed());
@@ -986,6 +1012,7 @@ public class SavedHorse implements Cloneable {
         section.set("lastAccessed", getLastAccessed());
         section.set("lastObserved", getLastObserved());
         section.set("lastTamed", getLastTamed());
+	section.set("publicHorse", getPublicHorse());
 
         List<String> permittedUUIDs = permittedPlayers.stream().map(p -> p.getUniqueId().toString()).collect(Collectors.toList());
         section.set("permittedPlayers", permittedUUIDs);
@@ -1213,6 +1240,11 @@ public class SavedHorse implements Cloneable {
      * System.currentTimeMillis().
      */
     private long lastAccessed;
+
+    /**
+     * Boolean defining if the horse is for public use
+     */
+    private boolean publicHorse;
 
     /**
      * Time stamp when the horse was last observed in {@link #observe()}, per

@@ -515,13 +515,16 @@ public class EasyRider extends JavaPlugin implements Listener {
             ItemStack item = player.getEquipment().getItemInMainHand();
             if (Util.isTrainable(abstractHorse)) {
                 // Allow players to feed golden carrots to living horses that
-                // they cannot access for breeding purposes. Other foods don't
-                // work due to vanilla limitations.
+                // they cannot access for breeding purposes, or cactus to
+                // camels. Other foods don't work due to vanilla limitations.
                 if (!Util.isUndeadHorse(abstractHorse) &&
                     item != null && item.getType() == Material.GOLDEN_CARROT) {
                     if (!CONFIG.VANILLA_STATS) {
                         handleFeeding(abstractHorse, savedHorse, player);
                     }
+                } else if(Util.entityTypeName(abstractHorse).equals("camel") &&
+                    item != null && item.getType() == Material.CACTUS) {
+                    // Don't cancel event
                 } else {
                     // Prevent riding, leashing etc. of owned, locked horses.
                     if (isAccessible(savedHorse, abstractHorse, player, playerState)) {

@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -90,10 +91,16 @@ public class HorseAccessExecutor extends ExecutorBase {
             }
         }
 
+        boolean addPublicHorse = false;
+        boolean removePublicHorse = false;
         TreeSet<OfflinePlayer> added = new TreeSet<OfflinePlayer>((a, b) -> a.getName().compareTo(b.getName()));
         TreeSet<OfflinePlayer> removed = new TreeSet<OfflinePlayer>((a, b) -> a.getName().compareTo(b.getName()));
         for (String arg : args) {
-            if (arg.startsWith("+") || arg.startsWith("-")) {
+            if (arg.equalsIgnoreCase("+public")) {
+                addPublicHorse=true;
+            } else if (arg.equalsIgnoreCase("-public")) {
+                removePublicHorse=true;
+            } else if (arg.startsWith("+") || arg.startsWith("-")) {
                 String playerName = arg.substring(1);
                 if (!Pattern.matches("\\w{1,16}", playerName)) {
                     sendingPlayer.sendMessage(ChatColor.RED + playerName + " is not a valid player name.");
@@ -126,17 +133,26 @@ public class HorseAccessExecutor extends ExecutorBase {
             }
         }
 
+	int publicHorse;
+        if (addPublicHorse && !removePublicHorse) {
+            publicHorse = 1;
+        } else if (removePublicHorse) {
+            publicHorse = 0;
+        } else {
+            publicHorse = -1;
+        }
+
         if (savedHorse == null) {
-            sendingPlayer.sendMessage(ChatColor.GOLD + "Right click on a horse or llama that you own.");
+            sendingPlayer.sendMessage(ChatColor.GOLD + "Right click on a horse, llama, or camel that you own.");
             PlayerState state = EasyRider.PLUGIN.getState(sendingPlayer);
             state.setPendingInteraction(new IPendingInteraction() {
                 @Override
                 public void onPlayerInteractEntity(PlayerInteractEntityEvent event, SavedHorse savedHorse) {
-                    doAccess(sendingPlayer, savedHorse, added, removed);
+                    doAccess(sendingPlayer, savedHorse, added, removed, publicHorse);
                 }
             });
         } else {
-            doAccess(sendingPlayer, savedHorse, added, removed);
+            doAccess(sendingPlayer, savedHorse, added, removed, publicHorse);
         }
     }
 
@@ -150,7 +166,7 @@ public class HorseAccessExecutor extends ExecutorBase {
      * @param remove a list of players whose access is revoked.
      */
     protected void doAccess(Player sendingPlayer, SavedHorse savedHorse,
-                            Set<OfflinePlayer> added, Set<OfflinePlayer> removed) {
+                            Set<OfflinePlayer> added, Set<OfflinePlayer> removed, int publicHorse) {
         sendingPlayer.sendMessage(ChatColor.GOLD + "Unique ID: " + ChatColor.WHITE + savedHorse.getUuid().toString());
         if (savedHorse.getDisplayName().length() != 0) {
             sendingPlayer.sendMessage(ChatColor.GOLD + "Name: " + ChatColor.YELLOW + savedHorse.getDisplayName());
@@ -181,7 +197,20 @@ public class HorseAccessExecutor extends ExecutorBase {
             sendingPlayer.sendMessage(ChatColor.GOLD + "Removed: " +
                                       ChatColor.GRAY + String.join(" ", removed.stream().map(p -> p.getName()).collect(Collectors.toList())));
         }
-        sendingPlayer.sendMessage(ChatColor.GOLD + "Access List: " +
-                                  ChatColor.GRAY + String.join(" ", savedHorse.getAccessList()));
+        if (publicHorse == -1) {
+            //do nothing
+        } else if (publicHorse == 0) {
+            savedHorse.setPublicHorse(false);
+        } else {
+            savedHorse.setPublicHorse(true);
+        }
+
+	if (savedHorse.getPublicHorse()) {
+            sendingPlayer.sendMessage(ChatColor.GOLD + savedHorse.getMessageName() + " is " +
+                                      ChatColor.RED + "PUBLIC" + ChatColor.GOLD + ". Know the risks!");
+        } else {
+            sendingPlayer.sendMessage(ChatColor.GOLD + "Access List: " +
+                                      ChatColor.GRAY + String.join(" ", savedHorse.getAccessList()));
+        }
     }
 } // class HorseAccessExecutor
