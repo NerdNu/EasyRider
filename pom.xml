@@ -4,7 +4,7 @@
     <groupId>nu.nerd</groupId>
     <name>EasyRider</name>
     <artifactId>EasyRider</artifactId>
-    <version>1.20.4</version>
+    <version>1.20.5</version>
     <packaging>jar</packaging>
     <description>Horse capability levelling plugin.</description>
     <url>https://github.com/NerdNu/${project.name}</url>
@@ -31,25 +31,27 @@
 
     <repositories>
         <repository>
-            <id>spigot-repo</id>
-	    <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
         <repository>
             <!-- For LibsDisguises -->
             <id>md_5-public</id>
-            <url>http://repo.md-5.net/content/groups/public/</url>
+            <url>https://repo.md-5.net/content/groups/public/</url>
         </repository>
     </repositories>
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-	    <version>1.20.2-R0.1-SNAPSHOT</version>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>LibsDisguises</groupId>
-            <artifactId>LibsDisguises</artifactId>
-            <version>10.0.26</version>
+            <groupId>me.libraryaddict.disguises</groupId>
+            <artifactId>libsdisguises</artifactId>
+            <version>11.0.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>

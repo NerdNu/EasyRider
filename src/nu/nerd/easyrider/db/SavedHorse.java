@@ -984,7 +984,7 @@ public class SavedHorse implements Cloneable {
     /**
      * Save this horse to a YAML configuration.
      *
-     * @param section the parent section that contains a section named after
+     * @param parent the parent section that contains a section named after
      *        this horse's UUID. The latter contains the attributes of this
      *        horse.
      */

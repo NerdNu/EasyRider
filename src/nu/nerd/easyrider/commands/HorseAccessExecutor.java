@@ -6,8 +6,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.UUID;
 
+import nu.nerd.easyrider.Util;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -58,9 +58,7 @@ public class HorseAccessExecutor extends ExecutorBase {
         } else {
             // Treat the first arg as the partial UUID of the affected horse.
             List<SavedHorse> horses = EasyRider.DB.getOwnedHorses(sendingPlayer);
-            List<SavedHorse> found = horses.stream()
-            .filter(h -> h.getUuid().toString().toLowerCase().startsWith(args[0]))
-            .collect(Collectors.toList());
+            List<SavedHorse> found = Util.findHorses(sendingPlayer, args[0]);
             if (found.size() == 0) {
                 sender.sendMessage(ChatColor.RED + "The partial UUID " + args[0] + " does not match any animals that you own.");
             } else if (found.size() > 1) {

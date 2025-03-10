@@ -1,13 +1,13 @@
 package nu.nerd.easyrider;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import nu.nerd.easyrider.db.SavedHorse;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
@@ -222,6 +222,47 @@ public class Util {
             }
         }
         return null;
+    }
+
+    // ------------------------------------------------------------------------
+    /**
+     * Return a list of SavedHorses owned by the specified player that match the
+     * specified identifier.
+     *
+     * @param owner      the owning player.
+     * @param identifier identifies the horse, either with the horse's
+     *                   /horse-owned index, an AbstractHorse Entity UUID or the
+     *                   name of the horse.
+     * @return a non-null list of SavedHorses; this will be empty if no match is
+     *         found.
+     */
+    public static List<SavedHorse> findHorses(OfflinePlayer owner, String identifier) {
+        final String lowerIdent = identifier.toLowerCase();
+
+        List<SavedHorse> horses = EasyRider.DB.getOwnedHorses(owner);
+        try {
+            int index = Integer.parseInt(lowerIdent);
+            if (index > 0 && index <= horses.size()) {
+                return Collections.singletonList(horses.get(index - 1));
+            }
+        } catch (NumberFormatException ignored) {
+        }
+
+        List<SavedHorse> found = horses.stream()
+                .filter(h -> h.getDisplayName().toLowerCase().startsWith(lowerIdent))
+                .collect(Collectors.toList());
+        if (!found.isEmpty()) {
+            return found;
+        }
+
+        found = horses.stream()
+                .filter(h -> h.getUuid().toString().toLowerCase().startsWith(lowerIdent))
+                .collect(Collectors.toList());
+        if (!found.isEmpty()) {
+            return found;
+        }
+
+        return new LinkedList<SavedHorse>();
     }
 
     // ------------------------------------------------------------------------
