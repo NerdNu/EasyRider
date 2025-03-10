@@ -1,12 +1,9 @@
 package nu.nerd.easyrider.commands;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -58,23 +55,23 @@ public class HorseGPSExecutor extends ExecutorBase {
         String identifier;
         if (args.length == 1) {
             identifier = args[0];
-            horses = findHorses(sendingPlayer, identifier);
+            horses = Util.findHorses(sendingPlayer, identifier);
         } else {
             identifier = String.join(" ", args);
             if (sender.hasPermission("easyrider.gps-player")) {
-                horses = findHorses(sendingPlayer, identifier);
+                horses = Util.findHorses(sendingPlayer, identifier);
                 if (horses.size() == 0) {
                     @SuppressWarnings("deprecation")
                     OfflinePlayer owner = Bukkit.getOfflinePlayer(args[0]);
                     if (owner != null) {
                         identifier = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
-                        horses = findHorses(owner, identifier);
+                        horses = Util.findHorses(owner, identifier);
                     }
                 }
             } else {
                 // If a player doesn't have permission to locate others' horses,
                 // all args are the horse name.
-                horses = findHorses(sendingPlayer, identifier);
+                horses = Util.findHorses(sendingPlayer, identifier);
             }
         }
 
@@ -87,47 +84,6 @@ public class HorseGPSExecutor extends ExecutorBase {
         }
         return true;
     } // onCommand
-
-    // ------------------------------------------------------------------------
-    /**
-     * Return a list of SavedHorses owned by the specified player that match the
-     * specified identifier.
-     *
-     * @param owner      the owning player.
-     * @param identifier identifies the horse, either with the horse's
-     *                   /horse-owned index, an AbstractHorse Entity UUID or the
-     *                   name of the horse.
-     * @return a non-null list of SavedHorses; this will be empty if no match is
-     *         found.
-     */
-    protected List<SavedHorse> findHorses(OfflinePlayer owner, String identifier) {
-        final String lowerIdent = identifier.toLowerCase();
-
-        ArrayList<SavedHorse> horses = EasyRider.DB.getOwnedHorses(owner);
-        try {
-            int index = Integer.parseInt(lowerIdent);
-            if (index > 0 && index <= horses.size()) {
-                return Arrays.asList(horses.get(index - 1));
-            }
-        } catch (NumberFormatException ex) {
-        }
-
-        List<SavedHorse> found = horses.stream()
-            .filter(h -> h.getDisplayName().toLowerCase().startsWith(lowerIdent))
-            .collect(Collectors.toList());
-        if (found.size() > 0) {
-            return found;
-        }
-
-        found = horses.stream()
-            .filter(h -> h.getUuid().toString().toLowerCase().startsWith(lowerIdent))
-            .collect(Collectors.toList());
-        if (found.size() > 0) {
-            return found;
-        }
-
-        return new LinkedList<SavedHorse>();
-    } // findHorses
 
     // ------------------------------------------------------------------------
     /**
